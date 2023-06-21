@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 from typing import cast
+from prettytable import PrettyTable
 
 import nest_asyncio
 import openai
@@ -22,6 +23,24 @@ from polywrap_uri_resolvers import (
 nest_asyncio.apply()
 
 load_dotenv()
+
+import argparse
+
+# Create the parser
+parser = argparse.ArgumentParser(description='Process some integers.')
+
+# Add the arguments
+parser.add_argument('--debug', action='store_true', help='Enable debug mode')
+
+# Parse the arguments
+args = parser.parse_args()
+
+# Set the debug variable
+debug = args.debug
+
+print(f'Debug mode is: {"On" if debug else "Off"}')
+
+
 
 ipfs_wrapper_path = Path(
     "fs//Users/robertohenriquez/pycode/polywrap/hackathon/Auto-GPT/autogpt/auto_gpt_workspace/wrappers/ipfs-http-client"
@@ -216,14 +235,30 @@ async def agent_loop(question, functions, chat_history=None):
 # Example usage
 
 
+
 async def main_loop(functions):
+    print('Welcome to the Polywrap Agent!')
+
+    # Define the table
+    table = PrettyTable()
+
+    # Specify the Column Names while initializing the Table
+    table.field_names = ["Function Name", "Description"]
+
+    # Add rows
+    for function in functions:
+        table.add_row([function["name"], function["description"]])
+
+    print(table)
+
     chat_history = []
     while True:
-        question = input("User: ")
+        question = input("Give the agent some human feedback: ")
         if question.lower() == "quit":
             break
         response, chat_history = await agent_loop(question, functions, chat_history)
-        print(response)
+        if debug:
+            print(response)
         print(f"Assistant: {chat_history[-1]['content']}")
 
 
