@@ -1,5 +1,6 @@
 openai==0.27.2
 tiktoken==0.3.3
+prettytable==3.8.0
 polywrap-client==0.1.0a29
 polywrap-client-config-builder==0.1.0a29
 polywrap-core==0.1.0a29
