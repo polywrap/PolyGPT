@@ -127,6 +127,9 @@ def invoke_tool(options):
     result = asyncio.run(client.invoke(options))
     return f"SUCCESS! The result is: {result}"
 
+def return_tasks_performed(amount=5):
+    return tasks_performed[-amount:][::-1]
+
 
 question = "Find what tools are available for ipfs"
 # Define the functions for our ChatGPT Agent
@@ -178,8 +181,24 @@ functions = [
             "required": ["tool_uri", "options"],
         },
     },
+    {
+        "name": "return_tasks_performed",
+            "description": "Returns list of an amount of tasks performed by the agent. By default its just 5 most recent tasks.",
+            "parameters": {
+        "type": "object",
+        "properties": {
+            "amount": {
+                "type": "number",
+                "description": "The amount of tasks to return",
+            },
+        },
+        "required": [],
+},
+
+    },
 ]
 
+tasks_performed = []
 
 async def agent_loop(question, functions, chat_history=None):
     """
@@ -216,8 +235,16 @@ async def agent_loop(question, functions, chat_history=None):
 
         try:
             function_response = globals()[function_name](**function_args)
-            updated_chat_history = [{"role": "assistant", "content": function_response}]
+            updated_chat_history = [{"role": "assistant", "content": str(function_response)}]
             chat_history.extend(updated_chat_history)
+            
+            # Add a record of the function call to the tasks_performed list
+            tasks_performed.append({
+                "function_name": function_name,
+                "arguments": function_args,
+                "response": function_response
+            })
+            print('tasks_performed', tasks_performed)
         except Exception as e:
             error_message = str(e)
             updated_chat_history = [
