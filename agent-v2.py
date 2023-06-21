@@ -35,6 +35,33 @@ parser.add_argument('--debug', action='store_true', help='Enable debug mode')
 # Parse the arguments
 args = parser.parse_args()
 
+def create_function_table(functions):
+    # Define the table
+    table = PrettyTable()
+
+    # Specify the Column Names while initializing the Table
+    table.field_names = ["Function Name", "Description"]
+
+    # Add rows
+    for function in functions:
+        table.add_row([function["name"], function["description"]])
+
+    return table
+
+def print_help():
+    print("Welcome to Polywrap Agent Help!")
+    print("""
+    - This program serves as an interface for a user to interact with OpenAI's ChatGPT model and invoke tools through Polywrap, a protocol for using WebAssembly packages on the web.
+    - The user can input questions or commands, and the program uses ChatGPT to understand and execute them. It integrates Polywrap Python client, which enables invoking various WebAssembly packages (tools). This is made possible by defining several functions that can handle certain tasks (e.g., invoking tools, fetching tool libraries, multiplying large numbers using a polywrap package, etc.).
+    - The debug mode can be turned on by running this script with the `--debug` flag.""")
+    print("Commands:")
+    print("quit: Quit the program.")
+    print("help: Print this help message.")
+    table = create_function_table(functions)
+    print(table)
+    
+
+
 # Set the debug variable
 debug = args.debug
 
@@ -129,6 +156,8 @@ def invoke_tool(options):
 
 def return_tasks_performed(amount=5):
     return tasks_performed[-amount:][::-1]
+
+
 
 
 question = "Find what tools are available for ipfs"
@@ -265,27 +294,29 @@ async def agent_loop(question, functions, chat_history=None):
 async def main_loop(functions):
     print('Welcome to the Polywrap Agent!')
 
-    # Define the table
-    table = PrettyTable()
-
-    # Specify the Column Names while initializing the Table
-    table.field_names = ["Function Name", "Description"]
-
-    # Add rows
-    for function in functions:
-        table.add_row([function["name"], function["description"]])
-
+    table = create_function_table(functions)
     print(table)
+    print("Enter a command, or 'help' for help.")
 
     chat_history = []
     while True:
-        question = input("Give the agent some human feedback: ")
-        if question.lower() == "quit":
-            break
-        response, chat_history = await agent_loop(question, functions, chat_history)
-        if debug:
-            print(response)
-        print(f"Assistant: {chat_history[-1]['content']}")
+        try:
+            question = input("Command: ")
+            if question.lower() == "quit":
+                break
+            elif question.lower() == "help":
+                print_help()
+                continue
+
+            print("Thinking, please wait...")
+            response, chat_history = await agent_loop(question, functions, chat_history)
+            if debug:
+                print(response)
+            print(f"Assistant: {chat_history[-1]['content']}")
+
+        except Exception as e:
+            print(f"Error: {str(e)}")
+
 
 
 # Main program execution
