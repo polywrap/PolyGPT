@@ -244,7 +244,6 @@ async def agent_loop(question, functions, chat_history=None):
                 "arguments": function_args,
                 "response": function_response
             })
-            print('tasks_performed', tasks_performed)
         except Exception as e:
             error_message = str(e)
             updated_chat_history = [
