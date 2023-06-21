@@ -1,39 +1,50 @@
-import openai
+import asyncio
 import json
-import os 
-
-from dotenv import load_dotenv
-from polywrap_client import PolywrapClient
+import os
+from pathlib import Path
 from typing import cast
 
-from pathlib import Path
-from polywrap_client import PolywrapClient, ClientConfig
-from polywrap_core import Uri, InvokerOptions, UriPackageOrWrapper, UriResolver
-from polywrap_client_config_builder import PolywrapClientConfigBuilder
-from polywrap_uri_resolvers import FsUriResolver,SimpleFileReader, StaticResolver, RecursiveResolver
-from polywrap_uri_resolvers import UriResolverAggregator
-from polywrap_http_plugin import http_plugin
-
-
-import asyncio
-
 import nest_asyncio
+import openai
+from dotenv import load_dotenv
+from polywrap_client import ClientConfig, PolywrapClient
+from polywrap_client_config_builder import PolywrapClientConfigBuilder
+from polywrap_core import InvokerOptions, Uri, UriPackageOrWrapper, UriResolver
+from polywrap_http_plugin import http_plugin
+from polywrap_uri_resolvers import (
+    FsUriResolver,
+    RecursiveResolver,
+    SimpleFileReader,
+    StaticResolver,
+    UriResolverAggregator,
+)
 
 nest_asyncio.apply()
 
 load_dotenv()
 
-ipfs_wrapper_path = Path("fs//Users/robertohenriquez/pycode/polywrap/hackathon/Auto-GPT/autogpt/auto_gpt_workspace/wrappers/ipfs-http-client")
+ipfs_wrapper_path = Path(
+    "fs//Users/robertohenriquez/pycode/polywrap/hackathon/Auto-GPT/autogpt/auto_gpt_workspace/wrappers/ipfs-http-client"
+)
 
 
 resolver = RecursiveResolver(
-        UriResolverAggregator(
-            [
-                cast(UriResolver, FsUriResolver(file_reader=SimpleFileReader())),
-                cast(UriResolver, StaticResolver({Uri("wrap://ens/wraps.eth:http@1.1.0", ipfs_wrapper_path): http_plugin()})),
-            ]
-        )
+    UriResolverAggregator(
+        [
+            cast(UriResolver, FsUriResolver(file_reader=SimpleFileReader())),
+            cast(
+                UriResolver,
+                StaticResolver(
+                    {
+                        Uri(
+                            "wrap://ens/wraps.eth:http@1.1.0", ipfs_wrapper_path
+                        ): http_plugin()
+                    }
+                ),
+            ),
+        ]
     )
+)
 config = ClientConfig(resolver=resolver)
 client = PolywrapClient(config)
 
@@ -43,7 +54,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 def polywrap_bignumber(base_number, factor):
     """Multiplies a base number by a factor to get a new number"""
     uri = Uri.from_str(
-        f'fs//Users/robertohenriquez/pycode/cloud/AGI/Auto-GPT/autogpt/auto_gpt_workspace/wrappers/bignumber'
+        f"fs//Users/robertohenriquez/pycode/cloud/AGI/Auto-GPT/autogpt/auto_gpt_workspace/wrappers/bignumber"
     )
     args = {
         "arg1": str(base_number),  # The base number
@@ -58,6 +69,7 @@ def polywrap_bignumber(base_number, factor):
     result = asyncio.run(client.invoke(options))
     return f"the result is {result}"
 
+
 def fetch_tool_library(tool_name):
     """a mapping of keywords to tools that ChatGPT will be able to use through the polywrap python client"""
     # Mapping of keywords to tools
@@ -68,23 +80,24 @@ def fetch_tool_library(tool_name):
         "ethers": ["wrap/ethers"],
         "ethereum": ["wrap/ethers"],
     }
-    
+
     # Check if the tool_name has any keywords
     keywords = tool_name.lower().split()
     matching_tools = []
-    
+
     for keyword in keywords:
         if keyword in tool_mappings:
             matching_tools.extend(tool_mappings[keyword])
-    
+
     # Remove duplicates and sort the tools alphabetically
     matching_tools = sorted(list(set(matching_tools)))
-    
+
     return str(matching_tools)
+
 
 def invoke_tool(options):
     """The invoker function that Chat GPT uses to invoke tools with polywrap"""
-    
+
     uri = Uri.from_str(options["tool_uri"])
     args = options["arguments"]
     method = options["method"]
@@ -94,7 +107,6 @@ def invoke_tool(options):
     print(asyncio.run(client.invoke(options)))
     result = asyncio.run(client.invoke(options))
     return f"SUCCESS! The result is: {result}"
-
 
 
 question = "Find what tools are available for ipfs"
@@ -150,19 +162,15 @@ functions = [
 ]
 
 
-
-
-
-
 def agent_loop(question, functions, chat_history=None):
     """
     A simple agent loop that can be used to continue a conversation with ChatGPT, using the polywrap python client to invoke tools
-    
+
     Args:
         question (str): The question to ask ChatGPT
-        functions (list): The list of functions to use with ChatGPT 
+        functions (list): The list of functions to use with ChatGPT
         chat_history (list): The chat history to use with ChatGPT
-    
+
     Returns:
         response (dict): The response from ChatGPT which sometimes is empty #TODO fix this
         chat_history (list): The updated chat history to be used in the follow up call to the agent loop
@@ -193,7 +201,9 @@ def agent_loop(question, functions, chat_history=None):
             chat_history.extend(updated_chat_history)
         except Exception as e:
             error_message = str(e)
-            updated_chat_history = [{"role": "assistant", "content": f"Error: {error_message}"}]
+            updated_chat_history = [
+                {"role": "assistant", "content": f"Error: {error_message}"}
+            ]
             chat_history.extend(updated_chat_history)
     else:
         print("-> No function call used")
@@ -222,5 +232,3 @@ for i in range(2):
     response, chat_history = agent_loop(new_question, functions, chat_history)
 
 print(chat_history)
-
-

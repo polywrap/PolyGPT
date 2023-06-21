@@ -1,0 +1,12 @@
+openai==0.27.2
+tiktoken==0.3.3
+polywrap-client==0.1.0a29
+polywrap-client-config-builder==0.1.0a29
+polywrap-core==0.1.0a29
+polywrap-http-plugin==0.1.0a6
+python-dotenv==1.0.0
+polywrap-manifest==0.1.0a29
+polywrap-msgpack==0.1.0a29
+polywrap-plugin==0.1.0a29
+polywrap-uri-resolvers==0.1.0a29
+polywrap-wasm==0.1.0a29
