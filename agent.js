@@ -10,48 +10,16 @@ const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
+const client = new PolywrapClient();
 
 const functions = {
-
-    GetDateTime: function() {
-      return new Date().toLocaleString();
-    },
-    GetWrap: function() {
-
-        const client = new PolywrapClient();
-
-        const result = client.invoke({
-            uri: "ens/wraps.eth:logger@1.0.0",
-            method: "log",
-            args: {
-              message: "Hello Polywrap!",
-            },
-          });
-          
-          console.log(result);
-    },
-    GetENS: async function() {
-        const client = new PolywrapClient();
-    
-        const resolutionResult = await client.invoke({
-            uri: "ens/wraps.eth:ens-text-record-uri-resolver-ext@1.0.0",
-            method: "tryResolveUri",
-            args: {
-                authority: "ens",
-                path: "uniswap.wraps.eth:v3",
-            },
-        });
-    
-        if (!resolutionResult.ok) {
-            console.log(resolutionResult.error);
-            return;
-        }
-    
-        console.log(resolutionResult.value);
+    GetDateTime: () => new Date().toLocaleString(),
+    GetWrap: () => client.invoke({ uri: "ens/wraps.eth:logger@1.0.0", method: "log", args: { message: "Hello Polywrap!" }}).then(console.log),
+    GetENS: async () => {
+        const resolutionResult = await client.invoke({ uri: "ens/wraps.eth:ens-text-record-uri-resolver-ext@1.0.0", method: "tryResolveUri", args: { authority: "ens", path: "uniswap.wraps.eth:v3" }});
+        console.log(resolutionResult.ok ? resolutionResult.value : resolutionResult.error);
     }
-    
-  }
-
+};
 
 async function createChatCompletion(userInput, chatHistory = []) {
   chatHistory.push(
@@ -62,27 +30,11 @@ async function createChatCompletion(userInput, chatHistory = []) {
   const completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo-0613",
     messages: chatHistory,
-    functions: [{
-        name: "GetDateTime",
-        description: "A function to get the current date and time",
-        parameters: {
-            type: "object",
-            properties: {}
-        }},
-        {
-            name: "GetWrap",
-            description: "A function to get the Polywrap",
-            parameters: {
-                type: "object",
-                properties: {}
-        }},
-        {
-            name: "GetENS",
-            description: "A function to get the ENS record",
-            parameters: {
-                type: "object",
-                properties: {}
-        }}],
+    functions: [
+        { name: "GetDateTime", description: "A function to get the current date and time", parameters: {type: "object", properties: {}}},
+        { name: "GetWrap", description: "A function to get the Polywrap", parameters: {type: "object", properties: {}}},
+        { name: "GetENS", description: "A function to get the ENS record", parameters: {type: "object", properties: {}}}
+    ],
     function_call:"auto"
   });
 
@@ -117,8 +69,8 @@ async function createChatCompletion(userInput, chatHistory = []) {
 
 function continueChat(chatHistory) {
   readline.question('Human Feedback: ', userInput => {
-    console.log(chatHistory);
-    createChatCompletion(userInput, chatHistory).catch(console.error);
+      createChatCompletion(userInput, chatHistory).catch(console.error);
+      console.log(chatHistory);
     
   });
 }
