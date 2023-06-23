@@ -98,7 +98,7 @@ class Agent {
         const proposedFunction = this.processAgentResponse(response!);
 
         if (proposedFunction) {
-          readline.question(`Do you wish to execute the following function?
+          return readline.question(`Do you wish to execute the following function?
       
           Name: ${proposedFunction.name}
           Arguments: ${proposedFunction.arguments}
@@ -107,9 +107,16 @@ class Agent {
         `, async (userInput: string) => {
             if (userInput === "Y" || userInput === "y") {
               await this.executeProposedFunction(proposedFunction)
-              this.promptForUserInput()
+              return this.promptForUserInput()
             }
+
+            this._chatHistory.push({ role: "assistant", content: "Alright. Will not execute this function" })
+            return this.promptForUserInput()
           });
+        } else {
+          this._chatHistory.push({ role: "assistant", content: response?.content! })
+
+          return this.promptForUserInput()
         }
       } catch (e) {
         console.log(e)
