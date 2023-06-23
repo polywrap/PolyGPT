@@ -150,7 +150,9 @@ class Agent {
 
   async executeProposedFunction(functionProposed: ChatCompletionRequestMessageFunctionCall, attemptsRemaining = 5): Promise<string | ChatCompletionResponseMessage> {
     if (!attemptsRemaining) {
-      this._chatHistory.push({ role: "assistant", content: "Sorry, couldn't process your request" });
+      const message: ChatHistoryEntry = { role: "assistant", content: "Sorry, couldn't process your request" };
+      this._chatHistory.push(message);
+      console.log(message)
     }
 
     const functionName = functionProposed.name!;
@@ -159,6 +161,7 @@ class Agent {
     const functionResponse = await functionsMap[functionName](this._client, functionArgs)
 
     if (!functionResponse.ok) {
+      console.log(`The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`)
       const response = (await this.sendMessageToAgent(`The last attempt was unsuccessful. This is the error message: ${functionResponse.error}`))!
       const proposedFunction = this.processAgentResponse(response)
 
