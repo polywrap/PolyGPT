@@ -106,7 +106,9 @@ class Agent {
           (Y/N)
         `, async (userInput: string) => {
             if (userInput === "Y" || userInput === "y") {
-              await this.executeProposedFunction(proposedFunction)
+              const result = await this.executeProposedFunction(proposedFunction)
+              console.log(result)
+
               return this.promptForUserInput()
             }
 
@@ -152,7 +154,7 @@ class Agent {
     if (attemptsRemaining == 0) {
       const message: ChatHistoryEntry = { role: "assistant", content: "Sorry, couldn't process your request" };
       this._chatHistory.push(message);
-      console.log(message)
+      return message
     }
 
     const functionName = functionProposed.name!;
