@@ -33,16 +33,17 @@ const functions_description = [
   { name: "GetFunctionsfromTool", description: "A function to log something in the CLI, like a console log or print", parameters: { type: "object", properties: {} } },
   {
     name: "InvokeWrap", description: "A function to get the ENS record",
-    parameters: {
+    parameters: { 
       type: "object",
       properties: {
         options: {
           type: "object",
-          properties: {}
-        }
-      }
-    }
-  }
+          description: "The options to invoke a wrap, including the URI, METHOD, ARGS, where ARGS is optional, and both Uri and Method are required",
+        },
+      },
+      required: ["options"],
+    },
+  },  
 ];
 
 const functionsMap: Record<string, AgentFunction> = {
