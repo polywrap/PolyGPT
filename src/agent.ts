@@ -107,7 +107,7 @@ class Agent {
         `, async (userInput: string) => {
             if (userInput === "Y" || userInput === "y") {
               const result = await this.executeProposedFunction(proposedFunction)
-              console.log(result)
+              console.log(result.content)
 
               return this.promptForUserInput()
             }
@@ -150,7 +150,7 @@ class Agent {
     }
   }
 
-  async executeProposedFunction(functionProposed: ChatCompletionRequestMessageFunctionCall, attemptsRemaining = 5): Promise<string | ChatCompletionResponseMessage> {
+  async executeProposedFunction(functionProposed: ChatCompletionRequestMessageFunctionCall, attemptsRemaining = 5): Promise<ChatCompletionResponseMessage> {
     if (attemptsRemaining == 0) {
       const message: ChatHistoryEntry = { role: "assistant", content: "Sorry, couldn't process your request" };
       this._chatHistory.push(message);
@@ -173,7 +173,9 @@ class Agent {
 
       return response
     } else {
-      return JSON.stringify(functionResponse.result)
+      const message: ChatHistoryEntry = { role: "assistant", content: JSON.stringify(functionResponse.result) };
+      this._chatHistory.push(message);
+      return message
     }
   }
 }
