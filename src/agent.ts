@@ -149,7 +149,7 @@ class Agent {
   }
 
   async executeProposedFunction(functionProposed: ChatCompletionRequestMessageFunctionCall, attemptsRemaining = 5): Promise<string | ChatCompletionResponseMessage> {
-    if (!attemptsRemaining) {
+    if (attemptsRemaining == 0) {
       const message: ChatHistoryEntry = { role: "assistant", content: "Sorry, couldn't process your request" };
       this._chatHistory.push(message);
       console.log(message)
