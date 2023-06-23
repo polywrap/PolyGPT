@@ -1,91 +1,154 @@
 import { InvokeOptions, PolywrapClient } from "@polywrap/client-js";
-import { ChatCompletionRequestMessageFunctionCall, ChatCompletionRequestMessageRoleEnum, ChatCompletionResponseMessage, Configuration, OpenAIApi } from "openai";
-import dotenv from "dotenv"
+import {
+  ChatCompletionRequestMessageFunctionCall,
+  ChatCompletionRequestMessageRoleEnum,
+  ChatCompletionResponseMessage,
+  Configuration,
+  OpenAIApi,
+} from "openai";
+import dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config();
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const readline = require('readline').createInterface({
+const readline = require("readline").createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
-type Result = {
-  ok: true,
-  result: any
-} | {
-  ok: false,
-  error: string
-}
+type Result =
+  | {
+      ok: true;
+      result: any;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
 
 interface ChatHistoryEntry {
   role: ChatCompletionRequestMessageRoleEnum;
-  content: string
+  content: string;
 }
 
-type AgentFunction = (client: PolywrapClient, ...args: any[]) => Promise<Result>;
+type AgentFunction = (
+  client: PolywrapClient,
+  ...args: any[]
+) => Promise<Result>;
 
 const functions_description = [
-  { name: "GetToolLibrary", description: "A function to get the current date and time", parameters: { type: "object", properties: {} } },
-  { name: "GetFunctionsfromTool", description: "A function to log something in the CLI, like a console log or print", parameters: { type: "object", properties: {} } },
   {
-    name: "InvokeWrap", description: "A function to get the ENS record",
+    name: "GetToolLibrary",
+    description: "A function to get the current date and time",
     parameters: { 
+      type: "object", 
+      properties: {
+        toolName: {
+          type: "string",
+          description: "The name of the tool to get the library for",
+        },
+      },
+      required: ["toolName"],
+    },
+
+  },
+  {
+    name: "GetFunctionsfromTool",
+    description:
+      "A function to log something in the CLI, like a console log or print",
+    parameters: { type: "object", properties: {} },
+  },
+  {
+    name: "InvokeWrap",
+    description: "A function to get the ENS record",
+    parameters: {
       type: "object",
       properties: {
         options: {
           type: "object",
-          description: "The options to invoke a wrap, including the URI, METHOD, ARGS, where ARGS is optional, and both Uri and Method are required",
+          description:
+            "The options to invoke a wrap, including the URI, METHOD, ARGS, where ARGS is optional, and both Uri and Method are required",
         },
       },
       required: ["options"],
     },
-  },  
+  },
 ];
 
 const functionsMap: Record<string, AgentFunction> = {
   GetToolLibrary: async (_: PolywrapClient, toolName: string) => {
-    return {
-      ok: true,
-      result: new Date().toLocaleString()
-    }
+    const fetchToolLibrary: AgentFunction = async (_: PolywrapClient, toolName: string) => {
+      const toolMappings: Record<string, string[]> = {
+        ipfs: ["wrap/ipfs"],
+        http: ["wrap/http"],
+        ens: ["wrap/ens"],
+        ethers: ["wrap/ethers"],
+        ethereum: ["wrap/ethers"],
+      };
+    
+      const keywords = toolName.toLowerCase().split(" ");
+      const matchingTools: string[] = [];
+    
+      for (const keyword of keywords) {
+        if (keyword in toolMappings) {
+          matchingTools.push(...toolMappings[keyword]);
+        }
+      }
+    
+      const uniqueTools = Array.from(new Set(matchingTools));
+      const sortedTools = uniqueTools.sort();
+    
+      return {
+        ok: true,
+        result: sortedTools.toString(),
+      } as Result;
+    };
+    
+    
   },
   GetFunctionsfromTool: async (client: PolywrapClient, toolUri: string) => {
-    const resolutionResult = await client.invoke({ uri: "ens/wraps.eth:ens-text-record-uri-resolver-ext@1.0.0", method: "tryResolveUri", args: { authority: "ens", path: "uniswap.wraps.eth:v3" } });
+    const resolutionResult = await client.invoke({
+      uri: "ens/wraps.eth:ens-text-record-uri-resolver-ext@1.0.0",
+      method: "tryResolveUri",
+      args: { authority: "ens", path: "uniswap.wraps.eth:v3" },
+    });
 
-    return resolutionResult.ok ? {
-      ok: true,
-      result: resolutionResult.value
-    } : {
-      ok: false,
-      error: resolutionResult.error?.toString() ?? ""
-    };
-
+    return resolutionResult.ok
+      ? {
+          ok: true,
+          result: resolutionResult.value,
+        }
+      : {
+          ok: false,
+          error: resolutionResult.error?.toString() ?? "",
+        };
   },
   InvokeWrap: async (client: PolywrapClient, options: InvokeOptions) => {
-    console.log("Invoking wrap")
-    console.log(options)
+    console.log("Invoking wrap");
+    console.log(options);
 
     try {
-      const result = await client.invoke(options)
-      return result.ok ? {
-        ok: true,
-        result: result.value,
-      } : {
-        ok: false,
-        error: result.error?.toString() ?? "",
-      }
+      const result = await client.invoke(options);
+      return result.ok
+        ? {
+            ok: true,
+            result: result.value,
+          }
+        : {
+            ok: false,
+            error: result.error?.toString() ?? "",
+          };
     } catch (e: any) {
       return {
         ok: false,
-        error: e
-      }
+        error: e,
+      };
     }
-  }
-}
+  },
+};
 
 class Agent {
   private _openai = new OpenAIApi(configuration);
@@ -95,91 +158,127 @@ class Agent {
   promptForUserInput() {
     readline.question("Human feedback: ", async (userInput: string) => {
       try {
-        const response = await this.sendMessageToAgent(userInput)
+        const response = await this.sendMessageToAgent(userInput);
         const proposedFunction = this.processAgentResponse(response!);
 
         if (proposedFunction) {
-          return readline.question(`Do you wish to execute the following function?
+          return readline.question(
+            `Do you wish to execute the following function?
       
           Name: ${proposedFunction.name}
           Arguments: ${proposedFunction.arguments}
     
           (Y/N)
-        `, async (userInput: string) => {
-            if (userInput === "Y" || userInput === "y") {
-              const result = await this.executeProposedFunction(proposedFunction)
-              console.log(result.content)
+        `,
+            async (userInput: string) => {
+              if (userInput === "Y" || userInput === "y") {
+                const result = await this.executeProposedFunction(
+                  proposedFunction
+                );
+                console.log(result.content);
 
-              return this.promptForUserInput()
+                return this.promptForUserInput();
+              }
+
+              this._chatHistory.push({
+                role: "assistant",
+                content: "Alright. Will not execute this function",
+              });
+              return this.promptForUserInput();
             }
-
-            this._chatHistory.push({ role: "assistant", content: "Alright. Will not execute this function" })
-            return this.promptForUserInput()
-          });
+          );
         } else {
-          this._chatHistory.push({ role: "assistant", content: response?.content! })
+          this._chatHistory.push({
+            role: "assistant",
+            content: response?.content!,
+          });
 
-          return this.promptForUserInput()
+          return this.promptForUserInput();
         }
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
       console.log(this._chatHistory);
     });
   }
 
-  async sendMessageToAgent(message: string): Promise<ChatCompletionResponseMessage | undefined> {
+  async sendMessageToAgent(
+    message: string
+  ): Promise<ChatCompletionResponseMessage | undefined> {
     this._chatHistory.push({ role: "user", content: message });
 
     const completion = await this._openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
       messages: this._chatHistory,
       functions: functions_description,
-      function_call: "auto"
+      function_call: "auto",
     });
 
-    return completion.data.choices[0].message
+    return completion.data.choices[0].message;
   }
 
-  processAgentResponse(response: ChatCompletionResponseMessage): ChatCompletionRequestMessageFunctionCall | undefined {
+  processAgentResponse(
+    response: ChatCompletionResponseMessage
+  ): ChatCompletionRequestMessageFunctionCall | undefined {
     if (response.function_call) {
-      return response.function_call
+      return response.function_call;
     } else {
       console.log("-> No function call used");
-      console.log("Assistant: ", response.content)
+      console.log("Assistant: ", response.content);
       this._chatHistory.push({ role: "assistant", content: response.content! });
     }
   }
 
-  async executeProposedFunction(functionProposed: ChatCompletionRequestMessageFunctionCall, attemptsRemaining = 5): Promise<ChatCompletionResponseMessage> {
+  async executeProposedFunction(
+    functionProposed: ChatCompletionRequestMessageFunctionCall,
+    attemptsRemaining = 5
+  ): Promise<ChatCompletionResponseMessage> {
     if (attemptsRemaining == 0) {
-      const message: ChatHistoryEntry = { role: "assistant", content: "Sorry, couldn't process your request" };
+      const message: ChatHistoryEntry = {
+        role: "assistant",
+        content: "Sorry, couldn't process your request",
+      };
       this._chatHistory.push(message);
-      return message
+      return message;
     }
 
     const functionName = functionProposed.name!;
-    const functionArgs = functionProposed.arguments ? JSON.parse(functionProposed.arguments) : undefined;
+    const functionArgs = functionProposed.arguments
+      ? JSON.parse(functionProposed.arguments)
+      : undefined;
 
-    const functionResponse = await functionsMap[functionName](this._client, functionArgs)
+    const functionResponse = await functionsMap[functionName](
+      this._client,
+      functionArgs
+    );
 
     if (!functionResponse.ok) {
-      console.log(`The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`)
-      const response = (await this.sendMessageToAgent(`The last attempt was unsuccessful. This is the error message: ${functionResponse.error}`))!
-      const proposedFunction = this.processAgentResponse(response)
+      console.log(
+        `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`
+      );
+      const response = (await this.sendMessageToAgent(
+        `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}`
+      ))!;
+      const proposedFunction = this.processAgentResponse(response);
 
       if (proposedFunction) {
-        return await this.executeProposedFunction(proposedFunction, attemptsRemaining - 1)
+        return await this.executeProposedFunction(
+          proposedFunction,
+          attemptsRemaining - 1
+        );
       }
 
-      return response
+      return response;
     } else {
-      const message: ChatHistoryEntry = { role: "assistant", content: JSON.stringify(functionResponse.result) };
+      const message: ChatHistoryEntry = {
+        role: "assistant",
+        content: JSON.stringify(functionResponse.result),
+      };
       this._chatHistory.push(message);
-      return message
+      return message;
     }
   }
 }
 
-const agent = new Agent()
-agent.promptForUserInput()
+const agent = new Agent();
+agent.promptForUserInput();
