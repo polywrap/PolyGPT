@@ -1,12 +1,12 @@
-import { InvokeOptions, PolywrapClient, PolywrapClientConfigBuilder } from "@polywrap/client-js";
+import { PolywrapClient, PolywrapClientConfigBuilder } from "@polywrap/client-js";
 import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
-  ChatCompletionRequestMessageRoleEnum,
   ChatCompletionResponseMessage,
   Configuration,
   OpenAIApi,
 } from "openai";
+import axios from "axios"
 import dotenv from "dotenv";
 import { functionsDescription, functionsMap } from "./functions";
 
@@ -20,6 +20,52 @@ const readline = require("readline").createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+
+interface WrapsIndex {
+  wraps: string[];
+}
+
+interface WrapInfoDTO {
+  aliases: string[];
+  description: string;
+  uri: string;
+  abi: string;
+  examplePrompts: {
+    prompt: string;
+    result: {
+      uri: string;
+      method: string;
+      args: Record<string, any>;
+    }
+  }[]
+}
+
+interface WrapInfo extends WrapInfoDTO {
+  name: string;
+}
+
+const WRAPS_LIBRARY_URL = `https://raw.githubusercontent.com/polywrap/agent-wrap-library/master/wraps`
+
+const getWrapsIndex = async (): Promise<WrapsIndex> => {
+  const response = await axios.get<WrapsIndex>(`${WRAPS_LIBRARY_URL}/index.json`)
+
+  return response.data
+}
+
+const getWrapInfos = async (wrapNames: string[]): Promise<WrapInfo[]> => {
+  return Promise.all(wrapNames.map(async (wrapName) => {
+    const response = await axios.get<WrapInfoDTO>(`${WRAPS_LIBRARY_URL}/${wrapName}.json`)
+    const wrapInfo = response.data
+
+    const { data: wrapSchemaString } = await axios.get<string>(wrapInfo.abi);
+
+    return {
+      ...wrapInfo,
+      name: wrapName,
+      abi: wrapSchemaString
+    }
+  }))
+}
 
 
 class Agent {
@@ -37,34 +83,33 @@ class Agent {
   }
 
   static async createAgent(): Promise<Agent> {
-    console.log("Initializing agent...")
+    console.log("Fetching wraps library...")
+
+    const availableWraps = await getWrapsIndex()
+
+    console.log(`Available wraps: ${availableWraps.wraps.join("\n-")}\n`)
+
+    console.log(`Fetching wrap training data...`)
+    const wrapInfos = await getWrapInfos(availableWraps.wraps)
+
     const agent = new Agent()
 
-    const messages: ChatCompletionRequestMessage[] = [{
-      role: "system",
-      content: `Your name is PolyGPT. 
-      You have a set of wraps which are groups of functions that you can call on demand.
-      First you need to call the function GetWrapLibrary, then GetFunctionFromWrap and finally InvokeWrap. 
-        1.GetWrapLibrary should return a list of unique string identifiers for each wrap possible; 
-          each string identifier will be called Uri. 
-        2.GetFunctionFromWrap will select one of the functions from the selected wrap. 
-        3.Finally, InvokeWrap will execute the selected function from the previous step and map user 
-          input to the selected function's arguments.
+    const messages: ChatCompletionRequestMessage[] = [
+      {
+        role: "system", content: `You will now be transferred to your next user. They will give you an input in natural language and you will attempt to execute InvokeWrap
+    based on the prompt if the users wants to do something. You will also be able to answer questions without executing InvokeWrap`},
+    ]
 
-      When using InvokeWrap, don't add any optional args by default, unless you're sure the user gave them to you.
-      
-      You will respond with 'Acknowledged' and you will have to solve problems with your LLM knowledge`},
-    {role: "assistant", content: "Acknowledged"}, 
-    {role: "system", content: `You will now be transferred to your next user. They will give you an input in natural language,
-      and you should use your wrap functions when needed`},  
-  ]
 
-    await agent._openai.createChatCompletion({
+    console.log(`Initializing Agent...`)
+    const response = await agent._openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
       messages,
       functions: functionsDescription,
       function_call: "auto",
     });
+
+    console.log(response.data.choices[0].message)
 
     agent._chatHistory.push(...messages);
     console.log("Agent initialized.")
@@ -177,8 +222,6 @@ class Agent {
       this._client,
       functionArgs
     );
-
-    console.log(functionResponse)
 
     if (!functionResponse.ok) {
       console.log(
