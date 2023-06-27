@@ -506,43 +506,40 @@
   resolved "https://registry.yarnpkg.com/@opentelemetry/semantic-conventions/-/semantic-conventions-1.6.0.tgz#ed410c9eb0070491cff9fe914246ce41f88d6f74"
   integrity sha512-aPfcBeLErM/PPiAuAbNFLN5sNbZLc3KZlar27uohllN8Zs6jJbHyJU1y7cMA6W/zuq+thkaG8mujiS+3iD/FWQ==
 
-"@polywrap/asyncify-js@0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@polywrap/asyncify-js/-/asyncify-js-0.10.1.tgz#00d656a39bfd54c1b8af82adf648264b0415259b"
-  integrity sha512-qXD2GNAoG18sDLPOtN3bbdEJUM+5hhII2EJkcAREJSBpi4g7yFxlySz/qQGzDnlIRNl9MGNgaf+TYbpQnNBeLw==
+"@polywrap/asyncify-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/asyncify-js/-/asyncify-js-0.11.0.tgz#a5ad2661184c49aa249ef6042579b2ca835a2781"
+  integrity sha512-rZ5poZ4lFp1si8T6jbNXNd14QHf5RcNi4db/1ODp6r+x70KtbOiL9Ob+Pnlc7tVWvP4RkP82Xld+xWvudKOYlA==
 
-"@polywrap/client-config-builder-js@0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@polywrap/client-config-builder-js/-/client-config-builder-js-0.10.1.tgz#d52430645b4530b235f97318ccdeef256eb4c425"
-  integrity sha512-cXQXe+u+r9WVCovp507FmERWWFa6OJSl8ZQd3QpKnIaNeBmXbAa4WoM5889VTPe2oe5iDgo4jR4U/fHBg8qoyQ==
+"@polywrap/client-config-builder-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/client-config-builder-js/-/client-config-builder-js-0.11.0.tgz#efdc95b24cd434eab40e8010f79c9e57330f6aad"
+  integrity sha512-jdw4iv6BHBOlTGgDyK672/uMFxltf9QaqbYB8c38tVaXZlHOYdBf86ez/cBiEMAd7Gomt3aYjSUSunEgYfm2Wg==
   dependencies:
-    "@polywrap/concurrent-plugin-js" "~0.10.0"
-    "@polywrap/core-js" "0.10.1"
-    "@polywrap/ethereum-provider-js" "npm:@polywrap/ethereum-provider-js@~0.3.1"
-    "@polywrap/ethereum-provider-js-v1" "npm:@polywrap/ethereum-provider-js@~0.2.4"
-    "@polywrap/file-system-plugin-js" "~0.10.0"
-    "@polywrap/http-plugin-js" "~0.10.0"
-    "@polywrap/logger-plugin-js" "~0.10.1"
-    "@polywrap/uri-resolver-extensions-js" "0.10.1"
-    "@polywrap/uri-resolvers-js" "0.10.1"
-    "@polywrap/wasm-js" "0.10.1"
-    base64-to-uint8array "1.0.0"
+    "@polywrap/config-bundle-types-js" "0.11.0"
+    "@polywrap/core-js" "0.11.0"
+    "@polywrap/plugin-js" "0.11.0"
+    "@polywrap/sys-config-bundle-js" "0.11.0"
+    "@polywrap/uri-resolver-extensions-js" "0.11.0"
+    "@polywrap/uri-resolvers-js" "0.11.0"
+    "@polywrap/wasm-js" "0.11.0"
+    "@polywrap/web3-config-bundle-js" "0.11.0"
 
-"@polywrap/client-js@0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@polywrap/client-js/-/client-js-0.10.1.tgz#d324420b1558d7fb47c6928042c083eef7b3b6f6"
-  integrity sha512-xIZoGOPPS+J2RjiyEF8A8huMIr0IyN+VEwHWcCUdp7NxTQ1xmve1lxQfbbdE0BC37o5Ni7lJwiIXmAUfhuMyGg==
+"@polywrap/client-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/client-js/-/client-js-0.11.0.tgz#9359ce9ebf838ff26b834cd482f2e77357b8f482"
+  integrity sha512-2QGTtuDfbyClomx1GmHExWbvlbTGRsX+e918olvJryGawUcYgAwmOmZQIyH+0KTWtEXGrKbbk4SW1z1yjj2lTQ==
   dependencies:
-    "@polywrap/client-config-builder-js" "0.10.1"
-    "@polywrap/core-client-js" "0.10.1"
-    "@polywrap/core-js" "0.10.1"
-    "@polywrap/msgpack-js" "0.10.1"
-    "@polywrap/plugin-js" "0.10.1"
-    "@polywrap/result" "0.10.1"
-    "@polywrap/tracing-js" "0.10.1"
-    "@polywrap/uri-resolver-extensions-js" "0.10.1"
-    "@polywrap/uri-resolvers-js" "0.10.1"
-    "@polywrap/wrap-manifest-types-js" "0.10.1"
+    "@polywrap/client-config-builder-js" "0.11.0"
+    "@polywrap/core-client-js" "0.11.0"
+    "@polywrap/core-js" "0.11.0"
+    "@polywrap/msgpack-js" "0.11.0"
+    "@polywrap/plugin-js" "0.11.0"
+    "@polywrap/result" "0.11.0"
+    "@polywrap/tracing-js" "0.11.0"
+    "@polywrap/uri-resolver-extensions-js" "0.11.0"
+    "@polywrap/uri-resolvers-js" "0.11.0"
+    "@polywrap/wrap-manifest-types-js" "0.11.0"
 
 "@polywrap/concurrent-plugin-js@~0.10.0":
   version "0.10.0"
@@ -553,16 +550,23 @@
     "@polywrap/msgpack-js" "0.10.0"
     "@polywrap/plugin-js" "0.10.0"
 
-"@polywrap/core-client-js@0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@polywrap/core-client-js/-/core-client-js-0.10.1.tgz#7342adfcffe2ce97ce7066c4c8ae1fc54250cb4f"
-  integrity sha512-ew5B4nNTgzgzqt8KZE06bclhqUrfZbA0D9n2BlyQ4+RfiSTQFoqoN8jN53TuHRFJRmt0v/a/RPRvKujF5mMf9g==
+"@polywrap/config-bundle-types-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/config-bundle-types-js/-/config-bundle-types-js-0.11.0.tgz#76bfa64c5af2d5f13f4a08a8b7c51d8e12c23f8c"
+  integrity sha512-SqlpwTzcLuh0qAEXjy4OwUpyQnD+Mq/6SQJ+Dwf1xQ19NzBIeELOvX+96LRcuK9SR2ZCIzlfgmCBMy2/ExVy1A==
   dependencies:
-    "@polywrap/core-js" "0.10.1"
-    "@polywrap/msgpack-js" "0.10.1"
-    "@polywrap/result" "0.10.1"
-    "@polywrap/tracing-js" "0.10.1"
-    "@polywrap/wrap-manifest-types-js" "0.10.1"
+    "@polywrap/core-js" "0.11.0"
+
+"@polywrap/core-client-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/core-client-js/-/core-client-js-0.11.0.tgz#92a6ceb074dc32409641915d8672358377d1825d"
+  integrity sha512-nii7Z2QhTcuKjE3xp505VdMh/vzO5wKwFPw8ibhqOp1jKl9R3/LK0EIZUI67NSWkaklhM1lv/hJ0h4ubhSaHtw==
+  dependencies:
+    "@polywrap/core-js" "0.11.0"
+    "@polywrap/msgpack-js" "0.11.0"
+    "@polywrap/result" "0.11.0"
+    "@polywrap/tracing-js" "0.11.0"
+    "@polywrap/wrap-manifest-types-js" "0.11.0"
 
 "@polywrap/core-js@0.10.0":
   version "0.10.0"
@@ -582,7 +586,7 @@
     "@polywrap/tracing-js" "0.10.0-pre.10"
     "@polywrap/wrap-manifest-types-js" "0.10.0-pre.10"
 
-"@polywrap/core-js@0.10.1":
+"@polywrap/core-js@0.10.1", "@polywrap/core-js@~0.10.1":
   version "0.10.1"
   resolved "https://registry.yarnpkg.com/@polywrap/core-js/-/core-js-0.10.1.tgz#09405c745f591d5f7ec243db95a61540a05296cb"
   integrity sha512-BJpWDikfd/6h64Lf7FKy0g5O3a5OKaL915boni1pHP54wF4xBWdHkKixLGD8w4BZWRiW9v42PpYBhWqYZwSNGg==
@@ -590,6 +594,23 @@
     "@polywrap/result" "0.10.1"
     "@polywrap/tracing-js" "0.10.1"
     "@polywrap/wrap-manifest-types-js" "0.10.1"
+
+"@polywrap/core-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/core-js/-/core-js-0.11.0.tgz#9c42edf4c4693a7a27d48c09d00115b0074ece21"
+  integrity sha512-pSgaiHAxybAZ2jBY+QaRMrumdzQw7ZdlwFd7+fA9NIHonoDQaA/lFd1EhUy7pN7rT24aVEgMNT9d5GeWvvTe3Q==
+  dependencies:
+    "@polywrap/result" "0.11.0"
+    "@polywrap/tracing-js" "0.11.0"
+    "@polywrap/wrap-manifest-types-js" "0.11.0"
+
+"@polywrap/datetime-plugin-js@~0.10.0":
+  version "0.10.1"
+  resolved "https://registry.yarnpkg.com/@polywrap/datetime-plugin-js/-/datetime-plugin-js-0.10.1.tgz#8042673034c09155f3d0972eef87d87cb53b1914"
+  integrity sha512-eB6osYgISVQjnz6SDJ+02Z5HIC3Qg82hU6m1b02fTCsAsJqIDTSoe5AUugd0KqQ3C+MHv03TlGuFn6ekjyutGg==
+  dependencies:
+    "@polywrap/core-js" "~0.10.1"
+    "@polywrap/plugin-js" "~0.10.1"
 
 "@polywrap/ethereum-provider-js-v1@npm:@polywrap/ethereum-provider-js@~0.2.4":
   version "0.2.4"
@@ -631,7 +652,7 @@
     axios "0.21.4"
     form-data "4.0.0"
 
-"@polywrap/logger-plugin-js@~0.10.1":
+"@polywrap/logger-plugin-js@~0.10.0":
   version "0.10.1"
   resolved "https://registry.yarnpkg.com/@polywrap/logger-plugin-js/-/logger-plugin-js-0.10.1.tgz#220cc248cb1381aa46c1f773ed8ce77da420280c"
   integrity sha512-ipqS7A6Mc0Fp0e/qg8RyGIulfk6mGS9acKii3kQoJ59/Zf/Yy4Eg3HWDtnlgBIdIgwyZKD8amiF42VKRO6R3Ig==
@@ -660,6 +681,13 @@
   dependencies:
     "@msgpack/msgpack" "2.7.2"
 
+"@polywrap/msgpack-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/msgpack-js/-/msgpack-js-0.11.0.tgz#e354f5e6a4fc096bae3714eb81db5483c2df4005"
+  integrity sha512-+sH6+NO3OmizdEyT2BfEe5dSIUbAaH6GKlb1r9rCIP8TzdrjcK04HHBH0I6/qvL1skil1SZFNJnoT3hjfhlgVQ==
+  dependencies:
+    "@msgpack/msgpack" "2.7.2"
+
 "@polywrap/plugin-js@0.10.0":
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/@polywrap/plugin-js/-/plugin-js-0.10.0.tgz#e3bc81bf7832df9c84a4a319515228b159a05ba5"
@@ -682,7 +710,18 @@
     "@polywrap/tracing-js" "0.10.0-pre.10"
     "@polywrap/wrap-manifest-types-js" "0.10.0-pre.10"
 
-"@polywrap/plugin-js@0.10.1":
+"@polywrap/plugin-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/plugin-js/-/plugin-js-0.11.0.tgz#cee0e8d14e7b4d1b7dc78bef7d092de06ece280d"
+  integrity sha512-5DGUGorf43MTB2SehkVs8jL7gGdlOT/mRqRi0/R5bnK+A+q75F6/kj26wnytrh42393WoIWghZtwZFkGN4EbYw==
+  dependencies:
+    "@polywrap/core-js" "0.11.0"
+    "@polywrap/msgpack-js" "0.11.0"
+    "@polywrap/result" "0.11.0"
+    "@polywrap/tracing-js" "0.11.0"
+    "@polywrap/wrap-manifest-types-js" "0.11.0"
+
+"@polywrap/plugin-js@~0.10.1":
   version "0.10.1"
   resolved "https://registry.yarnpkg.com/@polywrap/plugin-js/-/plugin-js-0.10.1.tgz#e11ce19dde01245750c297a62f2f75fd58ef9ced"
   integrity sha512-WBk4ZUrI5m6FG4bIocLHo7XS+QMeNa23odli6Ss6onUyo7mPIo1wlceEgw7Cu4gd/3bmuc6VGoCKRA1/glBT3g==
@@ -707,6 +746,25 @@
   version "0.10.1"
   resolved "https://registry.yarnpkg.com/@polywrap/result/-/result-0.10.1.tgz#e60122396521fc07edda6951915ada4aaa5f6694"
   integrity sha512-9EoS/JUgKFwRk396lQ+3tDAGbZExsOf26SUG4l41HJv4FZLLLOL5ksppJK8StvjtbpQOIgFls23c83CXzS1hBQ==
+
+"@polywrap/result@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/result/-/result-0.11.0.tgz#a64af3f419318d2cd0ed797249e1f87af40f0798"
+  integrity sha512-FIhVioaNYFWMYuEb8dSHCdtpoXkmJuPsLCI4+GqATBWoEy2v4shlu/ILjVzeo8dk5OPr/MeIrqbt+KlFPUYk1g==
+
+"@polywrap/sys-config-bundle-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/sys-config-bundle-js/-/sys-config-bundle-js-0.11.0.tgz#4a1c379c323e281703c5a5174739dc9c93a275c8"
+  integrity sha512-yoy1HQxzHgbC1kCARPgo6kwWkkCcnSURXVGe8pNeHRYssfVXm1HEyZThzCkcJVaRf60pD6DKLjqFwIZbzFWlUQ==
+  dependencies:
+    "@polywrap/concurrent-plugin-js" "~0.10.0"
+    "@polywrap/config-bundle-types-js" "0.11.0"
+    "@polywrap/datetime-plugin-js" "~0.10.0"
+    "@polywrap/file-system-plugin-js" "~0.10.0"
+    "@polywrap/http-plugin-js" "~0.10.0"
+    "@polywrap/logger-plugin-js" "~0.10.0"
+    "@polywrap/uri-resolver-extensions-js" "0.11.0"
+    base64-to-uint8array "1.0.0"
 
 "@polywrap/tracing-js@0.10.0":
   version "0.10.0"
@@ -744,37 +802,62 @@
     "@opentelemetry/sdk-trace-base" "1.6.0"
     "@opentelemetry/sdk-trace-web" "1.6.0"
 
-"@polywrap/uri-resolver-extensions-js@0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@polywrap/uri-resolver-extensions-js/-/uri-resolver-extensions-js-0.10.1.tgz#6385ec63de3d53a8eddedeba10c59f0c8b2de36e"
-  integrity sha512-dsihLqgC3o76xnhWMH+o0Nol58BBy2KljxSoRGdi1XbEEkdHHKx2qwxfWAjOA83ljGJXToh0IsaxbCUuPEMIZQ==
+"@polywrap/tracing-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/tracing-js/-/tracing-js-0.11.0.tgz#3ea7a09fef41b6f582d6dc5e75be00d6178fe259"
+  integrity sha512-vg1UZ2QMKHey3FiuBfNpc4MYHf7x1HS/kqL8jvlbpiii/r5t4M8sGRTE6czwflLV23fOCtZp7MULwfhHCJBo/g==
   dependencies:
-    "@polywrap/core-js" "0.10.1"
-    "@polywrap/result" "0.10.1"
-    "@polywrap/uri-resolvers-js" "0.10.1"
-    "@polywrap/wasm-js" "0.10.1"
-    "@polywrap/wrap-manifest-types-js" "0.10.1"
+    "@fetsorn/opentelemetry-console-exporter" "0.0.3"
+    "@opentelemetry/api" "1.2.0"
+    "@opentelemetry/exporter-trace-otlp-http" "0.32.0"
+    "@opentelemetry/resources" "1.6.0"
+    "@opentelemetry/sdk-trace-base" "1.6.0"
+    "@opentelemetry/sdk-trace-web" "1.6.0"
 
-"@polywrap/uri-resolvers-js@0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@polywrap/uri-resolvers-js/-/uri-resolvers-js-0.10.1.tgz#8ea24ba9348f31da0ccc691f92024c864db27d00"
-  integrity sha512-/PtGzoR/PwQPIr630iV15/ah7yu/zKYMzm0TfUIFpF+pRWfIR/6VD086d20PLE6h6UE4Jd5VHzEIXeb6FqdbgA==
+"@polywrap/uri-resolver-extensions-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/uri-resolver-extensions-js/-/uri-resolver-extensions-js-0.11.0.tgz#ff2b04b733e9f1404d85e61575dc149590c856d3"
+  integrity sha512-iMYDuRJ3bxUrU1EPl8KSKG5YCc8xoeNEOW05uY2iPHo7Aa/5nUhP+v81YdHhBHsjZQgndCoFtvS8NzNUa+bx2w==
   dependencies:
-    "@polywrap/core-js" "0.10.1"
-    "@polywrap/result" "0.10.1"
-    "@polywrap/wrap-manifest-types-js" "0.10.1"
+    "@polywrap/core-js" "0.11.0"
+    "@polywrap/result" "0.11.0"
+    "@polywrap/uri-resolvers-js" "0.11.0"
+    "@polywrap/wasm-js" "0.11.0"
+    "@polywrap/wrap-manifest-types-js" "0.11.0"
 
-"@polywrap/wasm-js@0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@polywrap/wasm-js/-/wasm-js-0.10.1.tgz#21e208e1e65417a41478a8828131d6e0cefcfdcb"
-  integrity sha512-ZWd/bqbpjyxp7NFx34SNlRvK4S3MF4s/6AWdauIHHZORUyRJvemXtmZSh8etTkltZzXTl+PTJ9xYPM5oEIs4nw==
+"@polywrap/uri-resolvers-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/uri-resolvers-js/-/uri-resolvers-js-0.11.0.tgz#5ad22e8baddef48814756ff56bc7051bffe7e9d2"
+  integrity sha512-vNNur0TuzpcNGaTJRbqNnzOaexga4sCfAgUUkcvrl8dyozFbhcDqqt1Ok6v0vGHD8MXPpSHNk1JNzPP5xnE9FQ==
   dependencies:
-    "@polywrap/asyncify-js" "0.10.1"
-    "@polywrap/core-js" "0.10.1"
-    "@polywrap/msgpack-js" "0.10.1"
-    "@polywrap/result" "0.10.1"
-    "@polywrap/tracing-js" "0.10.1"
-    "@polywrap/wrap-manifest-types-js" "0.10.1"
+    "@polywrap/core-js" "0.11.0"
+    "@polywrap/result" "0.11.0"
+    "@polywrap/wrap-manifest-types-js" "0.11.0"
+
+"@polywrap/wasm-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/wasm-js/-/wasm-js-0.11.0.tgz#19846787b1135e85087a348d65c1814b838cfef2"
+  integrity sha512-mgr40pTQMd1fmeKa5DhrxXDxUoS5XlT0lPy74b/Ai/i2KEyLrNLKhvVtkw0U1C5jVbCFteWR43cxRhuvsb3xfQ==
+  dependencies:
+    "@polywrap/asyncify-js" "0.11.0"
+    "@polywrap/core-js" "0.11.0"
+    "@polywrap/msgpack-js" "0.11.0"
+    "@polywrap/result" "0.11.0"
+    "@polywrap/tracing-js" "0.11.0"
+    "@polywrap/wrap-manifest-types-js" "0.11.0"
+
+"@polywrap/web3-config-bundle-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/web3-config-bundle-js/-/web3-config-bundle-js-0.11.0.tgz#3c96fa76f6c2a00e3d3d8de7cf8e5975fb606593"
+  integrity sha512-A4Wo3ghkCv1jkXPvOaj8oYSHiJCS3EXA44aK0/8GvfX/SSF1tW2oZxxmzsK69G+Tm/9wYODhkAsgjD6Swe9vKw==
+  dependencies:
+    "@polywrap/config-bundle-types-js" "0.11.0"
+    "@polywrap/ethereum-provider-js" "npm:@polywrap/ethereum-provider-js@~0.3.1"
+    "@polywrap/ethereum-provider-js-v1" "npm:@polywrap/ethereum-provider-js@~0.2.4"
+    "@polywrap/sys-config-bundle-js" "0.11.0"
+    "@polywrap/uri-resolver-extensions-js" "0.11.0"
+    "@polywrap/wasm-js" "0.11.0"
+    base64-to-uint8array "1.0.0"
 
 "@polywrap/wrap-manifest-types-js@0.10.0":
   version "0.10.0"
@@ -802,6 +885,15 @@
     "@apidevtools/json-schema-ref-parser" "9.0.9"
     "@polywrap/msgpack-js" "0.10.1"
     jsonschema "1.4.0"
+    semver "7.5.0"
+
+"@polywrap/wrap-manifest-types-js@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/wrap-manifest-types-js/-/wrap-manifest-types-js-0.11.0.tgz#b9b55312d83aab5988e60c4b8740c9d10d37fc13"
+  integrity sha512-0Oc6m+x1NSvsYop3wHfk9wgt+nATbglHN3m5sapAMRu6yZBNCIuMTlGyAK3/KLpKvCBDsCMo8+Gj5d8uBDApYA==
+  dependencies:
+    "@polywrap/msgpack-js" "0.11.0"
+    ajv "8.12.0"
     semver "7.5.0"
 
 "@tsconfig/node10@^1.0.7":
@@ -848,6 +940,16 @@ aes-js@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/aes-js/-/aes-js-3.0.0.tgz#e21df10ad6c2053295bcbb8dab40b09dbea87e4d"
   integrity sha512-H7wUZRn8WpTq9jocdxQ2c8x2sKo9ZVmzfRE13GiNJXfp7NcKYEdvl3vspKjXox6RIG2VtaRe4JFvxG4rqp2Zuw==
+
+ajv@8.12.0:
+  version "8.12.0"
+  resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.12.0.tgz#d1a0527323e22f53562c567c00991577dfbe19d1"
+  integrity sha512-sRu1kpcO9yLtYxBKvqfTeh9KzZEwO3STyX1HT+4CaDzC6HpTGYhIhPIzj9XuKU7KYDwnaeh5hcOwjy1QuJzBPA==
+  dependencies:
+    fast-deep-equal "^3.1.1"
+    json-schema-traverse "^1.0.0"
+    require-from-string "^2.0.2"
+    uri-js "^4.2.2"
 
 arg@^4.1.0:
   version "4.1.3"
@@ -984,6 +1086,11 @@ ethers@5.7.0:
     "@ethersproject/web" "5.7.0"
     "@ethersproject/wordlists" "5.7.0"
 
+fast-deep-equal@^3.1.1:
+  version "3.1.3"
+  resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz#3a7d56b559d6cbc3eb512325244e619a65c6c525"
+  integrity sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==
+
 follow-redirects@^1.14.0, follow-redirects@^1.14.8:
   version "1.15.2"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
@@ -1031,6 +1138,11 @@ js-yaml@^4.1.0:
   integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
   dependencies:
     argparse "^2.0.1"
+
+json-schema-traverse@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-1.0.0.tgz#ae7bcb3656ab77a73ba5c49bf654f38e6b6860e2"
+  integrity sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==
 
 jsonschema@1.4.0:
   version "1.4.0"
@@ -1084,10 +1196,20 @@ openai@3.3.0:
     axios "^0.26.0"
     form-data "^4.0.0"
 
+punycode@^2.1.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.0.tgz#f67fa67c94da8f4d0cfff981aee4118064199b8f"
+  integrity sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==
+
 readline@1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/readline/-/readline-1.3.0.tgz#c580d77ef2cfc8752b132498060dc9793a7ac01c"
   integrity sha512-k2d6ACCkiNYz222Fs/iNze30rRJ1iIicW7JuX/7/cozvih6YCkFZH+J6mAFDVgv0dRBaAyr4jDqC95R2y4IADg==
+
+require-from-string@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/require-from-string/-/require-from-string-2.0.2.tgz#89a7fdd938261267318eafe14f9c32e598c36909"
+  integrity sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==
 
 scrypt-js@3.0.1:
   version "3.0.1"
@@ -1138,6 +1260,13 @@ typescript@^5.0.4:
   version "5.1.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.1.3.tgz#8d84219244a6b40b6fb2b33cc1c062f715b9e826"
   integrity sha512-XH627E9vkeqhlZFQuL+UsyAXEnibT0kWR2FWONlr4sTjvxyJYnyefgrkyECLzM5NenmKzRAy2rR/OlYLA1HkZw==
+
+uri-js@^4.2.2:
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/uri-js/-/uri-js-4.4.1.tgz#9b1a52595225859e55f669d928f88c6c57f2a77e"
+  integrity sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==
+  dependencies:
+    punycode "^2.1.0"
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"

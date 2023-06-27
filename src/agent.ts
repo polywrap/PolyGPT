@@ -1,4 +1,4 @@
-import { InvokeOptions, PolywrapClient } from "@polywrap/client-js";
+import { InvokeOptions, PolywrapClient, PolywrapClientConfigBuilder } from "@polywrap/client-js";
 import {
   ChatCompletionRequestMessageFunctionCall,
   ChatCompletionRequestMessageRoleEnum,
@@ -59,7 +59,15 @@ const functions_description = [
     name: "GetFunctionsfromWrap",
     description:
       "A function to get available functions given a wrap's URI",
-    parameters: { type: "object", properties: {} },
+    parameters: {
+      type: "object",
+      properties: {
+        uri: {
+          type: "string",
+          description: "The URI of the wrap"
+        }
+      }
+    },
   },
   {
     name: "InvokeWrap",
@@ -79,10 +87,13 @@ const functions_description = [
 ];
 
 const functionsMap: Record<string, AgentFunction> = {
-  GetWrapLibrary: async (_: PolywrapClient, wrapName: string) => {
+  GetWrapLibrary: async (_: PolywrapClient, { wrapName }: { wrapName: string }) => {
+    console.log(wrapName)
     const wrapMappings: Record<string, string[]> = {
       ipfs: ["wrap/ipfs"],
+      filesystem: ["wrap/fs"],
       http: ["wrap/http"],
+      datetime: ["plugin/datetime@1.0.0"],
       ens: ["wrap/ens"],
       ethers: ["wrap/ethers"],
       ethereum: ["wrap/ethers"],
@@ -105,22 +116,43 @@ const functionsMap: Record<string, AgentFunction> = {
       result: sortedWraps.toString(),
     } as Result;
   },
-  GetFunctionsfromWrap: async (client: PolywrapClient, wrapUri: string) => {
-    const resolutionResult = await client.invoke({
-      uri: "ens/wraps.eth:ens-text-record-uri-resolver-ext@1.0.0",
-      method: "tryResolveUri",
-      args: { authority: "ens", path: "uniswap.wraps.eth:v3" },
+  GetFunctionsfromWrap: async (client: PolywrapClient, { uri }: { uri: string }) => {
+    const resolutionResult = await client.tryResolveUri({
+      uri
     });
 
-    return resolutionResult.ok
-      ? {
-        ok: true,
-        result: resolutionResult.value,
+    if (resolutionResult.ok) {
+      switch (resolutionResult.value.type) {
+        case "uri": return {
+          ok: false,
+          error: `Resolved URI: ${resolutionResult.value.uri.toString()}`
+        }
+        case "wrapper": return {
+          ok: true,
+          result: resolutionResult.value.wrapper.getManifest().abi.moduleType?.methods?.map(m => m.name!) ?? []
+        }
+        case "package": {
+          const manifest = await resolutionResult.value.package.getManifest()
+
+          if (manifest.ok) {
+            return {
+              ok: true,
+              result: manifest.value.abi.moduleType?.methods?.map(m => m.name!) ?? []
+            }
+          }
+
+          return {
+            ok: false,
+            error: "Failed to get manifest for Wrap package"
+          }
+        }
       }
-      : {
-        ok: false,
-        error: resolutionResult.error?.toString() ?? "",
-      };
+    }
+
+    return {
+      ok: false,
+      error: "Failed to resolve wrap or package"
+    }
   },
   InvokeWrap: async (client: PolywrapClient, options: InvokeOptions) => {
     console.log("Invoking wrap");
@@ -148,41 +180,93 @@ const functionsMap: Record<string, AgentFunction> = {
 
 class Agent {
   private _openai = new OpenAIApi(configuration);
-  private _client = new PolywrapClient();
+  private _client: PolywrapClient;
   private _chatHistory: ChatHistoryEntry[] = [];
+
+  private constructor() {
+    const config = new PolywrapClientConfigBuilder()
+      .addBundle("web3")
+      .addBundle("sys")
+      .build()
+
+    this._client = new PolywrapClient(config)
+  }
+
+  static async createAgent(): Promise<Agent> {
+    console.log("Initializing agent...")
+    const agent = new Agent()
+
+    const messages: ChatHistoryEntry[] = [{
+      role: "system",
+      content: `Your name is PolyGPT. You have a set of wraps which are groups of functions that you can call on demand.
+      First you need to call the function GetWrapLibrary, then GetFunctionFromWrap and finally InvokeWrap. GetWrapLibrary should return
+      a list of unique string identifiers for each wrap possible; each string identifier will be called Uri. GetFunctionFromWrap
+      will select one of the functions from the selected wrap. Finally, InvokeWrap will execute the selected function from the previous step
+      and map user input to the selected function's arguments.
+      You will respond with 'Acknowledged' and you will have to solve problems with your LLM knowledge`
+    }, {
+      role: "assistant",
+      content: "Acknowledged"
+    }, {
+      role: "system",
+      content: `You will now be transferred to your next user. They will give you an input in natural language,
+      and you should use your wrap functions when needed`
+    }]
+
+    await agent._openai.createChatCompletion({
+      model: "gpt-3.5-turbo-0613",
+      messages,
+      functions: functions_description,
+      function_call: "auto",
+    });
+
+    agent._chatHistory.push(...messages);
+    console.log("Agent initialized.")
+
+    return agent
+  }
+
+  promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall) {
+    return readline.question(
+      `Do you wish to execute the following function?
+
+    Name: ${proposedFunction.name}
+    Arguments: ${proposedFunction.arguments}
+
+    (Y/N)
+  `,
+      async (userInput: string) => {
+        if (userInput === "Y" || userInput === "y") {
+          const result = await this.executeProposedFunction(
+            proposedFunction
+          );
+          console.log(result.content);
+
+          return this.promptForUserInput();
+        }
+
+        this._chatHistory.push({
+          role: "assistant",
+          content: "Alright. Will not execute this function",
+        });
+        return this.promptForUserInput();
+      }
+    );
+  }
 
   promptForUserInput() {
     readline.question("Human feedback: ", async (userInput: string) => {
       try {
+        if (userInput === "history") {
+          console.log(this._chatHistory)
+          return this.promptForUserInput()
+        }
+
         const response = await this.sendMessageToAgent(userInput);
         const proposedFunction = this.processAgentResponse(response!);
 
         if (proposedFunction) {
-          return readline.question(
-            `Do you wish to execute the following function?
-      
-          Name: ${proposedFunction.name}
-          Arguments: ${proposedFunction.arguments}
-    
-          (Y/N)
-        `,
-            async (userInput: string) => {
-              if (userInput === "Y" || userInput === "y") {
-                const result = await this.executeProposedFunction(
-                  proposedFunction
-                );
-                console.log(result.content);
-
-                return this.promptForUserInput();
-              }
-
-              this._chatHistory.push({
-                role: "assistant",
-                content: "Alright. Will not execute this function",
-              });
-              return this.promptForUserInput();
-            }
-          );
+          this.promptForUserConfirmation(proposedFunction)
         } else {
           this._chatHistory.push({
             role: "assistant",
@@ -194,7 +278,6 @@ class Agent {
       } catch (e) {
         console.log(e);
       }
-      console.log(this._chatHistory);
     });
   }
 
@@ -248,6 +331,8 @@ class Agent {
       functionArgs
     );
 
+    console.log(functionResponse)
+
     if (!functionResponse.ok) {
       console.log(
         `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`
@@ -276,5 +361,7 @@ class Agent {
   }
 }
 
-const agent = new Agent();
-agent.promptForUserInput();
+(async () => {
+  const agent = await Agent.createAgent();
+  agent.promptForUserInput();
+})()
