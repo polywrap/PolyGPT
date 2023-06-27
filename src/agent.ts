@@ -21,13 +21,13 @@ const readline = require("readline").createInterface({
 
 type Result =
   | {
-      ok: true;
-      result: any;
-    }
+    ok: true;
+    result: any;
+  }
   | {
-      ok: false;
-      error: string;
-    };
+    ok: false;
+    error: string;
+  };
 
 interface ChatHistoryEntry {
   role: ChatCompletionRequestMessageRoleEnum;
@@ -41,29 +41,29 @@ type AgentFunction = (
 
 const functions_description = [
   {
-    name: "GetToolLibrary",
-    description: "A function to get the current date and time",
-    parameters: { 
-      type: "object", 
+    name: "GetWrapLibrary",
+    description: "A function to get a library of available wraps, given a wrap name",
+    parameters: {
+      type: "object",
       properties: {
-        toolName: {
+        wrapName: {
           type: "string",
-          description: "The name of the tool to get the library for",
+          description: "The name of the wrap to get the library for",
         },
       },
-      required: ["toolName"],
+      required: ["wrapName"],
     },
 
   },
   {
-    name: "GetFunctionsfromTool",
+    name: "GetFunctionsfromWrap",
     description:
-      "A function to log something in the CLI, like a console log or print",
+      "A function to get available functions given a wrap's URI",
     parameters: { type: "object", properties: {} },
   },
   {
     name: "InvokeWrap",
-    description: "A function to get the ENS record",
+    description: "A function to invoke or execute any wrap function, given a uri, method and optional args",
     parameters: {
       type: "object",
       properties: {
@@ -79,37 +79,33 @@ const functions_description = [
 ];
 
 const functionsMap: Record<string, AgentFunction> = {
-  GetToolLibrary: async (_: PolywrapClient, toolName: string) => {
-    const fetchToolLibrary: AgentFunction = async (_: PolywrapClient, toolName: string) => {
-      const toolMappings: Record<string, string[]> = {
-        ipfs: ["wrap/ipfs"],
-        http: ["wrap/http"],
-        ens: ["wrap/ens"],
-        ethers: ["wrap/ethers"],
-        ethereum: ["wrap/ethers"],
-      };
-    
-      const keywords = toolName.toLowerCase().split(" ");
-      const matchingTools: string[] = [];
-    
-      for (const keyword of keywords) {
-        if (keyword in toolMappings) {
-          matchingTools.push(...toolMappings[keyword]);
-        }
-      }
-    
-      const uniqueTools = Array.from(new Set(matchingTools));
-      const sortedTools = uniqueTools.sort();
-    
-      return {
-        ok: true,
-        result: sortedTools.toString(),
-      } as Result;
+  GetWrapLibrary: async (_: PolywrapClient, wrapName: string) => {
+    const wrapMappings: Record<string, string[]> = {
+      ipfs: ["wrap/ipfs"],
+      http: ["wrap/http"],
+      ens: ["wrap/ens"],
+      ethers: ["wrap/ethers"],
+      ethereum: ["wrap/ethers"],
     };
-    
-    
+
+    const keywords = wrapName.toLowerCase().split(" ");
+    const matchingWraps: string[] = [];
+
+    for (const keyword of keywords) {
+      if (keyword in wrapMappings) {
+        matchingWraps.push(...wrapMappings[keyword]);
+      }
+    }
+
+    const uniqueWraps = Array.from(new Set(matchingWraps));
+    const sortedWraps = uniqueWraps.sort();
+
+    return {
+      ok: true,
+      result: sortedWraps.toString(),
+    } as Result;
   },
-  GetFunctionsfromTool: async (client: PolywrapClient, toolUri: string) => {
+  GetFunctionsfromWrap: async (client: PolywrapClient, wrapUri: string) => {
     const resolutionResult = await client.invoke({
       uri: "ens/wraps.eth:ens-text-record-uri-resolver-ext@1.0.0",
       method: "tryResolveUri",
@@ -118,13 +114,13 @@ const functionsMap: Record<string, AgentFunction> = {
 
     return resolutionResult.ok
       ? {
-          ok: true,
-          result: resolutionResult.value,
-        }
+        ok: true,
+        result: resolutionResult.value,
+      }
       : {
-          ok: false,
-          error: resolutionResult.error?.toString() ?? "",
-        };
+        ok: false,
+        error: resolutionResult.error?.toString() ?? "",
+      };
   },
   InvokeWrap: async (client: PolywrapClient, options: InvokeOptions) => {
     console.log("Invoking wrap");
@@ -134,13 +130,13 @@ const functionsMap: Record<string, AgentFunction> = {
       const result = await client.invoke(options);
       return result.ok
         ? {
-            ok: true,
-            result: result.value,
-          }
+          ok: true,
+          result: result.value,
+        }
         : {
-            ok: false,
-            error: result.error?.toString() ?? "",
-          };
+          ok: false,
+          error: result.error?.toString() ?? "",
+        };
     } catch (e: any) {
       return {
         ok: false,
