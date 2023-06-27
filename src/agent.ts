@@ -100,9 +100,9 @@ const functionsMap: Record<string, AgentFunction> = {
     console.log(wrapName)
     const wrapMappings: Record<string, string[]> = {
       datetime: ["plugin/datetime@1.0.0"],
-      http: ["plugin/http@1.1.0"], // Returns the entire website so it breaks after the query
+      http: ["plugin/http@1.1.0"], // Returns the entire website so it breaks after the query, apis like duckduckgo also raise errors
       logger: ["plugin/logger@1.0.0"], // It's invoked but the result is not shown apparently
-      ipfs: ["embed/ipfs-http-client@1.0.0"], // Cant cat a sample IPFS hash (QmTkzDwWqPbnAh5YiV5VwcTLnGdwSNsNTn2aDxdXBFca7D)
+      ipfs: ["embed/ipfs-http-client@1.0.0"], // Cant cat a sample IPFS hash (QmTkzDwWqPbnAh5YiV5VwcTLnGdwSNsNTn2aDxdXBFca7D), returns an empty string
       ens: ["ens/wraps.eth:ens-uri-resolver-ext@1.0.1"],
       http_uri_resolver: ["embed/http-uri-resolver-ext@1.0.1"], // Dont know how to test this one
       ethereum: ["plugin/ethereum-provider@2.0.0"], // Dont know how to test this
