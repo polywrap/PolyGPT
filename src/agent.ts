@@ -1,5 +1,6 @@
 import { InvokeOptions, PolywrapClient, PolywrapClientConfigBuilder } from "@polywrap/client-js";
 import {
+  ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
   ChatCompletionRequestMessageRoleEnum,
   ChatCompletionResponseMessage,
@@ -7,6 +8,7 @@ import {
   OpenAIApi,
 } from "openai";
 import dotenv from "dotenv";
+import { functionsDescription, functionsMap } from "./functions";
 
 dotenv.config();
 
@@ -19,179 +21,11 @@ const readline = require("readline").createInterface({
   output: process.stdout,
 });
 
-type Result =
-  | {
-    ok: true;
-    result: any;
-  }
-  | {
-    ok: false;
-    error: string;
-  };
-
-interface ChatHistoryEntry {
-  role: ChatCompletionRequestMessageRoleEnum;
-  content: string;
-}
-
-type AgentFunction = (
-  client: PolywrapClient,
-  ...args: any[]
-) => Promise<Result>;
-
-const functions_description = [
-  {
-    name: "GetWrapLibrary",
-    description: "A function to get a library of available wraps, given a wrap name",
-    parameters: {
-      type: "object",
-      properties: {
-        wrapName: {
-          type: "string",
-          description: "The name of the wrap to get the library for",
-        },
-      },
-      required: ["wrapName"],
-    },
-
-  },
-  {
-    name: "GetFunctionsfromWrap",
-    description:
-      "A function to get available functions given a wrap's URI",
-    parameters: {
-      type: "object",
-      properties: {
-        uri: {
-          type: "string",
-          description: "The URI of the wrap"
-        }
-      }
-    },
-  },
-  {
-    name: "InvokeWrap",
-    description: `A function to invoke or execute any wrap function. 
-                  It receives an option object with a uri, method and optional args
-                  For example
-                  Function = InvokeWrap
-                  Arguments = Options {
-                    uri: <URI Here>,
-                    method: <Method Name>,
-                    args: <Args if necessary>
-                  }`,
-    parameters: {
-      type: "object",
-      properties: {
-        options: {
-          type: "object",
-          description:
-            `The options to invoke a wrap, including the URI, METHOD, ARGS,
-            where ARGS is optional, and both Uri and Method are required`,
-        },
-      },
-      required: ["options"],
-    },
-  },
-];
-
-const functionsMap: Record<string, AgentFunction> = {
-  GetWrapLibrary: async (_: PolywrapClient, { wrapName }: { wrapName: string }) => {
-    console.log(wrapName)
-    const wrapMappings: Record<string, string[]> = {
-      datetime: ["plugin/datetime@1.0.0"],
-      http: ["plugin/http@1.1.0"], // Returns the entire website so it breaks after the query, apis like duckduckgo also raise errors
-      logger: ["plugin/logger@1.0.0"], // It's invoked but the result is not shown apparently
-      ipfs: ["embed/ipfs-http-client@1.0.0"], // Cant cat a sample IPFS hash (QmTkzDwWqPbnAh5YiV5VwcTLnGdwSNsNTn2aDxdXBFca7D), returns an empty string
-      ens: ["ens/wraps.eth:ens-uri-resolver-ext@1.0.1"],
-      http_uri_resolver: ["embed/http-uri-resolver-ext@1.0.1"], // Dont know how to test this one
-      ethereum: ["plugin/ethereum-provider@2.0.0"], // Dont know how to test this
-
-    };
-
-    const keywords = wrapName.toLowerCase().split(" ");
-    const matchingWraps: string[] = [];
-
-    for (const keyword of keywords) {
-      if (keyword in wrapMappings) {
-        matchingWraps.push(...wrapMappings[keyword]);
-      }
-    }
-
-    const uniqueWraps = Array.from(new Set(matchingWraps));
-    const sortedWraps = uniqueWraps.sort();
-
-    return {
-      ok: true,
-      result: sortedWraps.toString(),
-    } as Result;
-  },
-  GetFunctionsfromWrap: async (client: PolywrapClient, { uri }: { uri: string }) => {
-    const resolutionResult = await client.tryResolveUri({
-      uri
-    });
-
-    if (resolutionResult.ok) {
-      switch (resolutionResult.value.type) {
-        case "uri": return {
-          ok: false,
-          error: `Resolved URI: ${resolutionResult.value.uri.toString()}`
-        }
-        case "wrapper": return {
-          ok: true,
-          result: resolutionResult.value.wrapper.getManifest().abi.moduleType?.methods?.map(m => m.name!) ?? []
-        }
-        case "package": {
-          const manifest = await resolutionResult.value.package.getManifest()
-
-          if (manifest.ok) {
-            return {
-              ok: true,
-              result: manifest.value.abi.moduleType?.methods?.map(m => m.name!) ?? []
-            }
-          }
-
-          return {
-            ok: false,
-            error: "Failed to get manifest for Wrap package"
-          }
-        }
-      }
-    }
-
-    return {
-      ok: false,
-      error: "Failed to resolve wrap or package"
-    }
-  },
-  InvokeWrap: async (client: PolywrapClient, options: InvokeOptions) => {
-    console.log("Invoking wrap");
-    console.log(options);
-
-    try {
-      const result = await client.invoke(options);
-      return result.ok
-        ? {
-          ok: true,
-          result: result.value,
-        }
-        : {
-          ok: false,
-          error: result.error?.toString() ?? "",
-        };
-    } catch (e: any) {
-      return {
-        ok: false,
-        error: e,
-      };
-    }
-  },
-};
 
 class Agent {
   private _openai = new OpenAIApi(configuration);
   private _client: PolywrapClient;
-  private _chatHistory: ChatHistoryEntry[] = [];
+  private _chatHistory: ChatCompletionRequestMessage[] = [];
 
   private constructor() {
     const config = new PolywrapClientConfigBuilder()
@@ -206,7 +40,7 @@ class Agent {
     console.log("Initializing agent...")
     const agent = new Agent()
 
-    const messages: ChatHistoryEntry[] = [{
+    const messages: ChatCompletionRequestMessage[] = [{
       role: "system",
       content: `Your name is PolyGPT. 
       You have a set of wraps which are groups of functions that you can call on demand.
@@ -216,6 +50,8 @@ class Agent {
         2.GetFunctionFromWrap will select one of the functions from the selected wrap. 
         3.Finally, InvokeWrap will execute the selected function from the previous step and map user 
           input to the selected function's arguments.
+
+      When using InvokeWrap, don't add any optional args by default, unless you're sure the user gave them to you.
       
       You will respond with 'Acknowledged' and you will have to solve problems with your LLM knowledge`},
     {role: "assistant", content: "Acknowledged"}, 
@@ -226,7 +62,7 @@ class Agent {
     await agent._openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
       messages,
-      functions: functions_description,
+      functions: functionsDescription,
       function_call: "auto",
     });
 
@@ -299,7 +135,7 @@ class Agent {
     const completion = await this._openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
       messages: this._chatHistory,
-      functions: functions_description,
+      functions: functionsDescription,
       function_call: "auto",
     });
 
@@ -324,7 +160,7 @@ class Agent {
     attemptsRemaining = 5
   ): Promise<ChatCompletionResponseMessage> {
     if (attemptsRemaining == 0) {
-      const message: ChatHistoryEntry = {
+      const message: ChatCompletionRequestMessage = {
         role: "assistant",
         content: "Sorry, couldn't process your request",
       };
@@ -362,9 +198,10 @@ class Agent {
 
       return response;
     } else {
-      const message: ChatHistoryEntry = {
-        role: "assistant",
-        content: JSON.stringify(functionResponse.result),
+      const message: ChatCompletionRequestMessage = {
+        role: "function",
+        name: functionName,
+        content: `Args: ${JSON.stringify(functionArgs, null, 2)}. Result: ${JSON.stringify(functionResponse.result, null, 2)}`,
       };
       this._chatHistory.push(message);
       return message;
