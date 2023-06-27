@@ -71,14 +71,23 @@ const functions_description = [
   },
   {
     name: "InvokeWrap",
-    description: "A function to invoke or execute any wrap function, given a uri, method and optional args",
+    description: `A function to invoke or execute any wrap function. 
+                  It receives an option object with a uri, method and optional args
+                  For example
+                  Function = InvokeWrap
+                  Arguments = Options {
+                    uri: <URI Here>,
+                    method: <Method Name>,
+                    args: <Args if necessary>
+                  }`,
     parameters: {
       type: "object",
       properties: {
         options: {
           type: "object",
           description:
-            "The options to invoke a wrap, including the URI, METHOD, ARGS, where ARGS is optional, and both Uri and Method are required",
+            `The options to invoke a wrap, including the URI, METHOD, ARGS,
+            where ARGS is optional, and both Uri and Method are required`,
         },
       },
       required: ["options"],
@@ -90,13 +99,14 @@ const functionsMap: Record<string, AgentFunction> = {
   GetWrapLibrary: async (_: PolywrapClient, { wrapName }: { wrapName: string }) => {
     console.log(wrapName)
     const wrapMappings: Record<string, string[]> = {
-      ipfs: ["wrap/ipfs"],
-      filesystem: ["wrap/fs"],
-      http: ["wrap/http"],
       datetime: ["plugin/datetime@1.0.0"],
-      ens: ["wrap/ens"],
-      ethers: ["wrap/ethers"],
-      ethereum: ["wrap/ethers"],
+      http: ["plugin/http@1.1.0"], // Returns the entire website so it breaks after the query
+      logger: ["plugin/logger@1.0.0"], // It's invoked but the result is not shown apparently
+      ipfs: ["embed/ipfs-http-client@1.0.0"], // Cant cat a sample IPFS hash (QmTkzDwWqPbnAh5YiV5VwcTLnGdwSNsNTn2aDxdXBFca7D)
+      ens: ["ens/wraps.eth:ens-uri-resolver-ext@1.0.1"],
+      http_uri_resolver: ["embed/http-uri-resolver-ext@1.0.1"], // Dont know how to test this one
+      ethereum: ["plugin/ethereum-provider@2.0.0"], // Dont know how to test this
+
     };
 
     const keywords = wrapName.toLowerCase().split(" ");
@@ -198,20 +208,20 @@ class Agent {
 
     const messages: ChatHistoryEntry[] = [{
       role: "system",
-      content: `Your name is PolyGPT. You have a set of wraps which are groups of functions that you can call on demand.
-      First you need to call the function GetWrapLibrary, then GetFunctionFromWrap and finally InvokeWrap. GetWrapLibrary should return
-      a list of unique string identifiers for each wrap possible; each string identifier will be called Uri. GetFunctionFromWrap
-      will select one of the functions from the selected wrap. Finally, InvokeWrap will execute the selected function from the previous step
-      and map user input to the selected function's arguments.
-      You will respond with 'Acknowledged' and you will have to solve problems with your LLM knowledge`
-    }, {
-      role: "assistant",
-      content: "Acknowledged"
-    }, {
-      role: "system",
-      content: `You will now be transferred to your next user. They will give you an input in natural language,
-      and you should use your wrap functions when needed`
-    }]
+      content: `Your name is PolyGPT. 
+      You have a set of wraps which are groups of functions that you can call on demand.
+      First you need to call the function GetWrapLibrary, then GetFunctionFromWrap and finally InvokeWrap. 
+        1.GetWrapLibrary should return a list of unique string identifiers for each wrap possible; 
+          each string identifier will be called Uri. 
+        2.GetFunctionFromWrap will select one of the functions from the selected wrap. 
+        3.Finally, InvokeWrap will execute the selected function from the previous step and map user 
+          input to the selected function's arguments.
+      
+      You will respond with 'Acknowledged' and you will have to solve problems with your LLM knowledge`},
+    {role: "assistant", content: "Acknowledged"}, 
+    {role: "system", content: `You will now be transferred to your next user. They will give you an input in natural language,
+      and you should use your wrap functions when needed`},  
+  ]
 
     await agent._openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
@@ -300,6 +310,7 @@ class Agent {
     response: ChatCompletionResponseMessage
   ): ChatCompletionRequestMessageFunctionCall | undefined {
     if (response.function_call) {
+      // todo: add function calling to history for better memory management
       return response.function_call;
     } else {
       console.log("-> No function call used");
