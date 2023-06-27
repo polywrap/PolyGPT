@@ -119,10 +119,10 @@ class Agent {
       
       ${wrapInfos}`
     },
-    {role: "system", content: `You will now be transferred to your next user. They will give you an input in natural language and you will attempt to execute InvokeWrap
-    based on the prompt if the users wants to do something. You will also be able to answer questions without executing InvokeWrap`},  
-  ]
-  
+    {
+      role: "system", content: `You will now be transferred to your next user. They will give you an input in natural language and you will attempt to execute InvokeWrap
+    based on the prompt if the users wants to do something. You will also be able to answer questions without executing InvokeWrap`},
+    ]
 
     console.log(`Initializing Agent...`)
     const response = await agent._openai.createChatCompletion({
