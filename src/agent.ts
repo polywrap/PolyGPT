@@ -91,6 +91,8 @@ class Agent {
 
     console.log(`Fetching wrap training data...`)
     const wrapInfos = await getWrapInfos(availableWraps.wraps)
+    const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
+
 
     const agent = new Agent()
 
@@ -117,7 +119,7 @@ class Agent {
       
       Here are the JSONs:
       
-      ${wrapInfos}`
+      ${wrapInfosString}`
     },
     {
       role: "system", content: `You will now be transferred to your next user. They will give you an input in natural language and you will attempt to execute InvokeWrap
@@ -130,6 +132,7 @@ class Agent {
       messages,
       functions: functionsDescription,
       function_call: "auto",
+      temperature: 0
     });
 
     console.log(response.data.choices[0].message)
@@ -205,6 +208,7 @@ class Agent {
       messages: this._chatHistory,
       functions: functionsDescription,
       function_call: "auto",
+      temperature: 0
     });
 
     return completion.data.choices[0].message;
