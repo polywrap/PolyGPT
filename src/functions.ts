@@ -1,4 +1,6 @@
 import { InvokeOptions, PolywrapClient } from "@polywrap/client-js";
+import axios from "axios";
+import { WRAPS_LIBRARY_URL, WrapInfoDTO } from "./agent";
 
 type Result =
   | {
@@ -40,6 +42,27 @@ export const functionsDescription = [
       required: ["options"],
     },
   },
+  {
+    name: "LoadWrap",
+    description: `A function to fetch the graphql schema for method analysis and introspection. 
+                  It receives a wrap name.
+                  For example
+                  Function = LoadWrap
+                  Arguments = Options {
+                    name: <Wrap Name Here>
+                  }`,
+    parameters: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          description:
+            `The name of the wrap to load`,
+        },
+      },
+      required: ["options"],
+    },
+  },
 ];
 
 export const functionsMap: Record<string, AgentFunction> = {
@@ -55,6 +78,24 @@ export const functionsMap: Record<string, AgentFunction> = {
           ok: false,
           error: result.error?.toString() ?? "",
         };
+    } catch (e: any) {
+      return {
+        ok: false,
+        error: e,
+      };
+    }
+  },
+  LoadWrap: async (_: PolywrapClient, { name }: { name: string }) => {
+    try {
+      const response = await axios.get<WrapInfoDTO>(`${WRAPS_LIBRARY_URL}/${name}.json`)
+      const wrapInfoDTO = response.data;
+
+      const { data: wrapSchemaString } = await axios.get<string>(wrapInfoDTO.abi);
+
+      return {
+        ok: true,
+        result: wrapSchemaString,
+      }
     } catch (e: any) {
       return {
         ok: false,

@@ -25,7 +25,7 @@ interface WrapsIndex {
   wraps: string[];
 }
 
-interface WrapInfoDTO {
+export interface WrapInfoDTO {
   aliases: string[];
   description: string;
   uri: string;
@@ -44,7 +44,7 @@ interface WrapInfo extends WrapInfoDTO {
   name: string;
 }
 
-const WRAPS_LIBRARY_URL = `https://raw.githubusercontent.com/polywrap/agent-wrap-library/master/wraps`
+export const WRAPS_LIBRARY_URL = `https://raw.githubusercontent.com/polywrap/agent-wrap-library/master/wraps`
 
 const getWrapsIndex = async (): Promise<WrapsIndex> => {
   const response = await axios.get<WrapsIndex>(`${WRAPS_LIBRARY_URL}/index.json`)
@@ -57,12 +57,9 @@ const getWrapInfos = async (wrapNames: string[]): Promise<WrapInfo[]> => {
     const response = await axios.get<WrapInfoDTO>(`${WRAPS_LIBRARY_URL}/${wrapName}.json`)
     const wrapInfo = response.data
 
-    const { data: wrapSchemaString } = await axios.get<string>(wrapInfo.abi);
-
     return {
       ...wrapInfo,
       name: wrapName,
-      abi: wrapSchemaString
     }
   }))
 }
@@ -87,12 +84,11 @@ class Agent {
 
     const availableWraps = await getWrapsIndex()
 
-    console.log(`Available wraps: ${availableWraps.wraps.join("\n-")}\n`)
+    console.log(`Available wraps: ${availableWraps.wraps.map(w => `\n- ${w}`)}\n`)
 
     console.log(`Fetching wrap training data...`)
     const wrapInfos = await getWrapInfos(availableWraps.wraps)
     const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
-
 
     const agent = new Agent()
 
@@ -101,7 +97,11 @@ class Agent {
       content: `Your name is PolyGPT. 
       You have a set of wraps which are groups of methods that you can call on demand.
       First you need to map what a user wants to do to a wrap. Each wrap has its own distinct "uri". Each method that you try to invoke from the same wrap,
-      will have the same "uri". Then you need to select a method to invoke, from the ones that the selected wrap has; based on the user's intention.
+      will have the same "uri". In order to know the methods available from this wrap and the args they require, you will need to call LoadWrapper and pass
+      the wrapper name to it. This will return a GraphQL schema string, which describes the wrap's data types. Available methods and their signatures are always listed here inside of the
+      'Module' type.
+      
+      Then you need to select a method to invoke, from the ones that the selected wrap has; based on the user's intention.
       Finally you will call InvokeWrap. InvokeWrap requires 3 arguments: a uri, which will be the selected wrapper's uri; a method, which will be
       name of the method you selected for invocation from the ones available from the chosen wrapper, and an optional "args" which is a json that
       varies according to the method's signature. You will map the user's given arguments to the "args" property if the method requires it`},
@@ -113,8 +113,6 @@ class Agent {
       - description: description of what the wrap is for, and what it can do
       - aliases: alternative names for the wrap
       - uri: the uri you will use for InvokeWrap if you decide to invoke this wrap
-      - abi: a GraphQL schema string, which describes the wrap's data types. Available methods and their signatures are always listed here inside of the
-      'Module' type
       - examplePrompts: array of example prompts a user can give you when wanting to use this wrap, and the 'InvokeWrap' arguments that should result from it.
       
       Here are the JSONs:
@@ -134,8 +132,6 @@ class Agent {
       function_call: "auto",
       temperature: 0
     });
-
-    console.log(response.data.choices[0].message)
 
     agent._chatHistory.push(...messages);
     console.log("Agent initialized.")
@@ -273,7 +269,17 @@ class Agent {
         name: functionName,
         content: `Args: ${JSON.stringify(functionArgs, null, 2)}. Result: ${JSON.stringify(functionResponse.result, null, 2)}`,
       };
+
+      if (functionName === "LoadWrap") {
+        this._chatHistory = this._chatHistory.filter(entry => entry.name !== "LoadWrap")
+      }
+      
       this._chatHistory.push(message);
+
+      if (functionName === "LoadWrap") {
+        return { role: "assistant", content: `Wrap loaded` }
+      }
+
       return message;
     }
   }
