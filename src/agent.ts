@@ -3,70 +3,22 @@ import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
   ChatCompletionResponseMessage,
-  Configuration,
   OpenAIApi,
 } from "openai";
-import axios from "axios"
 import dotenv from "dotenv";
 import { functionsDescription, functionsMap } from "./functions";
+import { OPEN_AI_CONFIG, WRAPS_LIBRARY_URL } from "./constants";
+import { getWrapInfos, getWrapsIndex } from "./utils";
 
 dotenv.config();
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const readline = require("readline").createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
-interface WrapsIndex {
-  wraps: string[];
-}
-
-export interface WrapInfoDTO {
-  aliases: string[];
-  description: string;
-  uri: string;
-  abi: string;
-  examplePrompts: {
-    prompt: string;
-    result: {
-      uri: string;
-      method: string;
-      args: Record<string, any>;
-    }
-  }[]
-}
-
-interface WrapInfo extends WrapInfoDTO {
-  name: string;
-}
-
-export const WRAPS_LIBRARY_URL = `https://raw.githubusercontent.com/polywrap/agent-wrap-library/master/wraps`
-
-const getWrapsIndex = async (): Promise<WrapsIndex> => {
-  const response = await axios.get<WrapsIndex>(`${WRAPS_LIBRARY_URL}/index.json`)
-
-  return response.data
-}
-
-const getWrapInfos = async (wrapNames: string[]): Promise<WrapInfo[]> => {
-  return Promise.all(wrapNames.map(async (wrapName) => {
-    const response = await axios.get<WrapInfoDTO>(`${WRAPS_LIBRARY_URL}/${wrapName}.json`)
-    const wrapInfo = response.data
-
-    return {
-      ...wrapInfo,
-      name: wrapName,
-    }
-  }))
-}
-
-
 class Agent {
-  private _openai = new OpenAIApi(configuration);
+  private _openai = new OpenAIApi(OPEN_AI_CONFIG);
   private _client: PolywrapClient;
   private _chatHistory: ChatCompletionRequestMessage[] = [];
 
@@ -170,11 +122,6 @@ class Agent {
   promptForUserInput() {
     readline.question("Human feedback: ", async (userInput: string) => {
       try {
-        if (userInput === "history") {
-          console.log(this._chatHistory)
-          return this.promptForUserInput()
-        }
-
         const response = await this.sendMessageToAgent(userInput);
         const proposedFunction = this.processAgentResponse(response!);
 
@@ -272,14 +219,11 @@ class Agent {
 
       if (functionName === "LoadWrap") {
         this._chatHistory = this._chatHistory.filter(entry => entry.name !== "LoadWrap")
-      }
-      
-      this._chatHistory.push(message);
-
-      if (functionName === "LoadWrap") {
+        this._chatHistory.push(message);
         return { role: "assistant", content: `Wrap loaded` }
       }
 
+      this._chatHistory.push(message);
       return message;
     }
   }
