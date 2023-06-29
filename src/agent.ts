@@ -5,12 +5,10 @@ import {
   ChatCompletionResponseMessage,
   OpenAIApi,
 } from "openai";
-import dotenv from "dotenv";
 import { functionsDescription, functionsMap } from "./functions";
-import { OPEN_AI_CONFIG, WRAPS_LIBRARY_URL } from "./constants";
+import { OPEN_AI_CONFIG } from "./constants";
 import { getWrapInfos, getWrapsIndex } from "./utils";
-
-dotenv.config();
+import { logToFile } from "./logger";
 
 const readline = require("readline").createInterface({
   input: process.stdin,
@@ -92,46 +90,71 @@ class Agent {
   }
 
   promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall) {
-    return readline.question(
-      `Do you wish to execute the following function?
+    const confirmationPrompt = `Do you wish to execute the following function?
 
     Name: ${proposedFunction.name}
     Arguments: ${proposedFunction.arguments}
 
     (Y/N)
-  `,
+  `
+    logToFile({
+      role: "assistant",
+      content: confirmationPrompt
+    })
+    return readline.question(
+      confirmationPrompt,
       async (userInput: string) => {
+        logToFile({
+          role: "user",
+          content: userInput
+        })
         if (userInput === "Y" || userInput === "y") {
           const result = await this.executeProposedFunction(
             proposedFunction
           );
+          logToFile({
+            role: "assistant",
+            content: result.content
+          })
           console.log(result.content);
 
           return this.promptForUserInput();
         }
 
-        this._chatHistory.push({
+        const message: ChatCompletionRequestMessage = {
           role: "assistant",
           content: "Alright. Will not execute this function",
-        });
+        }
+
+        this._chatHistory.push(message);
+
+        logToFile(message)
         return this.promptForUserInput();
       }
     );
   }
 
   promptForUserInput() {
-    readline.question("Human feedback: ", async (userInput: string) => {
+    readline.question(`Prompt: `, async (userInput: string) => {
       try {
+        logToFile({
+          role: "user",
+          content: userInput
+        })
         const response = await this.sendMessageToAgent(userInput);
         const proposedFunction = this.processAgentResponse(response!);
 
         if (proposedFunction) {
           this.promptForUserConfirmation(proposedFunction)
         } else {
-          this._chatHistory.push({
+          const responseMessage: ChatCompletionRequestMessage = {
             role: "assistant",
             content: response?.content!,
-          });
+          }
+
+          logToFile(responseMessage)
+
+          this._chatHistory.push(responseMessage);
 
           return this.promptForUserInput();
         }
@@ -143,7 +166,7 @@ class Agent {
 
   async sendMessageToAgent(
     message: string
-  ): Promise<ChatCompletionResponseMessage | undefined> {
+  ): Promise<ChatCompletionResponseMessage> {
     this._chatHistory.push({ role: "user", content: message });
 
     const completion = await this._openai.createChatCompletion({
@@ -154,7 +177,7 @@ class Agent {
       temperature: 0
     });
 
-    return completion.data.choices[0].message;
+    return completion.data.choices[0].message!;
   }
 
   processAgentResponse(
