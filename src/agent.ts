@@ -32,6 +32,7 @@ class Agent {
                   "https://goerli.infura.io/v3/b00b2c2cc09c487685e9fb061256d6a6",
               }),
             },
+            defaultNetwork: "goerli"
           }),
         }) as IWrapPackage
       )
@@ -101,13 +102,7 @@ class Agent {
   }
 
   promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall): Promise<boolean> {
-    const confirmationPrompt = `Do you wish to execute the following function?
-
-    Name: ${proposedFunction.name}
-    Arguments: ${proposedFunction.arguments}
-
-    (Y/N)
-  `
+    const confirmationPrompt = `Do you wish to execute the following function?\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`
     logToFile({
       role: "assistant",
       content: confirmationPrompt
