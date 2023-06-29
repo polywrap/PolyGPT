@@ -89,7 +89,7 @@ class Agent {
     return agent
   }
 
-  promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall) {
+  promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall): Promise<boolean> {
     const confirmationPrompt = `Do you wish to execute the following function?
 
     Name: ${proposedFunction.name}
@@ -101,66 +101,69 @@ class Agent {
       role: "assistant",
       content: confirmationPrompt
     })
-    return readline.question(
-      confirmationPrompt,
-      async (userInput: string) => {
-        logToFile({
-          role: "user",
-          content: userInput
-        })
-        if (userInput === "Y" || userInput === "y") {
-          const result = await this.executeProposedFunction(
-            proposedFunction
-          );
+    return new Promise((res) => {
+      readline.question(
+        confirmationPrompt,
+        async (userInput: string) => {
           logToFile({
-            role: "assistant",
-            content: result.content
+            role: "user",
+            content: userInput
           })
-          console.log(result.content);
-
-          return this.promptForUserInput();
+          return res(userInput === "Y" || userInput === "y")
         }
+      )
+    });
+  }
 
+  async processUserPrompt(userInput: string) {
+    logToFile({
+      role: "user",
+      content: userInput
+    })
+    const response = await this.sendMessageToAgent(userInput);
+    const proposedFunction = this.checkIfFunctionWasProposed(response!);
+
+    if (proposedFunction) {
+      const userConfirmedExecution = await this.promptForUserConfirmation(proposedFunction)
+
+      if (userConfirmedExecution) {
+        const result = await this.executeProposedFunction(
+          proposedFunction
+        );
+
+        const resultContent = result.content
+
+        logToFile({
+          role: "assistant",
+          content: resultContent
+        })
+        console.log(resultContent);
+      } else {
         const message: ChatCompletionRequestMessage = {
           role: "assistant",
           content: "Alright. Will not execute this function",
         }
-
+  
         this._chatHistory.push(message);
-
+        console.log(message.content)
         logToFile(message)
-        return this.promptForUserInput();
       }
-    );
+    } else {
+      const responseMessage: ChatCompletionRequestMessage = {
+        role: "assistant",
+        content: response?.content!,
+      }
+
+      logToFile(responseMessage)
+      this._chatHistory.push(responseMessage);
+    }
+
+    return await this.getUserInput()
   }
 
-  promptForUserInput() {
-    readline.question(`Prompt: `, async (userInput: string) => {
-      try {
-        logToFile({
-          role: "user",
-          content: userInput
-        })
-        const response = await this.sendMessageToAgent(userInput);
-        const proposedFunction = this.processAgentResponse(response!);
-
-        if (proposedFunction) {
-          this.promptForUserConfirmation(proposedFunction)
-        } else {
-          const responseMessage: ChatCompletionRequestMessage = {
-            role: "assistant",
-            content: response?.content!,
-          }
-
-          logToFile(responseMessage)
-
-          this._chatHistory.push(responseMessage);
-
-          return this.promptForUserInput();
-        }
-      } catch (e) {
-        console.log(e);
-      }
+  getUserInput(): Promise<string> {
+    return new Promise((res) => {
+      readline.question(`Prompt: `, async (userInput: string) => res(userInput))
     });
   }
 
@@ -180,7 +183,7 @@ class Agent {
     return completion.data.choices[0].message!;
   }
 
-  processAgentResponse(
+  checkIfFunctionWasProposed(
     response: ChatCompletionResponseMessage
   ): ChatCompletionRequestMessageFunctionCall | undefined {
     if (response.function_call) {
@@ -223,7 +226,7 @@ class Agent {
       const response = (await this.sendMessageToAgent(
         `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}`
       ))!;
-      const proposedFunction = this.processAgentResponse(response);
+      const proposedFunction = this.checkIfFunctionWasProposed(response);
 
       if (proposedFunction) {
         return await this.executeProposedFunction(
@@ -253,6 +256,11 @@ class Agent {
 }
 
 (async () => {
-  const agent = await Agent.createAgent();
-  agent.promptForUserInput();
+  try {
+    const agent = await Agent.createAgent();
+    const userInput = await agent.getUserInput();
+    await agent.processUserPrompt(userInput)
+  } catch (e) {
+    console.log(e)
+  }
 })()
