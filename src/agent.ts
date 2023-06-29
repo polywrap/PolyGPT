@@ -1,4 +1,6 @@
-import { PolywrapClient, PolywrapClientConfigBuilder } from "@polywrap/client-js";
+import { IWrapPackage, PolywrapClient, PolywrapClientConfigBuilder } from "@polywrap/client-js";
+import { Wallet } from "ethers"
+import * as EthProvider from "@polywrap/ethereum-provider-js";
 import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
@@ -19,6 +21,20 @@ class Agent {
     const config = new PolywrapClientConfigBuilder()
       .addBundle("web3")
       .addBundle("sys")
+      .setPackage(
+        "plugin/ethereum-provider@2.0.0",
+        EthProvider.plugin({
+          connections: new EthProvider.Connections({
+            networks: {
+              goerli: new EthProvider.Connection({
+                signer: new Wallet(process.env.ETHEREUM_PRIVATE_KEY as string),
+                provider:
+                  "https://goerli.infura.io/v3/b00b2c2cc09c487685e9fb061256d6a6",
+              }),
+            },
+          }),
+        }) as IWrapPackage
+      )
       .build()
 
     this._client = new PolywrapClient(config)
@@ -70,7 +86,7 @@ class Agent {
     ]
 
     console.log(`Initializing Agent...`)
-    const response = await agent._openai.createChatCompletion({
+    await agent._openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
       messages,
       functions: functionsDescription,
@@ -152,8 +168,6 @@ class Agent {
       logToFile(responseMessage)
       this._chatHistory.push(responseMessage);
     }
-
-    return await this.getUserInput()
   }
 
   getUserInput(): Promise<string> {
@@ -253,8 +267,11 @@ class Agent {
 (async () => {
   try {
     const agent = await Agent.createAgent();
-    const userInput = await agent.getUserInput();
-    await agent.processUserPrompt(userInput)
+
+    while (true) {
+      const userInput = await agent.getUserInput();
+      await agent.processUserPrompt(userInput)
+    }
   } catch (e) {
     console.log(e)
   }
