@@ -1,6 +1,11 @@
 import axios from "axios";
 import { WRAPS_LIBRARY_URL } from "./constants";
 
+export const readline = require("readline").createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
 interface WrapsIndex {
   wraps: string[];
 }

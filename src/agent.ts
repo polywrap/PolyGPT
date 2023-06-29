@@ -7,13 +7,8 @@ import {
 } from "openai";
 import { functionsDescription, functionsMap } from "./functions";
 import { OPEN_AI_CONFIG } from "./constants";
-import { getWrapInfos, getWrapsIndex } from "./utils";
+import { getWrapInfos, getWrapsIndex, readline } from "./utils";
 import { logToFile } from "./logger";
-
-const readline = require("readline").createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
 class Agent {
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
