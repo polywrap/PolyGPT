@@ -1,5 +1,5 @@
 import axios from "axios";
-import { WRAPS_LIBRARY_URL } from "./constants";
+import { WRAP_LIBRARY_URL } from "./constants";
 
 export const readline = require("readline").createInterface({
   input: process.stdin,
@@ -30,13 +30,13 @@ interface WrapInfo extends WrapInfoDTO {
 }
 
 export const getWrapsIndex = async (): Promise<WrapsIndex> => {
-  const response = await axios.get<WrapsIndex>(`${WRAPS_LIBRARY_URL}/index.json`)
+  const response = await axios.get<WrapsIndex>(`${WRAP_LIBRARY_URL}/index.json`)
 
   return response.data
 }
 
 export const getWrapInfo = async (name: string): Promise<WrapInfo> => {
-  const response = await axios.get<WrapInfoDTO>(`${WRAPS_LIBRARY_URL}/${name}.json`)
+  const response = await axios.get<WrapInfoDTO>(`${WRAP_LIBRARY_URL}/${name}.json`)
   const wrapInfo = response.data
 
   return {
