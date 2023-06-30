@@ -18,10 +18,12 @@ class Agent {
   private _chatHistory: ChatCompletionRequestMessage[] = [];
 
   private constructor() {
-    const config = new PolywrapClientConfigBuilder()
+    const builder = new PolywrapClientConfigBuilder()
       .addBundle("web3")
-      .addBundle("sys")
-      .setPackage(
+      .addBundle("sys");
+
+    if (process.env.ETHEREUM_PRIVATE_KEY) {
+      builder.setPackage(
         "plugin/ethereum-provider@2.0.0",
         EthProvider.plugin({
           connections: new EthProvider.Connections({
@@ -35,8 +37,10 @@ class Agent {
             defaultNetwork: "goerli"
           }),
         }) as IWrapPackage
-      )
-      .build()
+      );
+    }
+
+    const config = builder.build();
 
     this._client = new PolywrapClient(config)
   }
