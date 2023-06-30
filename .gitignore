@@ -8,3 +8,4 @@ coverage*
 abis
 artifacts
 yarn-error.log
+./chat.log

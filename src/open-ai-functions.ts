@@ -1,6 +1,6 @@
 import { InvokeOptions, PolywrapClient } from "@polywrap/client-js";
 import axios from "axios";
-import { getWrapInfo } from "./utils";
+import { WrapLibrary } from "./wrap-library";
 
 type Result =
   | {
@@ -65,7 +65,9 @@ export const functionsDescription = [
   },
 ];
 
-export const functionsMap: Record<string, AgentFunction> = {
+export const functionsMap: (library: WrapLibrary.Reader) => Record<string, AgentFunction> = (
+  library: WrapLibrary.Reader
+) => ({
   InvokeWrap: async (client: PolywrapClient, options: InvokeOptions) => {
     try {
       const result = await client.invoke(options);
@@ -87,7 +89,7 @@ export const functionsMap: Record<string, AgentFunction> = {
   },
   LoadWrap: async (_: PolywrapClient, { name }: { name: string }) => {
     try {
-      const wrapInfo = await getWrapInfo(name)
+      const wrapInfo = await library.getWrap(name);
       const { data: wrapSchemaString } = await axios.get<string>(wrapInfo.abi);
 
       return {
@@ -101,4 +103,4 @@ export const functionsMap: Record<string, AgentFunction> = {
       };
     }
   },
-};
+});

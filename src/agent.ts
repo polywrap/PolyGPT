@@ -1,19 +1,26 @@
-import { IWrapPackage, PolywrapClient, PolywrapClientConfigBuilder } from "@polywrap/client-js";
-import { Wallet } from "ethers"
-import * as EthProvider from "@polywrap/ethereum-provider-js";
 import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
   ChatCompletionResponseMessage,
   OpenAIApi,
 } from "openai";
-import { functionsDescription, functionsMap } from "./functions";
-import { OPEN_AI_CONFIG } from "./constants";
-import { getWrapInfos, getWrapsIndex, readline } from "./utils";
-import { logToFile } from "./logger";
+import { PolywrapClient, PolywrapClientConfigBuilder, IWrapPackage } from "@polywrap/client-js";
+import * as EthProvider from "@polywrap/ethereum-provider-js";
+import { Wallet } from "ethers"
 
-class Agent {
+import { WrapLibrary } from "./wrap-library";
+import { functionsDescription, functionsMap } from "./open-ai-functions";
+import {
+  logToFile,
+  readline,
+  OPEN_AI_CONFIG,
+  WRAP_LIBRARY_URL,
+  WRAP_LIBRARY_NAME
+} from "./utils";
+
+export class Agent {
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
+  private _library = new WrapLibrary.Reader(WRAP_LIBRARY_URL, WRAP_LIBRARY_NAME);
   private _client: PolywrapClient;
   private _chatHistory: ChatCompletionRequestMessage[] = [];
 
@@ -46,17 +53,16 @@ class Agent {
   }
 
   static async createAgent(): Promise<Agent> {
+    const agent = new Agent();
     console.log("Fetching wraps library...")
 
-    const availableWraps = await getWrapsIndex()
+    const availableWraps = await agent._library.getIndex()
 
     console.log(`Available wraps: ${availableWraps.wraps.map(w => `\n- ${w}`)}\n`)
 
     console.log(`Fetching wrap training data...`)
-    const wrapInfos = await getWrapInfos(availableWraps.wraps)
+    const wrapInfos = await agent._library.getWraps(availableWraps.wraps)
     const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
-
-    const agent = new Agent()
 
     const messages: ChatCompletionRequestMessage[] = [{
       role: "system",
@@ -222,7 +228,7 @@ class Agent {
       ? JSON.parse(functionProposed.arguments)
       : undefined;
 
-    const functionResponse = await functionsMap[functionName](
+    const functionResponse = await functionsMap(this._library)[functionName](
       this._client,
       functionArgs
     );
