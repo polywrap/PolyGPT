@@ -68,7 +68,10 @@ export class Agent {
     // Load the initialization prompts
     const initialization_messages = systemPrompts(wrapInfosString);
     const messages: ChatCompletionRequestMessage[] = initialization_messages
-
+    logToFile({
+      role: "system",
+      content: `Initializing Agent...`
+    })
     console.log(`Initializing Agent...`)
     await agent._openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
