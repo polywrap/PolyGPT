@@ -78,15 +78,18 @@ export class Agent {
       messages,
       functions: functionsDescription,
       function_call: "auto",
-      temperature: 0
+      temperature: 0, 
+      max_tokens: 300,
     });
-
+    
     agent._chatHistory.push(...messages);
     console.log("Agent initialized.")
-
     return agent
   }
 
+
+
+  
   promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall): Promise<boolean> {
     const confirmationPrompt = `Do you wish to execute the following function?\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`
     logToFile({
@@ -107,49 +110,75 @@ export class Agent {
     });
   }
 
+  trimChatHistory(): void {
+    // Separate initialization and loadwrap messages
+    let initAndLoadWrapMessages = this._chatHistory.filter(msg => msg.content?.startsWith('Initializing') || msg.name === 'LoadWrap');
+  
+    // Separate other messages
+    let otherMessages = this._chatHistory.filter(msg => !(msg.content?.startsWith('Initializing') || msg.name === 'LoadWrap'));
+  
+    // If we have more other messages than we want to keep
+    if (otherMessages.length > 3) {
+      // Keep only the last 10 other messages
+      otherMessages = otherMessages.slice(-10);
+    }
+  
+    // Combine the initialization/loadwrap messages with the other messages
+    this._chatHistory = initAndLoadWrapMessages.concat(otherMessages);
+  }
+  
   async processUserPrompt(userInput: string) {
     logToFile({
       role: "user",
       content: userInput
     })
-    const response = await this.sendMessageToAgent(userInput);
-    const proposedFunction = this.checkIfFunctionWasProposed(response!);
 
-    if (proposedFunction) {
-      const userConfirmedExecution = await this.promptForUserConfirmation(proposedFunction)
+    // Trim the chat history before processing the user prompt
+    this.trimChatHistory();
 
-      if (userConfirmedExecution) {
-        const result = await this.executeProposedFunction(
-          proposedFunction
-        );
+    try {
+      const response = await this.sendMessageToAgent(userInput);
+      const proposedFunction = this.checkIfFunctionWasProposed(response!);
 
-        const resultContent = result.content
+      if (proposedFunction) {
+        const userConfirmedExecution = await this.promptForUserConfirmation(proposedFunction)
 
-        logToFile({
-          role: "assistant",
-          content: resultContent
-        })
-        console.log(resultContent);
-      } else {
-        const message: ChatCompletionRequestMessage = {
-          role: "assistant",
-          content: "Alright. Will not execute this function",
+        if (userConfirmedExecution) {
+          const result = await this.executeProposedFunction(
+            proposedFunction
+          );
+
+          const resultContent = result.content
+
+          logToFile({
+            role: "assistant",
+            content: resultContent
+          })
+          console.log(resultContent);
+        } else {
+          const message: ChatCompletionRequestMessage = {
+            role: "assistant",
+            content: "Alright. Will not execute this function",
+          }
+
+          this._chatHistory.push(message);
+          console.log(message.content)
+          logToFile(message)
         }
-  
-        this._chatHistory.push(message);
-        console.log(message.content)
-        logToFile(message)
-      }
-    } else {
-      const responseMessage: ChatCompletionRequestMessage = {
-        role: "assistant",
-        content: response?.content!,
-      }
+      } else {
+        const responseMessage: ChatCompletionRequestMessage = {
+          role: "assistant",
+          content: response?.content!,
+        }
 
-      logToFile(responseMessage)
-      this._chatHistory.push(responseMessage);
+        logToFile(responseMessage)
+        this._chatHistory.push(responseMessage);
+      }
+    } catch (e) {
+      console.error("An error occurred while sending a message to the agent:", e);
     }
   }
+
 
   getUserInput(): Promise<string> {
     return new Promise((res) => {
@@ -167,7 +196,8 @@ export class Agent {
       messages: this._chatHistory,
       functions: functionsDescription,
       function_call: "auto",
-      temperature: 0
+      temperature: 0,
+      max_tokens: 300,
     });
 
     return completion.data.choices[0].message!;
