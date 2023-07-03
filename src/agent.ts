@@ -1,19 +1,27 @@
-import { IWrapPackage, PolywrapClient, PolywrapClientConfigBuilder } from "@polywrap/client-js";
-import { Wallet } from "ethers"
-import * as EthProvider from "@polywrap/ethereum-provider-js";
 import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
   ChatCompletionResponseMessage,
   OpenAIApi,
 } from "openai";
-import { functionsDescription, functionsMap } from "./functions";
-import { OPEN_AI_CONFIG } from "./constants";
-import { getWrapInfos, getWrapsIndex, readline } from "./utils";
-import { logToFile } from "./logger";
+import { PolywrapClient, PolywrapClientConfigBuilder, IWrapPackage } from "@polywrap/client-js";
+import * as EthProvider from "@polywrap/ethereum-provider-js";
+import { Wallet } from "ethers"
 
-class Agent {
+import { WrapLibrary } from "./wrap-library";
+import { functionsDescription, functionsMap } from "./open-ai-functions";
+import {
+  logToFile,
+  readline,
+  OPEN_AI_CONFIG,
+  WRAP_LIBRARY_URL,
+  WRAP_LIBRARY_NAME
+} from "./utils";
+import { systemPrompts } from "./prompt";
+
+export class Agent {
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
+  private _library = new WrapLibrary.Reader(WRAP_LIBRARY_URL, WRAP_LIBRARY_NAME);
   private _client: PolywrapClient;
   private _chatHistory: ChatCompletionRequestMessage[] = [];
 
@@ -46,50 +54,24 @@ class Agent {
   }
 
   static async createAgent(): Promise<Agent> {
+    const agent = new Agent();
     console.log("Fetching wraps library...")
 
-    const availableWraps = await getWrapsIndex()
+    const availableWraps = await agent._library.getIndex()
 
     console.log(`Available wraps: ${availableWraps.wraps.map(w => `\n- ${w}`)}\n`)
 
     console.log(`Fetching wrap training data...`)
-    const wrapInfos = await getWrapInfos(availableWraps.wraps)
+    const wrapInfos = await agent._library.getWraps(availableWraps.wraps)
     const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
 
-    const agent = new Agent()
-
-    const messages: ChatCompletionRequestMessage[] = [{
+    // Load the initialization prompts
+    const initialization_messages = systemPrompts(wrapInfosString);
+    const messages: ChatCompletionRequestMessage[] = initialization_messages
+    logToFile({
       role: "system",
-      content: `Your name is PolyGPT. 
-      You have a set of wraps which are groups of methods that you can call on demand.
-      First you need to map what a user wants to do to a wrap. Each wrap has its own distinct "uri". Each method that you try to invoke from the same wrap,
-      will have the same "uri". In order to know the methods available from this wrap and the args they require, you will need to call LoadWrapper and pass
-      the wrapper name to it. This will return a GraphQL schema string, which describes the wrap's data types. Available methods and their signatures are always listed here inside of the
-      'Module' type.
-      
-      Then you need to select a method to invoke, from the ones that the selected wrap has; based on the user's intention.
-      Finally you will call InvokeWrap. InvokeWrap requires 3 arguments: a uri, which will be the selected wrapper's uri; a method, which will be
-      name of the method you selected for invocation from the ones available from the chosen wrapper, and an optional "args" which is a json that
-      varies according to the method's signature. You will map the user's given arguments to the "args" property if the method requires it`},
-    {
-      role: "system",
-      content: `I will now give you a list of JSONs that contain information on the available wraps that exist for you to call InvokeWrap with. Each JSON
-      contains:
-      - name: human readable name to identify the wrap
-      - description: description of what the wrap is for, and what it can do
-      - aliases: alternative names for the wrap
-      - uri: the uri you will use for InvokeWrap if you decide to invoke this wrap
-      - examplePrompts: array of example prompts a user can give you when wanting to use this wrap, and the 'InvokeWrap' arguments that should result from it.
-      
-      Here are the JSONs:
-      
-      ${wrapInfosString}`
-    },
-    {
-      role: "system", content: `You will now be transferred to your next user. They will give you an input in natural language and you will attempt to execute InvokeWrap
-    based on the prompt if the users wants to do something. You will also be able to answer questions without executing InvokeWrap`},
-    ]
-
+      content: `Initializing Agent...`
+    })
     console.log(`Initializing Agent...`)
     await agent._openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
@@ -222,7 +204,7 @@ class Agent {
       ? JSON.parse(functionProposed.arguments)
       : undefined;
 
-    const functionResponse = await functionsMap[functionName](
+    const functionResponse = await functionsMap(this._library)[functionName](
       this._client,
       functionArgs
     );
