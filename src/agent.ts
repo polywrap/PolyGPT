@@ -1,3 +1,6 @@
+
+import chalk from "chalk";
+
 import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
@@ -133,7 +136,7 @@ export class Agent {
           role: "assistant",
           content: resultContent
         })
-        console.log(resultContent);
+        console.log(chalk.blue(resultContent ?? ""));
       } else {
         const message: ChatCompletionRequestMessage = {
           role: "assistant",
@@ -141,7 +144,7 @@ export class Agent {
         }
   
         this._chatHistory.push(message);
-        console.log(message.content)
+        console.log(chalk.blue(message.content ?? ""));
         logToFile(message)
       }
     } else {
@@ -152,6 +155,7 @@ export class Agent {
 
       logToFile(responseMessage)
       this._chatHistory.push(responseMessage);
+      console.log(chalk.blue(responseMessage.content ?? ""));
     }
   }
 
@@ -214,9 +218,9 @@ export class Agent {
     );
 
     if (!functionResponse.ok) {
-      console.log(
-        `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`
-      );
+  
+      console.log(chalk.red(`The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`));
+
       const response = (await this.sendMessageToAgent(
         `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}`
       ))!;
