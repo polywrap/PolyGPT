@@ -60,16 +60,20 @@ export class Agent {
   static async createAgent(): Promise<Agent> {
     const agent = new Agent();
     logHeader();
-    console.log(">>Fetching wraps library...")
+    console.log(chalk.yellow(">>Fetching wraps library..."));
 
     const availableWraps = await agent._library.getIndex()
 
-    console.log(`Available wraps: `)
+    console.log(`Available wraps: `);
     console.table(availableWraps);
+    logToFile({
+      role: "system",
+      content: `Available wraps: ${JSON.stringify(availableWraps, null, 2)}`
+    });
 
 
-    console.log(`>> Fetching wrap training data...`)
-    const wrapInfos = await agent._library.getWraps(availableWraps.wraps)
+    console.log(chalk.yellow(`>> Fetching wrap training data...`));
+    const wrapInfos = await agent._library.getWraps(availableWraps.wraps);
     const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
 
     // Load the initialization prompts
@@ -79,7 +83,7 @@ export class Agent {
       role: "system",
       content: `>> Initializing Agent...`
     })
-    console.log(`>> Initializing Agent...`)
+    console.log(chalk.yellow(`>> Initializing Agent...`));
     await agent._openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
       messages,
@@ -89,16 +93,18 @@ export class Agent {
     });
 
     agent._chatHistory.push(...messages);
-    console.log(">> Agent initialized.")
+    console.log(chalk.yellow(">> Agent initialized."))
 
     return agent
   }
 
+
   promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall): Promise<boolean> {
-    const confirmationPrompt = `Do you wish to execute the following function?\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`
+    const confirmationText = `Do you wish to execute the following function?\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`;
+    const confirmationPrompt = chalk.cyan(confirmationText);
     logToFile({
       role: "assistant",
-      content: confirmationPrompt
+      content: confirmationText
     })
     return new Promise((res) => {
       readline.question(
@@ -108,7 +114,7 @@ export class Agent {
             role: "user",
             content: userInput
           })
-          return res(userInput === "Y" || userInput === "y")
+          return res(userInput === "Y" || userInput === "y");
         }
       )
     });
@@ -136,7 +142,7 @@ export class Agent {
           role: "assistant",
           content: resultContent
         })
-        console.log(chalk.blue(resultContent ?? ""));
+        console.log('Assistant:', chalk.blue(resultContent ?? ""));
       } else {
         const message: ChatCompletionRequestMessage = {
           role: "assistant",
@@ -144,7 +150,7 @@ export class Agent {
         }
   
         this._chatHistory.push(message);
-        console.log(chalk.blue(message.content ?? ""));
+        console.log('Assistant:',chalk.blue(message.content ?? ""));
         logToFile(message)
       }
     } else {
@@ -155,7 +161,7 @@ export class Agent {
 
       logToFile(responseMessage)
       this._chatHistory.push(responseMessage);
-      console.log(chalk.blue(responseMessage.content ?? ""));
+      console.log('Assistant:', chalk.blue(responseMessage.content ?? ""));
     }
   }
 
@@ -164,23 +170,26 @@ export class Agent {
       readline.question(`Prompt: `, async (userInput: string) => res(userInput))
     });
   }
-
   async sendMessageToAgent(
     message: string
   ): Promise<ChatCompletionResponseMessage> {
-    this._chatHistory.push({ role: "user", content: message });
-
-    const completion = await this._openai.createChatCompletion({
-      model: "gpt-3.5-turbo-0613",
-      messages: this._chatHistory,
-      functions: functionsDescription,
-      function_call: "auto",
-      temperature: 0
-    });
-
-    return completion.data.choices[0].message!;
+    try {
+      this._chatHistory.push({ role: "user", content: message });
+  
+      const completion = await this._openai.createChatCompletion({
+        model: "gpt-3.5-turbo-0613",
+        messages: this._chatHistory,
+        functions: functionsDescription,
+        function_call: "auto",
+        temperature: 0
+      });
+  
+      return completion.data.choices[0].message!;
+    } catch (error: any) {  // specify error type as any to fix TypeScript error
+      console.error(chalk.red('Error: '), chalk.yellow(JSON.stringify(error?.response?.data, null, 2)));
+      throw error;  // Re-throwing the error in case it needs to be caught elsewhere
+    }
   }
-
   checkIfFunctionWasProposed(
     response: ChatCompletionResponseMessage
   ): ChatCompletionRequestMessageFunctionCall | undefined {
@@ -188,8 +197,7 @@ export class Agent {
       // todo: add function calling to history for better memory management
       return response.function_call;
     } else {
-      console.log("-> No function call used");
-      console.log("Assistant: ", response.content);
+      //console.log(chalk.yellow("-> No function call used"));
       this._chatHistory.push({ role: "assistant", content: response.content! });
     }
   }

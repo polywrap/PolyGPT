@@ -35,7 +35,9 @@ export const logHeader = () => {
     }
     console.log(data);
     console.log(`
-    You are now chatting with an AI agent. First ask it to load a wrap and then to execute one of its functions.`)
+    You should now be transfered to the AI agent. If it doesn't load restart the CLI application with Ctrl+C.
+    
+    Once loaded, ask it to load a wrap and then to execute one of its functions! Welcome to the future!`)
     logger.info(data);
   });
 };
