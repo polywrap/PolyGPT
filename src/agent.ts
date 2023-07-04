@@ -1,6 +1,7 @@
 
 import chalk from "chalk";
-
+import dotenv from 'dotenv';
+dotenv.config();
 import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
@@ -85,7 +86,7 @@ export class Agent {
     })
     console.log(chalk.yellow(`>> Initializing Agent...`));
     await agent._openai.createChatCompletion({
-      model: "gpt-3.5-turbo-0613",
+      model: process.env.GPT_MODEL!,
       messages,
       functions: functionsDescription,
       function_call: "auto",
@@ -169,15 +170,14 @@ export class Agent {
     return new Promise((res) => {
       readline.question(`Prompt: `, async (userInput: string) => res(userInput))
     });
-  }
-  async sendMessageToAgent(
+  }async sendMessageToAgent(
     message: string
   ): Promise<ChatCompletionResponseMessage> {
     try {
       this._chatHistory.push({ role: "user", content: message });
   
       const completion = await this._openai.createChatCompletion({
-        model: "gpt-3.5-turbo-0613",
+        model: process.env.GPT_MODEL!,
         messages: this._chatHistory,
         functions: functionsDescription,
         function_call: "auto",
@@ -186,10 +186,16 @@ export class Agent {
   
       return completion.data.choices[0].message!;
     } catch (error: any) {  // specify error type as any to fix TypeScript error
-      console.error(chalk.red('Error: '), chalk.yellow(JSON.stringify(error?.response?.data, null, 2)));
+      const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
+      console.error(chalk.red('Error: '), chalk.yellow(errorMessage));
+      logToFile({
+        role: "system",
+        content: errorMessage
+      });
       throw error;  // Re-throwing the error in case it needs to be caught elsewhere
     }
-  }
+}
+
   checkIfFunctionWasProposed(
     response: ChatCompletionResponseMessage
   ): ChatCompletionRequestMessageFunctionCall | undefined {
@@ -201,7 +207,6 @@ export class Agent {
       this._chatHistory.push({ role: "assistant", content: response.content! });
     }
   }
-
   async executeProposedFunction(
     functionProposed: ChatCompletionRequestMessageFunctionCall,
     attemptsRemaining = 5
@@ -212,6 +217,7 @@ export class Agent {
         content: "Sorry, couldn't process your request",
       };
       this._chatHistory.push(message);
+      logToFile(message);  // log to file when out of attempts
       return message;
     }
 
@@ -226,8 +232,16 @@ export class Agent {
     );
 
     if (!functionResponse.ok) {
-  
-      console.log(chalk.red(`The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`));
+      const errorMessage = `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`;
+      console.log(chalk.red(errorMessage));
+
+      const systemMessage: ChatCompletionRequestMessage = {
+        role: "system",
+        content: errorMessage,
+      };
+      
+      // Logging error message to the file
+      logToFile(systemMessage);
 
       const response = (await this.sendMessageToAgent(
         `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}`
