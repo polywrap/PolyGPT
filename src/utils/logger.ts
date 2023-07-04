@@ -1,25 +1,41 @@
 import { ChatCompletionRequestMessage } from "openai";
 import winston from "winston";
+const figlet = require("figlet");
 
 const getLogFileName = () => {
-  // get current date
   const date = new Date();
-  
-  // format the date to your liking
   const formattedDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
-  
-  // use the formatted date in the filename
   return `chats/chat_${formattedDate}.log`;
 }
 
 const logger = winston.createLogger({
-  format: winston.format.simple(),
+  format: winston.format.printf(info => `${info.message}`),
   transports: [
-    // use the function to get the filename
     new winston.transports.File({ filename: getLogFileName() }),
   ],
 });
 
 export const logToFile = (message: ChatCompletionRequestMessage) => {
-  logger.info(`${message.role}: ${message.content}`)
-}
+  logger.info(`---
+  ${message.role}: ${message.content}`);
+};
+
+export const logHeader = () => {
+  figlet.text('PolyGPT', {
+    font: 'Slant',
+    horizontalLayout: 'default',
+    verticalLayout: 'default',
+    whitespaceBreak: true
+  }, function(err: Error | null, data?: string) {
+    if (err) {
+      console.log('Something went wrong...');
+      console.dir(err);
+      
+      return;
+    }
+    console.log(data);
+    console.log(`
+    You are now chatting with an AI agent. First ask it to load a wrap and then to execute one of its functions.`)
+    logger.info(data);
+  });
+};

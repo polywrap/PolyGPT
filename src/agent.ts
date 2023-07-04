@@ -13,6 +13,7 @@ import { functionsDescription, functionsMap } from "./open-ai-functions";
 import {
   logToFile,
   readline,
+  logHeader,
   OPEN_AI_CONFIG,
   WRAP_LIBRARY_URL,
   WRAP_LIBRARY_NAME
@@ -55,13 +56,16 @@ export class Agent {
 
   static async createAgent(): Promise<Agent> {
     const agent = new Agent();
-    console.log("Fetching wraps library...")
+    logHeader();
+    console.log(">>Fetching wraps library...")
 
     const availableWraps = await agent._library.getIndex()
 
-    console.log(`Available wraps: ${availableWraps.wraps.map(w => `\n- ${w}`)}\n`)
+    console.log(`Available wraps: `)
+    console.table(availableWraps);
 
-    console.log(`Fetching wrap training data...`)
+
+    console.log(`>> Fetching wrap training data...`)
     const wrapInfos = await agent._library.getWraps(availableWraps.wraps)
     const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
 
@@ -70,9 +74,9 @@ export class Agent {
     const messages: ChatCompletionRequestMessage[] = initialization_messages
     logToFile({
       role: "system",
-      content: `Initializing Agent...`
+      content: `>> Initializing Agent...`
     })
-    console.log(`Initializing Agent...`)
+    console.log(`>> Initializing Agent...`)
     await agent._openai.createChatCompletion({
       model: "gpt-3.5-turbo-0613",
       messages,
@@ -82,7 +86,7 @@ export class Agent {
     });
 
     agent._chatHistory.push(...messages);
-    console.log("Agent initialized.")
+    console.log(">> Agent initialized.")
 
     return agent
   }
