@@ -18,6 +18,7 @@ import {
   logToFile,
   readline,
   logHeader,
+  prettyPrintError,
   OPEN_AI_CONFIG,
   WRAP_LIBRARY_URL,
   WRAP_LIBRARY_NAME
@@ -275,6 +276,8 @@ export class Agent {
   }
 }
 
+
+
 (async () => {
   try {
     const agent = await Agent.createAgent();
@@ -284,6 +287,6 @@ export class Agent {
       await agent.processUserPrompt(userInput)
     }
   } catch (e) {
-    console.log(e)
+    prettyPrintError(e)
   }
 })()
