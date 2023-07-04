@@ -85,7 +85,7 @@ export class Agent {
     })
     console.log(chalk.yellow(`>> Initializing Agent...`));
     await agent._openai.createChatCompletion({
-      model: "gpt-3.5-turbo-0613",
+      model: "gpt-4-0613",
       messages,
       functions: functionsDescription,
       function_call: "auto",
@@ -169,15 +169,14 @@ export class Agent {
     return new Promise((res) => {
       readline.question(`Prompt: `, async (userInput: string) => res(userInput))
     });
-  }
-  async sendMessageToAgent(
+  }async sendMessageToAgent(
     message: string
   ): Promise<ChatCompletionResponseMessage> {
     try {
       this._chatHistory.push({ role: "user", content: message });
   
       const completion = await this._openai.createChatCompletion({
-        model: "gpt-3.5-turbo-0613",
+        model: "gpt-4-0613",
         messages: this._chatHistory,
         functions: functionsDescription,
         function_call: "auto",
@@ -186,10 +185,16 @@ export class Agent {
   
       return completion.data.choices[0].message!;
     } catch (error: any) {  // specify error type as any to fix TypeScript error
-      console.error(chalk.red('Error: '), chalk.yellow(JSON.stringify(error?.response?.data, null, 2)));
+      const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
+      console.error(chalk.red('Error: '), chalk.yellow(errorMessage));
+      logToFile({
+        role: "system",
+        content: errorMessage
+      });
       throw error;  // Re-throwing the error in case it needs to be caught elsewhere
     }
-  }
+}
+
   checkIfFunctionWasProposed(
     response: ChatCompletionResponseMessage
   ): ChatCompletionRequestMessageFunctionCall | undefined {
