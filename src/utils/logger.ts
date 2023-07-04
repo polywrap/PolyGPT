@@ -9,7 +9,7 @@ const getLogFileName = () => {
   const formattedDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
   
   // use the formatted date in the filename
-  return `chat_${formattedDate}.log`;
+  return `chats/chat_${formattedDate}.log`;
 }
 
 const logger = winston.createLogger({
