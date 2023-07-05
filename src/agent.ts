@@ -30,6 +30,9 @@ export class Agent {
   private _library = new WrapLibrary.Reader(WRAP_LIBRARY_URL, WRAP_LIBRARY_NAME);
   private _client: PolywrapClient;
   private _chatHistory: ChatCompletionRequestMessage[] = [];
+  private _initializationMessages: ChatCompletionRequestMessage[] = [];
+  private _loadwrapData: ChatCompletionRequestMessage[] = [];
+  private _chatInteractions: ChatCompletionRequestMessage[] = [];
 
   private constructor() {
     const builder = new PolywrapClientConfigBuilder()
@@ -81,6 +84,7 @@ export class Agent {
     // Load the initialization prompts
     const initialization_messages = systemPrompts(wrapInfosString);
     const messages: ChatCompletionRequestMessage[] = initialization_messages
+    agent._initializationMessages.push(...messages);
     logToFile({
       role: "system",
       content: `>> Initializing Agent...`
@@ -121,37 +125,74 @@ export class Agent {
       )
     });
   }
+  async summarizeHistory(): Promise<ChatCompletionRequestMessage> {
+    try {
+      let summarizationRequest: ChatCompletionRequestMessage = {
+        role: "system",
+        content: "Please make a concise summary of the chat history and keep track of all relevant information and variables to be used by you again in the future."
+      }
+      const messages = [...this._chatHistory, summarizationRequest];
+
+      const completion = await this._openai.createChatCompletion({
+        model: process.env.GPT_MODEL!,
+        messages,
+        temperature: 0,
+        max_tokens: 500
+      });
+
+      return completion.data.choices[0].message!;
+    } catch (error: any) {
+      const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
+      console.error(chalk.red('Error: '), chalk.yellow(errorMessage));
+      logToFile({
+        role: "system",
+        content: errorMessage
+      });
+      throw error;
+    }
+}
+
 
   async processUserPrompt(userInput: string) {
-    logToFile({
+    // Save user input to chat interactions
+    const userMessage: ChatCompletionRequestMessage = {
       role: "user",
       content: userInput
-    })
+    };
+    this._chatInteractions.push(userMessage);
+  
+    // Log the user input to file
+    logToFile(userMessage);
+  
     const response = await this.sendMessageToAgent(userInput);
     const proposedFunction = this.checkIfFunctionWasProposed(response!);
-
+  
     if (proposedFunction) {
       const userConfirmedExecution = await this.promptForUserConfirmation(proposedFunction)
-
+  
       if (userConfirmedExecution) {
-        const result = await this.executeProposedFunction(
-          proposedFunction
-        );
-
+        const result = await this.executeProposedFunction(proposedFunction);
+  
         const resultContent = result.content
-
-        logToFile({
+  
+        // Save assistant's response to chat interactions
+        const assistantResponse: ChatCompletionRequestMessage = {
           role: "assistant",
-          content: resultContent
-        })
+          content: resultContent!
+        };
+        this._chatInteractions.push(assistantResponse);
+  
+        // Log the assistant's response to file
+        logToFile(assistantResponse)
+  
         console.log('Assistant:', chalk.blue(resultContent ?? ""));
       } else {
         const message: ChatCompletionRequestMessage = {
           role: "assistant",
           content: "Alright. Will not execute this function",
         }
-  
-        this._chatHistory.push(message);
+    
+        this._chatInteractions.push(message);
         console.log('Assistant:',chalk.blue(message.content ?? ""));
         logToFile(message)
       }
@@ -160,26 +201,48 @@ export class Agent {
         role: "assistant",
         content: response?.content!,
       }
-
+  
+      // Save assistant's response to chat interactions
+      this._chatInteractions.push(responseMessage);
+  
+      // Log the assistant's response to file
       logToFile(responseMessage)
-      this._chatHistory.push(responseMessage);
+  
       console.log('Assistant:', chalk.blue(responseMessage.content ?? ""));
     }
   }
+  
 
   getUserInput(): Promise<string> {
     return new Promise((res) => {
       readline.question(`Prompt: `, async (userInput: string) => res(userInput))
     });
-  }async sendMessageToAgent(
+  }
+  
+  
+  async sendMessageToAgent(
     message: string
   ): Promise<ChatCompletionResponseMessage> {
     try {
       this._chatHistory.push({ role: "user", content: message });
   
+      let messages = [...this._initializationMessages, ...this._loadwrapData, ...this._chatInteractions];
+  
+      // Calculate the total tokens in all messages
+      const totalTokens = messages.reduce((total, msg) => total + this.countTokens(msg.content!), 0);
+      console.log(' total tokens: ', totalTokens) 
+      console.log(' total messages: ', messages.length)
+      if (totalTokens > 2500) {
+        console.log('Assistant:', chalk.yellow("Summarizing the chat as the total tokens exceeds the current limit..."));
+  
+        // Use the summary function
+        const summary = await this.summarizeHistory();
+        let messages = [...this._initializationMessages, ...this._loadwrapData, summary, message];
+      }
+  
       const completion = await this._openai.createChatCompletion({
         model: process.env.GPT_MODEL!,
-        messages: this._chatHistory,
+        messages,
         functions: functionsDescription,
         function_call: "auto",
         temperature: 0
@@ -195,7 +258,13 @@ export class Agent {
       });
       throw error;  // Re-throwing the error in case it needs to be caught elsewhere
     }
-}
+  }
+  
+  // Utility function to count the tokens in a string
+  countTokens(text: string): number {
+    return text.split(' ').length;  // Very basic token counting, may not be accurate for all languages
+  }
+  
 
   checkIfFunctionWasProposed(
     response: ChatCompletionResponseMessage
@@ -265,8 +334,8 @@ export class Agent {
       };
 
       if (functionName === "LoadWrap") {
-        this._chatHistory = this._chatHistory.filter(entry => entry.name !== "LoadWrap")
-        this._chatHistory.push(message);
+        this._loadwrapData = this._loadwrapData.filter(entry => entry.name !== "LoadWrap")
+        this._loadwrapData.push(message);
         return { role: "assistant", content: `Wrap loaded` }
       }
 
