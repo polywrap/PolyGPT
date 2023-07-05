@@ -2,6 +2,10 @@
 import chalk from "chalk";
 import dotenv from 'dotenv';
 import fs from 'fs';
+const clui = require('clui');
+
+let spinner = new clui.Spinner('Thinking...');
+
 dotenv.config();
 import {
   ChatCompletionRequestMessage,
@@ -243,7 +247,6 @@ export class Agent {
   
     const chatHistoryStr = combinedChatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
     fs.writeFileSync(filename, chatHistoryStr, 'utf-8');
-    console.log(chalk.green(`Chat history saved to ${filename}`));
   }
   
   getUserInput(): Promise<string> {
@@ -256,6 +259,9 @@ export class Agent {
   async sendMessageToAgent(
     message: string
   ): Promise<ChatCompletionResponseMessage> {
+
+    spinner.start();
+
     try {
       this._chatHistory.push({ role: "user", content: message });
   
@@ -266,7 +272,7 @@ export class Agent {
       console.log(' total tokens: ', totalTokens) 
       console.log(' total messages: ', messages.length)
       if (totalTokens > Number(process.env.ROLLING_SUMMARY_WINDOW!)) {
-        console.log('Assistant:', chalk.yellow("Summarizing the chat as the total tokens exceeds the current limit..."));
+        console.log('Assistant:', chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
   
         // Use the summary function
         const summary = await this.summarizeHistory();
@@ -281,6 +287,7 @@ export class Agent {
         temperature: 0
       });
   
+       spinner.stop();
       return completion.data.choices[0].message!;
     } catch (error: any) {  // specify error type as any to fix TypeScript error
       const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
@@ -289,6 +296,9 @@ export class Agent {
         role: "system",
         content: errorMessage
       });
+
+     
+      spinner.stop();
       throw error;  // Re-throwing the error in case it needs to be caught elsewhere
     }
   }
