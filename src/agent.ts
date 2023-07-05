@@ -1,6 +1,7 @@
 
 import chalk from "chalk";
 import dotenv from 'dotenv';
+import fs from 'fs';
 dotenv.config();
 import {
   ChatCompletionRequestMessage,
@@ -76,7 +77,6 @@ export class Agent {
       content: `Available wraps: ${JSON.stringify(availableWraps, null, 2)}`
     });
 
-
     console.log(chalk.yellow(`>> Fetching wrap training data...`));
     const wrapInfos = await agent._library.getWraps(availableWraps.wraps);
     const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
@@ -85,6 +85,17 @@ export class Agent {
     const initialization_messages = systemPrompts(wrapInfosString);
     const messages: ChatCompletionRequestMessage[] = initialization_messages
     agent._initializationMessages.push(...messages);
+
+    // Load the summary from 'summary.md'
+    if (fs.existsSync('summary.md')) {
+      const summaryContent = fs.readFileSync('summary.md', 'utf-8');
+      const summaryMessage: ChatCompletionRequestMessage = {
+        role: "assistant",
+        content: summaryContent,
+      }
+      agent._initializationMessages.push(summaryMessage);
+    }
+
     logToFile({
       role: "system",
       content: `>> Initializing Agent...`
@@ -103,6 +114,7 @@ export class Agent {
 
     return agent
   }
+
 
 
   promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall): Promise<boolean> {
@@ -129,15 +141,23 @@ export class Agent {
     try {
       let summarizationRequest: ChatCompletionRequestMessage = {
         role: "system",
-        content: "Please make a concise summary of the chat history and keep track of all relevant information and variables to be used by you again in the future."
+        content: `
+        You are PolyGPT, a model capable of invoking wrap functions and perform a wide range of tasks that ChatGPT couldnt do before. Please make a concise summary plan of execution considering all of the previous interactions and keep track of all relevant information and key data to be used by you again in the future.`
       }
-      const messages = [...this._chatHistory, summarizationRequest];
-
+      const messages = [...this._chatInteractions, summarizationRequest];
+      
       const completion = await this._openai.createChatCompletion({
         model: process.env.GPT_MODEL!,
         messages,
         temperature: 0,
-        max_tokens: 500
+        max_tokens: 200
+      });
+
+      // Write the summary to 'summary.md'
+      fs.writeFile('summary.md', completion.data.choices[0].message?.content!, (err) => {
+        if (err) {
+          throw err;
+        }
       });
 
       return completion.data.choices[0].message!;
@@ -213,6 +233,17 @@ export class Agent {
   }
   
 
+  saveChatHistoryToFile(filename: string) {
+    const combinedChatHistory = [
+      ...this._chatHistory, 
+      ...this._loadwrapData.map(data => ({ role: data.role, content: data.content }))
+    ];
+  
+    const chatHistoryStr = combinedChatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+    fs.writeFileSync(filename, chatHistoryStr, 'utf-8');
+    console.log(chalk.green(`Chat history saved to ${filename}`));
+  }
+  
   getUserInput(): Promise<string> {
     return new Promise((res) => {
       readline.question(`Prompt: `, async (userInput: string) => res(userInput))
@@ -232,7 +263,7 @@ export class Agent {
       const totalTokens = messages.reduce((total, msg) => total + this.countTokens(msg.content!), 0);
       console.log(' total tokens: ', totalTokens) 
       console.log(' total messages: ', messages.length)
-      if (totalTokens > 2500) {
+      if (totalTokens > Number(process.env.ROLLING_SUMMARY_WINDOW!)) {
         console.log('Assistant:', chalk.yellow("Summarizing the chat as the total tokens exceeds the current limit..."));
   
         // Use the summary function
@@ -277,6 +308,7 @@ export class Agent {
       this._chatHistory.push({ role: "assistant", content: response.content! });
     }
   }
+  
   async executeProposedFunction(
     functionProposed: ChatCompletionRequestMessageFunctionCall,
     attemptsRemaining = 5
@@ -286,25 +318,26 @@ export class Agent {
         role: "assistant",
         content: "Sorry, couldn't process your request",
       };
+      this._chatInteractions.push(message);  // Add error message to chat interactions
       this._chatHistory.push(message);
       logToFile(message);  // log to file when out of attempts
       return message;
     }
-
+  
     const functionName = functionProposed.name!;
     const functionArgs = functionProposed.arguments
       ? JSON.parse(functionProposed.arguments)
       : undefined;
-
+  
     const functionResponse = await functionsMap(this._library)[functionName](
       this._client,
       functionArgs
     );
-
+  
     if (!functionResponse.ok) {
       const errorMessage = `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`;
       console.log(chalk.red(errorMessage));
-
+  
       const systemMessage: ChatCompletionRequestMessage = {
         role: "system",
         content: errorMessage,
@@ -312,19 +345,22 @@ export class Agent {
       
       // Logging error message to the file
       logToFile(systemMessage);
-
+      
+      // Add error message to chat interactions
+      this._chatInteractions.push(systemMessage);  
+  
       const response = (await this.sendMessageToAgent(
         `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}`
       ))!;
       const proposedFunction = this.checkIfFunctionWasProposed(response);
-
+  
       if (proposedFunction) {
         return await this.executeProposedFunction(
           proposedFunction,
           attemptsRemaining - 1
         );
       }
-
+  
       return response;
     } else {
       const message: ChatCompletionRequestMessage = {
@@ -332,20 +368,20 @@ export class Agent {
         name: functionName,
         content: `Args: ${JSON.stringify(functionArgs, null, 2)}. Result: ${JSON.stringify(functionResponse.result, null, 2)}`,
       };
-
+  
       if (functionName === "LoadWrap") {
         this._loadwrapData = this._loadwrapData.filter(entry => entry.name !== "LoadWrap")
         this._loadwrapData.push(message);
         return { role: "assistant", content: `Wrap loaded` }
       }
-
+  
+      this._chatInteractions.push(message);  // Add function result to chat interactions
       this._chatHistory.push(message);
       return message;
     }
   }
 }
-
-
+  
 
 (async () => {
   try {
@@ -353,9 +389,11 @@ export class Agent {
 
     while (true) {
       const userInput = await agent.getUserInput();
-      await agent.processUserPrompt(userInput)
+      await agent.processUserPrompt(userInput);
+      agent.saveChatHistoryToFile('chat-history.txt');
     }
   } catch (e) {
     prettyPrintError(e)
   }
 })()
+
