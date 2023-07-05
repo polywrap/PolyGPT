@@ -150,7 +150,7 @@ export class Agent {
         model: process.env.GPT_MODEL!,
         messages,
         temperature: 0,
-        max_tokens: 200
+        max_tokens: 300
       });
 
       // Write the summary to 'summary.md'
@@ -159,6 +159,8 @@ export class Agent {
           throw err;
         }
       });
+
+      this._chatInteractions = [];
 
       return completion.data.choices[0].message!;
     } catch (error: any) {
