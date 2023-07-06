@@ -1,4 +1,5 @@
 import { ChatCompletionRequestMessageRoleEnum } from "openai";
+import { summarizeHistory } from "./memory";
 
 export const systemPrompts = (wrapInfosString: string) => {
   return [
@@ -36,3 +37,4 @@ export const systemPrompts = (wrapInfosString: string) => {
       ]
     }
   
+export const summarizerPrompt = `You are PolyGPT, a model capable of invoking wrap functions and perform a wide range of tasks that ChatGPT couldnt do before. Please make a concise summary plan of execution considering all of the previous interactions and keep track of all relevant information and key data to be used by you again in the future.`

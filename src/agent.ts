@@ -29,7 +29,7 @@ import {
   WRAP_LIBRARY_NAME
 } from "./utils";
 import { systemPrompts } from "./prompt";
-
+import { summarizeHistory } from "./memory";
 export class Agent {
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
   private _library = new WrapLibrary.Reader(WRAP_LIBRARY_URL, WRAP_LIBRARY_NAME);
@@ -141,44 +141,6 @@ export class Agent {
       )
     });
   }
-  async summarizeHistory(): Promise<ChatCompletionRequestMessage> {
-    try {
-      let summarizationRequest: ChatCompletionRequestMessage = {
-        role: "system",
-        content: `
-        You are PolyGPT, a model capable of invoking wrap functions and perform a wide range of tasks that ChatGPT couldnt do before. Please make a concise summary plan of execution considering all of the previous interactions and keep track of all relevant information and key data to be used by you again in the future.`
-      }
-      const messages = [...this._chatInteractions, summarizationRequest];
-      
-      const completion = await this._openai.createChatCompletion({
-        model: process.env.GPT_MODEL!,
-        messages,
-        temperature: 0,
-        max_tokens: 300
-      });
-
-      // Write the summary to 'summary.md'
-      fs.writeFile('summary.md', completion.data.choices[0].message?.content!, (err) => {
-        if (err) {
-          throw err;
-        }
-      });
-
-      this._chatInteractions = [];
-
-      return completion.data.choices[0].message!;
-    } catch (error: any) {
-      const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
-      console.error(chalk.red('Error: '), chalk.yellow(errorMessage));
-      logToFile({
-        role: "system",
-        content: errorMessage
-      });
-      throw error;
-    }
-}
-
-
   async processUserPrompt(userInput: string) {
     // Save user input to chat interactions
     const userMessage: ChatCompletionRequestMessage = {
@@ -275,7 +237,8 @@ export class Agent {
         console.log('Assistant:', chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
   
         // Use the summary function
-        const summary = await this.summarizeHistory();
+        const summary = await summarizeHistory(this._chatInteractions, this._openai);        
+        this._chatInteractions = [];
         let messages = [...this._initializationMessages, ...this._loadwrapData, summary, message];
       }
   
