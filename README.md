@@ -1,5 +1,6 @@
 # GPT Agent Learning Demo
-![image](https://github.com/polywrap/agent-learning-demo/assets/12145726/24690f3b-efc7-43ae-97bb-2c40016f45e2)
+![Demo Gif](https://github.com/polywrap/agent-learning-demo/assets/12145726/a9e1fa4e-6bfc-4abd-bb4e-a25779a257fa)
+
 
 
 This project uses the OpenAI Functions API in combination with Polywrap to create an agent that can learn new capabilities on demand! Polywrap is powered by Wraps, portable and composable software modules that can operate in any environment.
