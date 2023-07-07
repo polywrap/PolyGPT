@@ -1,6 +1,8 @@
 import { ChatCompletionRequestMessageRoleEnum } from "openai";
 import { summarizeHistory } from "./memory";
 
+// make a research paper about polywrap and save it as polywrap.md.  the website you need to use is polywrap.io, look at their text, and also their links, and from there find the github and recursively explore their documentation. constantly update the polywrap.md with the newest information. use the appropriate wraps (browser and filesystem) when necessary
+
 export const systemPrompts = (wrapInfosString: string) => {
   return [
     {

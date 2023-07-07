@@ -40,6 +40,8 @@ export class Agent {
   private _initializationMessages: ChatCompletionRequestMessage[] = [];
   private _loadwrapData: ChatCompletionRequestMessage[] = [];
   private _chatInteractions: ChatCompletionRequestMessage[] = [];
+  private _autoPilotCounter = 0;
+  private _autopilotMode = false;
 
   private constructor() {
     const builder = new PolywrapClientConfigBuilder()
@@ -73,7 +75,7 @@ export class Agent {
   static async createAgent(): Promise<Agent> {
     const agent = new Agent();
     logHeader();
-    console.log(chalk.yellow(">>Fetching wraps library..."));
+    console.log(chalk.yellow(">> Fetching wraps library..."));
 
     const availableWraps = await agent._library.getIndex()
 
@@ -149,6 +151,18 @@ export class Agent {
 
 
   promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall): Promise<boolean> {
+    if (this._autopilotMode) {
+      console.log(chalk.yellow('>> Running on Autopilot mode'))
+
+    const automationText = `About to execute the following function\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`;
+    console.log(chalk.cyan(automationText))
+    logToFile({
+      role: "assistant",
+      content: automationText
+    })
+      return Promise.resolve(true);
+    }
+  
     const confirmationText = `Do you wish to execute the following function?\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`;
     const confirmationPrompt = chalk.cyan(confirmationText);
     logToFile({
@@ -168,7 +182,18 @@ export class Agent {
       )
     });
   }
-  async processUserPrompt(userInput: string) {
+  
+
+
+  async processUserPrompt(userInput: string): Promise<ChatCompletionRequestMessage | void> {
+    // Check if the user has entered the autopilot command
+    const autopilotMatch = userInput.match(/^y -(\d+)$/);
+    if (autopilotMatch) {
+      this._autoPilotCounter = parseInt(autopilotMatch[1], 10);
+      this._autopilotMode = true;
+      userInput = `Please continue with the next step in the plan.`;
+    }
+  
     // Save user input to chat interactions
     const userMessage: ChatCompletionRequestMessage = {
       role: "user",
@@ -225,8 +250,21 @@ export class Agent {
   
       console.log('Assistant:', chalk.blue(responseMessage.content ?? ""));
     }
-  }
   
+    // If in autopilot mode and there are remaining iterations, automatically re-prompt the user
+    if (this._autopilotMode && this._autoPilotCounter > 0) {
+      this._autoPilotCounter--;
+      let autopilotAnswer: ChatCompletionRequestMessage | void = await this.processUserPrompt('You are in autopilot, please continue with the user\'s plan.');
+      if (autopilotAnswer) {
+        this._chatInteractions.push(autopilotAnswer);
+      }
+      return autopilotAnswer;
+    } else if (this._autoPilotCounter === 0) {
+      this._autopilotMode = false;
+    }
+  
+    return undefined; 
+  }
 
   saveChatHistoryToFile(filename: string) {
     const combinedChatHistory = [
@@ -372,7 +410,7 @@ export class Agent {
       if (functionName === "LoadWrap") {
         this._loadwrapData = this._loadwrapData.filter(entry => entry.name !== "LoadWrap")
         this._loadwrapData.push(message);
-        return { role: "assistant", content: `Wrap loaded` }
+        return { role: "assistant", content: `Wrap loaded  ${JSON.stringify(functionArgs, null, 2)}` }
       }
   
       this._chatInteractions.push(message);  // Add function result to chat interactions
