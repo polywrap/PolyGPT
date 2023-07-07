@@ -3,10 +3,6 @@ import chalk from "chalk";
 import dotenv from 'dotenv';
 import fs from 'fs';
 const clui = require('clui');
-
-let spinner = new clui.Spinner('Thinking...');
-
-dotenv.config();
 import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
@@ -30,6 +26,12 @@ import {
 } from "./utils";
 import { systemPrompts } from "./prompt";
 import { summarizeHistory } from "./memory";
+
+let spinner = new clui.Spinner('Thinking...');
+const debugMode = process.argv.includes('--debug');
+
+
+dotenv.config();
 export class Agent {
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
   private _library = new WrapLibrary.Reader(WRAP_LIBRARY_URL, WRAP_LIBRARY_NAME);
@@ -231,8 +233,11 @@ export class Agent {
   
       // Calculate the total tokens in all messages
       const totalTokens = messages.reduce((total, msg) => total + this.countTokens(msg.content!), 0);
-      console.log(' total tokens: ', totalTokens) 
-      console.log(' total messages: ', messages.length)
+      if (debugMode) {
+        console.log('Total tokens:', totalTokens);
+        console.log('Total messages:', messages.length);
+      }
+      
       if (totalTokens > Number(process.env.ROLLING_SUMMARY_WINDOW!)) {
         console.log('Assistant:', chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
   
