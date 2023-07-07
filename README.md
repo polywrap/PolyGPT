@@ -3,7 +3,7 @@
 
 
 
-This project uses the OpenAI Functions API in combination with Polywrap to create an agent that can learn new capabilities on demand! Polywrap is powered by Wraps, portable and composable software modules that can operate in any environment.
+PolyGPT is an autonomous agent that learns new capabilities on-demand. The project utilizes Polywrap to implement capabilities as dynamically fetchable WebAssembly modules called Wraps, which update the agent via OpenAI's Functions API. This approach ensures that the agent remains efficient and lightweight, while also providing access to a wide range of capabilities. Current capabilities include web scraping, local filesystem access, Ethereum transactions, and more.
 
 Mark the repo with a Star ⭐ if you like it!
 ---
