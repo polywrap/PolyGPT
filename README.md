@@ -16,9 +16,23 @@ Then you can start interacting with the bot by filling in the Prompt.
 
 ## Example prompts:
 
-- Load the http wrap and query https://api.example.com/data with the GET method
+- Load the filesystem wrap and write a detailed workout plan for 60 minutes called workout.md
+- Load the browser wrap and research what is https://polywrap.io potential user market
+- Load the http wrap and query https://api.example.com/data with the POST method
 - Load the ethereum wrap and get the Chain ID
 - Load the ethereum wrap and get the current gas price
+- Load the ethereum wrap and send a transaction to `0xEthereumAddress` with 10% of my current funds
+
+
+## Chat Logs
+
+The bot should be outputting conversations in a [`chats.log`](/chats/) file with the entire chat history to be easily shared with the community. To find this file check the chats folder after running the agent.
+
+Here are some cool chats that showcase the utility of this agent:
+  1. [Web scraper researches polywrap](./example-chat-logs/07-06-web-scraper-research-polywrap.log)
+  1. [Ethereum Sign Message](./example-chat-logs/07-04-ethereum-sign-message.log)
+  2. [Filesystem Create Flask App](./example-chat-logs/07-04-filesystem-create-flask-app.log)
+  3. [Ethereum Send Transaction](./example-chat-logs/07-05-ethereum-send-transaction.log)
 
 # Key Concepts
 ## Wraps
@@ -84,10 +98,6 @@ Do you wish to execute the following function?
 ```
 
   
-## Chat Logs
-
-The bot should be outputting a [`chat.log`](chat.log) file with the entire chat history to be easily shared with the community.
-
 # Collaborating
 
 We are eager to work with the community to continue improving this agent. If you're interested in contributing, we welcome Pull Requests! Here are some ways you can contribute:

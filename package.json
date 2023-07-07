@@ -13,6 +13,7 @@
     "@polywrap/sys-config-bundle-js": "0.11.0",
     "@polywrap/web3-config-bundle-js": "0.11.0",
     "axios": "^1.4.0",
+    "clui": "^0.3.6",
     "dotenv": "^16.3.1",
     "ethers": "5.7.2",
     "figlet": "^1.6.0",
