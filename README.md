@@ -1,9 +1,13 @@
 # GPT Agent Learning Demo
+![image](https://github.com/polywrap/agent-learning-demo/assets/12145726/24690f3b-efc7-43ae-97bb-2c40016f45e2)
+
 
 This project uses the OpenAI Functions API in combination with Polywrap to create an agent that can learn new capabilities on demand! Polywrap is powered by Wraps, portable and composable software modules that can operate in any environment.
 
 Mark the repo with a Star ⭐ if you like it!
 ---
+
+
 
 # Getting started
 Open your terminal window and run the following commands
@@ -109,6 +113,12 @@ We are eager to work with the community to continue improving this agent. If you
 Remember, the best way to submit these changes is via a Pull Request. If you're new to Github, you can learn about PRs [here](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests).
 
 Also, please feel free to join our [discord](https://discord.com/invite/Z5m88a5qWu) and discuss your ideas or ask any questions. We are an open, welcoming community and we'd love to hear from you!
+
+## Debug mode
+
+To run in debug mode just run 
+
+  `yarn start --debug`
 
 # Resources and Links
 
