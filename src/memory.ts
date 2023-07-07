@@ -42,7 +42,7 @@ export async function summarizeHistory(chatInteractions: ChatCompletionRequestMe
       model: process.env.GPT_MODEL!,
       messages,
       temperature: 0,
-      max_tokens: 300
+      max_tokens: 1000
     });
 
     // Update the summary file with the new summary

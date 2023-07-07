@@ -28,13 +28,16 @@ export const systemPrompts = (wrapInfosString: string) => {
         
         Here are the JSONs:
         
-        ${wrapInfosString}` // Pull in all of the wrap info from the library
+        ${wrapInfosString}
+        
+        Remember: If you are using ethereum you should always leave the connection arguments empty like so: "connection": {}` // Pull in all of the wrap info from the library
+        
       },
       {
         role: ChatCompletionRequestMessageRoleEnum.System,
-        content: `Remember: If you are using ethereum you should always leave the connection arguments empty like so: "connection": {}
+        content: `
         
-        You will now be transferred to your next user. They will give you an input in natural language and you will attempt to execute InvokeWrap
+        You will now be transferred to your next user, remember their goal and help them achieve it. They will give you an input in natural language and you will attempt to execute InvokeWrap
       based on the prompt if the users wants to do something. You will also be able to answer questions without executing InvokeWrap`},
       ]
     }

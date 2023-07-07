@@ -69,6 +69,7 @@ export class Agent {
     this._client = new PolywrapClient(config)
   }
 
+
   static async createAgent(): Promise<Agent> {
     const agent = new Agent();
     logHeader();
@@ -87,10 +88,29 @@ export class Agent {
     const wrapInfos = await agent._library.getWraps(availableWraps.wraps);
     const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
 
+
+    // Ask user for main goal and save as a chat message
+    const userGoal = await new Promise<string>((resolve) => {
+      readline.question('Please enter your main goal: ', (goal:string) => {
+        resolve(goal);
+      });
+    });
+
+    logToFile({
+      role: "user",
+      content: userGoal
+    })
+    const userGoalMessage: ChatCompletionRequestMessage = {
+      role: "user",
+      content: `The user has defined the following goal: ${userGoal}`,
+    };
+        
     // Load the initialization prompts
     const initialization_messages = systemPrompts(wrapInfosString);
     let messages: ChatCompletionRequestMessage[] = initialization_messages
     agent._initializationMessages.push(...messages);
+    agent._initializationMessages.push(userGoalMessage);
+
 
     // Load the summary from 'summary.md'
     console.log('Current working directory:', process.cwd());
@@ -143,7 +163,7 @@ export class Agent {
             role: "user",
             content: userInput
           })
-          return res(userInput === "Y" || userInput === "y");
+          return res(userInput === "Y" || userInput === "y" || userInput === "yy");
         }
       )
     });
@@ -361,7 +381,6 @@ export class Agent {
     }
   }
 }
-  
 
 (async () => {
   try {
@@ -376,4 +395,5 @@ export class Agent {
     prettyPrintError(e)
   }
 })()
+
 
