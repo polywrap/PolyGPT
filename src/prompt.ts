@@ -32,7 +32,9 @@ export const systemPrompts = (wrapInfosString: string) => {
       },
       {
         role: ChatCompletionRequestMessageRoleEnum.System,
-        content: `You will now be transferred to your next user. They will give you an input in natural language and you will attempt to execute InvokeWrap
+        content: `Remember: If you are using ethereum you should always leave the connection arguments empty like so: "connection": {}
+        
+        You will now be transferred to your next user. They will give you an input in natural language and you will attempt to execute InvokeWrap
       based on the prompt if the users wants to do something. You will also be able to answer questions without executing InvokeWrap`},
       ]
     }

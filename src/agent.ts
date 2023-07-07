@@ -25,7 +25,7 @@ import {
   WRAP_LIBRARY_NAME
 } from "./utils";
 import { systemPrompts } from "./prompt";
-import { summarizeHistory } from "./memory";
+import { summarizeHistory, memoryPath } from "./memory";
 
 let spinner = new clui.Spinner('Thinking...');
 const debugMode = process.argv.includes('--debug');
@@ -89,19 +89,24 @@ export class Agent {
 
     // Load the initialization prompts
     const initialization_messages = systemPrompts(wrapInfosString);
-    const messages: ChatCompletionRequestMessage[] = initialization_messages
+    let messages: ChatCompletionRequestMessage[] = initialization_messages
     agent._initializationMessages.push(...messages);
 
     // Load the summary from 'summary.md'
-    if (fs.existsSync('summary.md')) {
-      const summaryContent = fs.readFileSync('summary.md', 'utf-8');
+    console.log('Current working directory:', process.cwd());
+    console.log('File exists:', fs.existsSync(memoryPath));
+    console.log(memoryPath)
+    if (fs.existsSync(memoryPath)) {
+      console.log(chalk.yellow(`>> Loaded Memory...`));
+      const summaryContent = fs.readFileSync(memoryPath, 'utf-8');
       const summaryMessage: ChatCompletionRequestMessage = {
         role: "assistant",
         content: summaryContent,
-      }
+      };
       agent._initializationMessages.push(summaryMessage);
+      messages = [...agent._initializationMessages, ...agent._loadwrapData, ...agent._chatInteractions];
     }
-
+    
     logToFile({
       role: "system",
       content: `>> Initializing Agent...`
@@ -219,13 +224,9 @@ export class Agent {
     });
   }
   
-  
-  async sendMessageToAgent(
-    message: string
-  ): Promise<ChatCompletionResponseMessage> {
-
+  async sendMessageToAgent(message: string): Promise<ChatCompletionResponseMessage> {
     spinner.start();
-
+  
     try {
       this._chatHistory.push({ role: "user", content: message });
   
@@ -237,14 +238,14 @@ export class Agent {
         console.log('Total tokens:', totalTokens);
         console.log('Total messages:', messages.length);
       }
-      
+  
       if (totalTokens > Number(process.env.ROLLING_SUMMARY_WINDOW!)) {
         console.log('Assistant:', chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
   
         // Use the summary function
-        const summary = await summarizeHistory(this._chatInteractions, this._openai);        
+        const summary = await summarizeHistory(this._chatInteractions, this._openai);
         this._chatInteractions = [];
-        let messages = [...this._initializationMessages, ...this._loadwrapData, summary, message];
+        messages = [...this._initializationMessages, ...this._loadwrapData, summary, { role: "user", content: message }];
       }
   
       const completion = await this._openai.createChatCompletion({
@@ -255,19 +256,18 @@ export class Agent {
         temperature: 0
       });
   
-       spinner.stop();
+      spinner.stop();
       return completion.data.choices[0].message!;
-    } catch (error: any) {  // specify error type as any to fix TypeScript error
+    } catch (error: any) {
       const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
       console.error(chalk.red('Error: '), chalk.yellow(errorMessage));
       logToFile({
         role: "system",
         content: errorMessage
       });
-
-     
+  
       spinner.stop();
-      throw error;  // Re-throwing the error in case it needs to be caught elsewhere
+      throw error;
     }
   }
   
