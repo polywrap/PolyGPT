@@ -254,7 +254,7 @@ export class Agent {
     // If in autopilot mode and there are remaining iterations, automatically re-prompt the user
     if (this._autopilotMode && this._autoPilotCounter > 0) {
       this._autoPilotCounter--;
-      let autopilotAnswer: ChatCompletionRequestMessage | void = await this.processUserPrompt('You are in autopilot, please continue with the user\'s plan.');
+      let autopilotAnswer: ChatCompletionRequestMessage | void = await this.processUserPrompt('You are in autopilot, please continue with the user\'s plan without repeating any past actions.');
       if (autopilotAnswer) {
         this._chatInteractions.push(autopilotAnswer);
       }
@@ -311,7 +311,8 @@ export class Agent {
         messages,
         functions: functionsDescription,
         function_call: "auto",
-        temperature: 0
+        temperature: 0,
+        max_tokens: 500,
       });
   
       spinner.stop();
