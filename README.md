@@ -1,5 +1,5 @@
 # GPT Agent Learning Demo
-![Demo Gif](https://github.com/polywrap/agent-learning-demo/assets/12145726/a9e1fa4e-6bfc-4abd-bb4e-a25779a257fa)
+![Demo Gif](./public/demo.gif)
 
 
 
