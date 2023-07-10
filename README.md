@@ -28,7 +28,6 @@ Then you can start interacting with the bot by filling in the Prompt.
 - Load the ethereum wrap and get the current gas price
 - Load the ethereum wrap and send a transaction to `0xEthereumAddress` with 10% of my current funds
 
-
 ## Chat Logs
 
 The bot should be outputting conversations in a [`chats.log`](/chats/) file with the entire chat history to be easily shared with the community. To find this file check the chats folder after running the agent.
@@ -39,6 +38,14 @@ Here are some cool chats that showcase the utility of this agent:
   2. [Filesystem Create Flask App](./example-chat-logs/07-04-filesystem-create-flask-app.log)
   3. [Ethereum Send Transaction](./example-chat-logs/07-05-ethereum-send-transaction.log)
 
+
+## Autopilot Mode 
+
+To enable Autopilot and let the model execute freely the next operations sent the Prompt: `auto -N` where `N` is the amount of automatic stepts you want the agent to take.
+
+This command will trigger mostly execution steps where the agent loads wrappers and executes theirs functions.
+
+We recommend oversight of the Autopilot mode as it will probably steer away from its main goal or waste tokens when it goes on loops.
 # Key Concepts
 ## Wraps
 Wraps are groups of methods that the agent can execute on demand. They are the core components of the Polywrap framework, designed to be portable and composable. This means they can run in any environment and can easily and safely call into one another.
@@ -58,7 +65,7 @@ All wraps are stored in a [Wrap Library](https://github.com/polywrap/agent-wrap-
 
 ## Functions 
 
-The agent consists of only 2 versatile functions that are exposed to the user.
+The agent consists of only 2 versatile functions that are exposed to the user. They leverage the polywrap client and showcase its versatility.
 
 ### LoadWrap(name:string)
 
@@ -126,6 +133,8 @@ To run in debug mode just run
 This agent uses a simple rolling memory which keeps track of the most recent messages in a short `summary.md` in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
 
 In order to reset the memory you can always `yarn start --wipe-memory`
+
+To see the implementation of the module check [`memory.ts`](./src/memory.ts)
 
 # Resources and Links
 

@@ -187,7 +187,7 @@ export class Agent {
 
   async processUserPrompt(userInput: string): Promise<ChatCompletionRequestMessage | void> {
     // Check if the user has entered the autopilot command
-    const autopilotMatch = userInput.match(/^y -(\d+)$/);
+    const autopilotMatch = userInput.match(/^auto -(\d+)$/);
     if (autopilotMatch) {
       this._autoPilotCounter = parseInt(autopilotMatch[1], 10);
       this._autopilotMode = true;
