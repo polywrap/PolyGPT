@@ -1,3 +1,3 @@
 {
-  "wraps": ["ethers", "http", "ipfs", "filesystem", "browser", "ens"]
+  "wraps": ["ethers", "http", "ipfs", "filesystem", "browser", "ens", "safe-factory"]
 }
