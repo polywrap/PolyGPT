@@ -1,0 +1,3 @@
+{
+  "wraps": ["ethers", "http", "ipfs", "filesystem", "browser"]
+}

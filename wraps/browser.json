@@ -1,0 +1,6 @@
+{
+  "aliases": ["internet", "browser", "scraper"],
+  "description": "Wrap to query the internet and scrape its contents",
+  "uri": "wrap://ipfs/Qma2FKuC3sy6rdD9eoCHAvpdibcxZotMTpa29DvnmHVK1s",
+  "abi": "https://raw.githubusercontent.com/polywrap/web-scraper/rihp/httpmodule/polywrap.graphql"
+}
