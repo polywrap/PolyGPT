@@ -60,9 +60,9 @@ Once a Wrap is loaded, the agent can then invoke it to execute its methods. This
 
 Wraps are developed in a standardized way, allowing them to be easily composed, resulting in even more sophisticated Wraps. They can run on any platform that has the Polywrap client installed. Wraps do not have to be bundled into applications. Instead, they can be safely fetched and run at runtime, allowing applications to stay in-sync with web3 protocol upgrades. This makes it possible for applications on any platform, written in any language, to read and write data to Web3 protocols.
 
-### Wrap Library
+## Wrap Library
 
-All wraps are stored in a [Wrap Library](https://github.com/polywrap/agent-wrap-library) which will be maintained in parallel, adding more commands to the agent on startup.
+All wraps are stored in a [Wrap Library](./wraps/) which will be maintained in parallel, adding more commands to the agent on startup.
 
 ## Functions 
 
