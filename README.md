@@ -121,6 +121,12 @@ To run in debug mode just run
 
   `yarn start --debug`
 
+## Memory: Rolling summary
+
+This agent uses a simple rolling memory which keeps track of the most recent messages in a short `summary.md` in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
+
+In order to reset the memory you can always `yarn start --wipe-memory`
+
 # Resources and Links
 
 [Discord](https://discord.com/invite/Z5m88a5qWu)  |  [Wrap Library](https://github.com/polywrap/agent-wrap-library)  |  [Polywrap Docs](https://docs.polywrap.io)  |  [ChatGPT Docs](https://platform.openai.com/docs/guides/gpt/function-calling)
