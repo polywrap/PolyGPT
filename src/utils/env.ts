@@ -9,7 +9,7 @@ export const OPEN_AI_CONFIG = new Configuration({
 
 export const WRAP_LIBRARY_URL =
   process.env.WRAP_LIBRARY_URL ||
-  "https://raw.githubusercontent.com/polywrap/agent-wrap-library/master/wraps";
+  "https://raw.githubusercontent.com/polywrap/agent-learning-demo/dev/wraps";
 
 export const WRAP_LIBRARY_NAME =
   process.env.WRAP_LIBRARY_NAME ||
