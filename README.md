@@ -111,6 +111,17 @@ Do you wish to execute the following function?
 ```
 
   
+
+# Memory: Rolling summary
+
+This agent uses a simple rolling memory which keeps track of the most recent messages in a short `summary.md` in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
+
+In order to reset the memory you can always `yarn start --wipe-memory`
+
+To see the implementation of the module check [`memory.ts`](./src/memory.ts)
+
+Configure the size of the rolling summary in the `.env`. We recommend a setting a minimum of 500 and a maximum 1500 if you're using `gpt-3.5-turbo-0613` or 3500 with `gpt-4-0613` as your base model.
+
 # Collaborating
 
 We are eager to work with the community to continue improving this agent. If you're interested in contributing, we welcome Pull Requests! Here are some ways you can contribute:
@@ -129,13 +140,6 @@ To run in debug mode just run
 
   `yarn start --debug`
 
-## Memory: Rolling summary
-
-This agent uses a simple rolling memory which keeps track of the most recent messages in a short `summary.md` in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
-
-In order to reset the memory you can always `yarn start --wipe-memory`
-
-To see the implementation of the module check [`memory.ts`](./src/memory.ts)
 
 # Resources and Links
 
