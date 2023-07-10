@@ -115,9 +115,12 @@ export class Agent {
 
 
     // Load the summary from 'summary.md'
-    console.log('Current working directory:', process.cwd());
-    console.log('File exists:', fs.existsSync(memoryPath));
-    console.log(memoryPath)
+    if (debugMode) {
+      console.log('Current working directory:', process.cwd());
+      console.log('File exists:', fs.existsSync(memoryPath));
+      console.log(memoryPath)
+    }
+    
     if (fs.existsSync(memoryPath)) {
       console.log(chalk.yellow(`>> Loaded Memory...`));
       const summaryContent = fs.readFileSync(memoryPath, 'utf-8');
