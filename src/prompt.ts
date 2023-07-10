@@ -1,11 +1,14 @@
 import { ChatCompletionRequestMessageRoleEnum } from "openai";
 import { summarizeHistory } from "./memory";
 
+// make a research paper about polywrap and save it as polywrap.md.  the website you need to use is polywrap.io, look at their text, and also their links, and from there find the github and recursively explore their documentation. constantly update the polywrap.md with the newest information. use the appropriate wraps (browser and filesystem) when necessary
+
 export const systemPrompts = (wrapInfosString: string) => {
   return [
     {
       role: ChatCompletionRequestMessageRoleEnum.System,
         content: `Your name is PolyGPT. 
+        A user will have a goal in mind and will ask you to help them achieve it.
         You have a set of wraps which are groups of methods that you can call on demand.
         First you need to map what a user wants to do to a wrap. Each wrap has its own distinct "uri". Each method that you try to invoke from the same wrap,
         will have the same "uri". In order to know the methods available from this wrap and the args they require, you will need to call LoadWrapper and pass
@@ -28,13 +31,17 @@ export const systemPrompts = (wrapInfosString: string) => {
         
         Here are the JSONs:
         
-        ${wrapInfosString}` // Pull in all of the wrap info from the library
+        ${wrapInfosString}
+        
+        Remember: If you are using ethereum you should always leave the connection arguments empty like so: "connection": {}
+        Also,  The 'data' property on the 'tx' object parameter is required for the 'sendTransaction' method` // Pull in all of the wrap info from the library
+        
       },
       {
         role: ChatCompletionRequestMessageRoleEnum.System,
-        content: `Remember: If you are using ethereum you should always leave the connection arguments empty like so: "connection": {}
+        content: `
         
-        You will now be transferred to your next user. They will give you an input in natural language and you will attempt to execute InvokeWrap
+        You will now be transferred to your next user, remember their goal and help them achieve it. They will give you an input in natural language and you will attempt to execute InvokeWrap
       based on the prompt if the users wants to do something. You will also be able to answer questions without executing InvokeWrap`},
       ]
     }

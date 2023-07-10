@@ -3,7 +3,7 @@
 
 
 
-PolyGPT is an autonomous agent that learns new capabilities on-demand. The project utilizes Polywrap to implement capabilities as dynamically fetchable WebAssembly modules called Wraps, which update the agent via OpenAI's Functions API. This approach ensures that the agent remains efficient and lightweight, while also providing access to a wide range of capabilities. Current capabilities include web scraping, local filesystem access, Ethereum transactions, and more.
+PolyGPT is an autonomous agent that learns new capabilities on-demand. The project utilizes Polywrap to implement capabilities as dynamically fetchable WebAssembly modules called Wraps, which update the agent via OpenAI's Functions API. This approach ensures that the agent remains efficient and lightweight, while having access to a wide range of capabilities. Current capabilities include web scraping, local filesystem access, Ethereum transactions, and more.
 
 Mark the repo with a Star ⭐ if you like it!
 ---
@@ -17,17 +17,25 @@ Open your terminal window and run the following commands
 3. `yarn install` will get all dependencies installed
 4. `yarn start` will run the agent loop
 
-Then you can start interacting with the bot by filling in the Prompt.
+Then you can start interacting with the bot by filling in the main goal, and then an initial Prompt.
 
-## Example prompts:
+## Example Goals:
 
-- Load the filesystem wrap and write a detailed workout plan for 60 minutes called workout.md
-- Load the browser wrap and research what is https://polywrap.io potential user market
-- Load the http wrap and query https://api.example.com/data with the POST method
-- Load the ethereum wrap and get the Chain ID
-- Load the ethereum wrap and get the current gas price
-- Load the ethereum wrap and send a transaction to `0xEthereumAddress` with 10% of my current funds
+The bot will initially request a main goal to achieve, here are some examples:
 
+- Write a detailed workout plan for 60 minutes called workout.md
+- Research what is https://polywrap.io potential user market
+- Query https://api.example.com/data with the POST method
+- Get the current gas price for ethereum network
+- Send an ethereum transaction to `0xEthereumAddress` with 10% of my current funds
+
+## Autopilot Mode 
+
+To enable Autopilot and let the model execute freely the next operations sent the Prompt: `auto -N` where `N` is the amount of automatic stepts you want the agent to take.
+
+This command will trigger mostly execution steps where the agent loads wrappers and executes theirs functions.
+
+We recommend oversight of the Autopilot mode as it will probably steer away from its main goal or waste tokens when it goes on loops.
 
 ## Chat Logs
 
@@ -58,7 +66,7 @@ All wraps are stored in a [Wrap Library](https://github.com/polywrap/agent-wrap-
 
 ## Functions 
 
-The agent consists of only 2 versatile functions that are exposed to the user.
+The agent consists of only 2 versatile functions that are exposed to the user. They leverage the polywrap client and showcase its versatility.
 
 ### LoadWrap(name:string)
 
@@ -103,6 +111,17 @@ Do you wish to execute the following function?
 ```
 
   
+
+# Memory: Rolling summary
+
+This agent uses a simple rolling memory which keeps track of the most recent messages in a short `summary.md` in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
+
+In order to reset the memory you can always `yarn start --wipe-memory`
+
+To see the implementation of the module check [`memory.ts`](./src/memory.ts)
+
+Configure the size of the rolling summary in the `.env`. We recommend a setting a minimum of 500 and a maximum 1500 if you're using `gpt-3.5-turbo-0613` or 3500 with `gpt-4-0613` as your base model.
+
 # Collaborating
 
 We are eager to work with the community to continue improving this agent. If you're interested in contributing, we welcome Pull Requests! Here are some ways you can contribute:
@@ -120,6 +139,7 @@ Also, please feel free to join our [discord](https://discord.com/invite/Z5m88a5q
 To run in debug mode just run 
 
   `yarn start --debug`
+
 
 # Resources and Links
 

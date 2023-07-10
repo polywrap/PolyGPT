@@ -6,10 +6,24 @@ import {
   ChatCompletionRequestMessage,
   OpenAIApi
 } from "openai";
-import * as path from 'path';
+import dotenv from 'dotenv';
+import process from 'process';
 
 const dir = 'workspace'
 export const memoryPath = `${dir}/summary.md`
+dotenv.config();
+
+
+
+if (process.argv.includes('--wipe-memory')) {
+  // If the flag is passed, clear the summary file
+  fs.writeFile(memoryPath, '', (err) => {
+    if (err) {
+      throw err;
+    }
+  });
+  console.log(chalk.yellow(">> Summary memory wiped."));
+}
 
 
 // Check if the directory exists
@@ -42,7 +56,7 @@ export async function summarizeHistory(chatInteractions: ChatCompletionRequestMe
       model: process.env.GPT_MODEL!,
       messages,
       temperature: 0,
-      max_tokens: 300
+      max_tokens: 1000
     });
 
     // Update the summary file with the new summary

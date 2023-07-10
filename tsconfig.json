@@ -9,6 +9,7 @@
     "typeRoots": [      
       "custom_typings",
       "./node_modules/@types",
+      "./readline-sync.d.ts",
     ]
   },
   "exclude": [

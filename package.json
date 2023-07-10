@@ -18,6 +18,7 @@
     "ethers": "5.7.2",
     "figlet": "^1.6.0",
     "openai": "3.3.0",
+    "readline-sync": "^1.4.10",
     "winston": "^3.9.0"
   },
   "devDependencies": {
