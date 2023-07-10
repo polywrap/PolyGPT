@@ -19,14 +19,15 @@ Open your terminal window and run the following commands
 
 Then you can start interacting with the bot by filling in the main goal, and then an initial Prompt.
 
-## Example prompts:
+## Example Goals:
 
-- Load the filesystem wrap and write a detailed workout plan for 60 minutes called workout.md
-- Load the browser wrap and research what is https://polywrap.io potential user market
-- Load the http wrap and query https://api.example.com/data with the POST method
-- Load the ethereum wrap and get the Chain ID
-- Load the ethereum wrap and get the current gas price
-- Load the ethereum wrap and send a transaction to `0xEthereumAddress` with 10% of my current funds
+The bot will initially request a main goal to achieve, here are some examples:
+
+- Write a detailed workout plan for 60 minutes called workout.md
+- Research what is https://polywrap.io potential user market
+- Query https://api.example.com/data with the POST method
+- Get the current gas price for ethereum network
+- Send an ethereum transaction to `0xEthereumAddress` with 10% of my current funds
 
 ## Autopilot Mode 
 
