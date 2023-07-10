@@ -1,0 +1,6 @@
+{
+  "aliases": [],
+  "description": "Wrap to create, read, modify, append, and in general perform filesystem actions. Just like nodejs's 'fs' module",
+  "uri": "plugin/file-system@1.0.0",
+  "abi": "https://raw.githubusercontent.com/polywrap/file-system/main/interface/polywrap.graphql"
+}
