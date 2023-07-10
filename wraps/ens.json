@@ -1,0 +1,6 @@
+{
+  "aliases": ["ens", "ethereum name service"],
+  "description": "Wrap to look into the Ethereum Name Service (ENS) registry",
+  "uri": "ipfs/QmbESzCRArrazFff9EbDeZ44fmENBZfVBkG7AMrAvjevQL",
+  "abi": "https://raw.githubusercontent.com/polywrap/ens/main/src/schema.graphql"
+}
