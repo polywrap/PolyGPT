@@ -18,7 +18,7 @@ const logger = winston.createLogger({
 
 export const logToFile = (message: ChatCompletionRequestMessage) => {
   logger.info(`---
-  ${message.role}: ${message.content}`);
+  **${message.role}**: ${message.content}`);
 };
 
 export const logHeader = () => {
