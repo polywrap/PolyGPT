@@ -140,6 +140,8 @@ To run in debug mode just run
 
   `yarn start --debug`
 
+We highly recommend using the `gpt-4-0613` model as it will increase the context window lenght and handle a lot more errors for you automatically instead of breaking like `gpt-3.5-turbo-0613`. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
+
 
 # Resources and Links
 
