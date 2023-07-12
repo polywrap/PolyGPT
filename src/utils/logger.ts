@@ -20,7 +20,7 @@ export const logToFile = (message: ChatCompletionRequestMessage) => {
   logger.info(`
 
   
-  **${message.role}**: ${message.content}`);
+  **${message.role.toUpperCase()}**: ${message.content}`);
 };
 
 export const logHeader = () => {
