@@ -89,7 +89,7 @@ export class Agent {
     
     logToFile({
       role: "system",
-      content: `Cataloging all wraps in the library:\n\nURL: ${WRAP_LIBRARY_URL}\n\n\`\`\`\n${JSON.stringify(availableWraps, null, 2)}\n\`\`\``
+      content: `Cataloging all wraps in the library:\n\nWrap Library URL: ${WRAP_LIBRARY_URL}\n\n\`\`\`\n${JSON.stringify(availableWraps, null, 2)}\n\`\`\``
     });
     
     console.log(chalk.yellow(`>> Fetching wrap training data...`));
