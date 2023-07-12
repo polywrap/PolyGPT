@@ -28,9 +28,9 @@ The bot will initially request a main goal to achieve, here are some examples:
 | Tell me what the potential user market of https://polywrap.io is, and write your findings to a summary.md file  | web-scrapper, http, file-system   | [LINK](example-chat-logs/07-12-webscraper-research.md)             |
 | Create an express server, add a route called ‘counter’ which increments every time you ping it, and run this server | file-system, child-process       | [LINK]()     |
 | Read the PDF textbook.pdf, summarize its contents, and write the results to summary.pdf | file-system, pdf                | [LINK](<summary.pdf>)             |
-| Get the weather from someapi.com/weather                     | web-scrapper, http               | [LINK]()     |
+| Get the Bitcoin price from https://api.coindesk.com/v1/bpi/currentprice.json | web-scrapper, http               | [LINK](example-chat-logs/07-12-http-bitcoin-price.md)     |
 | Read the file at some-domain.eth                              | Ethereum, ipfs, http             | [LINK]()     |
-| How much ETH does some-domain.eth have?                       | ENS, Ethereum                    | [LINK]()     |
+| How much ETH does example.eth have?                       | ENS, Ethereum                    | [LINK](example-chat-logs/07-12-ens-ethereum-balances.md)     |
 
 ## Autopilot Mode 
 
