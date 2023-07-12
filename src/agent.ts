@@ -11,6 +11,8 @@ import {
 } from "openai";
 import { PolywrapClient, PolywrapClientConfigBuilder, IWrapPackage } from "@polywrap/client-js";
 import * as EthProvider from "@polywrap/ethereum-provider-js";
+import { dateTimePlugin } from "@polywrap/datetime-plugin-js";
+
 import { Wallet } from "ethers"
 
 import { WrapLibrary } from "./wrap-library";
@@ -46,7 +48,9 @@ export class Agent {
   private constructor() {
     const builder = new PolywrapClientConfigBuilder()
       .addBundle("web3")
-      .addBundle("sys");
+      .addBundle("sys")
+      //.setPackage("wrap://ens/datetime.polywrap.eth", dateTimePlugin({}) as IWrapPackage,)
+      ;
 
     if (process.env.ETHEREUM_PRIVATE_KEY) {
       builder.setPackage(
@@ -77,15 +81,17 @@ export class Agent {
     logHeader();
     console.log(chalk.yellow(">> Fetching wraps library..."));
 
-    const availableWraps = await agent._library.getIndex()
-
-    console.log(`Available wraps: `);
+    const availableWraps = await agent._library.getIndex();
+    
+    console.log("SYSTEM: Cataloging all wraps in the library...");
+    console.log(`URL: ${WRAP_LIBRARY_URL}`);
     console.table(availableWraps);
+    
     logToFile({
       role: "system",
-      content: `Available wraps: ${JSON.stringify(availableWraps, null, 2)}`
+      content: `Cataloging all wraps in the library:\n\nURL: ${WRAP_LIBRARY_URL}\n\n\`\`\`\n${JSON.stringify(availableWraps, null, 2)}\n\`\`\``
     });
-
+    
     console.log(chalk.yellow(`>> Fetching wrap training data...`));
     const wrapInfos = await agent._library.getWraps(availableWraps.wraps);
     const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
@@ -161,7 +167,7 @@ export class Agent {
     console.log(chalk.cyan(automationText))
     logToFile({
       role: "assistant",
-      content: "\n```json\n"+ automationText+ "\n```\n"
+      content: "\n```\n"+ automationText+ "\n```\n"
     })
       return Promise.resolve(true);
     }
