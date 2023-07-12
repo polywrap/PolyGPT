@@ -6,7 +6,7 @@ import chalk from "chalk";
 const getLogFileName = () => {
   const date = new Date();
   const formattedDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
-  return `chats/chat_${formattedDate}.log`;
+  return `chats/chat_${formattedDate}.md`;
 }
 
 const logger = winston.createLogger({
@@ -17,7 +17,9 @@ const logger = winston.createLogger({
 });
 
 export const logToFile = (message: ChatCompletionRequestMessage) => {
-  logger.info(`---
+  logger.info(`
+
+  
   **${message.role}**: ${message.content}`);
 };
 
@@ -39,7 +41,7 @@ export const logHeader = () => {
     You should now be transfered to the AI agent. If it doesn't load restart the CLI application with Ctrl+C.
     
     Once loaded, ask it to load a wrap and then to execute one of its functions! Welcome to the future!`)
-    logger.info(data);
+    logger.info('```\n' + data + '\n```');
   });
 };
 
