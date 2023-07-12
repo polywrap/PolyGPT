@@ -161,7 +161,7 @@ export class Agent {
     console.log(chalk.cyan(automationText))
     logToFile({
       role: "assistant",
-      content: "\n```"+ automationText+ "\n```\n"
+      content: "\n```json\n"+ automationText+ "\n```\n"
     })
       return Promise.resolve(true);
     }
@@ -408,7 +408,7 @@ export class Agent {
       const message: ChatCompletionRequestMessage = {
         role: "function",
         name: functionName,
-        content: `Args: ${JSON.stringify(functionArgs, null, 2)}. Result: ${JSON.stringify(functionResponse.result, null, 2)}`,
+        content: `Args:\n\`\`\`json\n${JSON.stringify(functionArgs, null, 2)}\n\`\`\`\nResult:\n\`\`\`json\n${JSON.stringify(functionResponse.result, null, 2)}\n\`\`\``,
       };
   
       if (functionName === "LoadWrap") {

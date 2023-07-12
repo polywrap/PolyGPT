@@ -23,11 +23,14 @@ Then you can start interacting with the bot by filling in the main goal, and the
 
 The bot will initially request a main goal to achieve, here are some examples:
 
-- Write a detailed workout plan for 60 minutes called workout.md
-- Research what is https://polywrap.io potential user market
-- Query https://api.example.com/data with the POST method
-- Get the current gas price for ethereum network
-- Send an ethereum transaction to `0xEthereumAddress` with 10% of my current funds
+| Prompt                                                      | Learned Wraps    | Example                          |
+|-------------------------------------------------------------|------------------|----------------------------------|
+| Tell me what the potential user market of https://polywrap.io is, and write your findings to a summary.md file  | web-scrapper, http, file-system   | [LINK](example-chat-logs/07-12-webscraper-research.md)             |
+| Create an express server, add a route called ‘counter’ which increments every time you ping it, and run this server | file-system, child-process       | [LINK]()     |
+| Read the PDF textbook.pdf, summarize its contents, and write the results to summary.pdf | file-system, pdf                | [LINK](<summary.pdf>)             |
+| Get the weather from someapi.com/weather                     | web-scrapper, http               | [LINK]()     |
+| Read the file at some-domain.eth                              | Ethereum, ipfs, http             | [LINK]()     |
+| How much ETH does some-domain.eth have?                       | ENS, Ethereum                    | [LINK]()     |
 
 ## Autopilot Mode 
 
@@ -39,13 +42,8 @@ We recommend oversight of the Autopilot mode as it will probably steer away from
 
 ## Chat Logs
 
-The bot should be outputting conversations in a [`chats.log`](/chats/) file with the entire chat history to be easily shared with the community. To find this file check the chats folder after running the agent.
+The bot should be outputting conversations in a [`chat.md`](/chats/) file with the entire chat history to be easily shared with the community. To find this file check the chats folder after running the agent.
 
-Here are some cool chats that showcase the utility of this agent:
-  1. [Web scraper researches polywrap](./example-chat-logs/07-06-web-scraper-research-polywrap.log)
-  1. [Ethereum Sign Message](./example-chat-logs/07-04-ethereum-sign-message.log)
-  2. [Filesystem Create Flask App](./example-chat-logs/07-04-filesystem-create-flask-app.log)
-  3. [Ethereum Send Transaction](./example-chat-logs/07-05-ethereum-send-transaction.log)
 
 # Key Concepts
 ## Wraps
@@ -134,14 +132,16 @@ Remember, the best way to submit these changes is via a Pull Request. If you're 
 
 Also, please feel free to join our [discord](https://discord.com/invite/Z5m88a5qWu) and discuss your ideas or ask any questions. We are an open, welcoming community and we'd love to hear from you!
 
-## Debug mode
+## Limitations and Debugging
+
+
+We highly recommend using the `gpt-4-0613` model as it will increase the context window lenght and handle a lot more errors for you automatically instead of breaking like `gpt-3.5-turbo-0613`. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
 
 To run in debug mode just run 
 
   `yarn start --debug`
 
-We highly recommend using the `gpt-4-0613` model as it will increase the context window lenght and handle a lot more errors for you automatically instead of breaking like `gpt-3.5-turbo-0613`. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
-
+By default the agent will output a `chat-history.txt` which is constantly updated with the current state of the chat history being sent to the agent on each chat completion. This is useful specially because the memory module makes edits the conversation history constantly and the chat logs that you get as output are different from the chat conversation
 
 # Resources and Links
 
