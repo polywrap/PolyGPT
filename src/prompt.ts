@@ -51,3 +51,5 @@ export const summarizerPrompt = `You are PolyGPT, a model capable of invoking wr
 Please make a concise summary plan of execution considering all of the previous interactions and keep track of all relevant information and key data to be used by you again in the future.
 
 Begin by listing any important arguments that the user has given you as they are important and should be always kept.`
+
+export const autopilotPrompt = 'You are in autopilot, please continue with the user\'s plan without repeating any past actions.'
