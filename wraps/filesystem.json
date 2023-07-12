@@ -1,6 +1,6 @@
 {
   "aliases": [],
-  "description": "Wrap to create, read, modify, append, and in general perform filesystem actions. Just like nodejs's 'fs' module",
+  "description": "Wrap to create, read, modify, append, and in general perform filesystem actions. Just like nodejs's 'fs' module. Remember that the data is not to be encoded when creating files. The encoding is done by the plugin itself.",
   "uri": "plugin/file-system@1.0.0",
   "abi": "https://raw.githubusercontent.com/polywrap/file-system/main/interface/polywrap.graphql"
 }
