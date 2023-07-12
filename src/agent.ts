@@ -161,12 +161,12 @@ export class Agent {
     console.log(chalk.cyan(automationText))
     logToFile({
       role: "assistant",
-      content: automationText
+      content: "\n```"+ automationText+ "\n```\n"
     })
       return Promise.resolve(true);
     }
   
-    const confirmationText = `Do you wish to execute the following function?\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`;
+    const confirmationText = "Do you wish to execute the following function?\n\n```" + `${proposedFunction.name} (${proposedFunction.arguments})`+"\n```\n\n(Y/N)\n";
     const confirmationPrompt = chalk.cyan(confirmationText);
     logToFile({
       role: "assistant",
@@ -382,7 +382,7 @@ export class Agent {
   
       const systemMessage: ChatCompletionRequestMessage = {
         role: "system",
-        content: errorMessage,
+        content: "\n```" + errorMessage + "\n```\n",
       };
       
       // Logging error message to the file
