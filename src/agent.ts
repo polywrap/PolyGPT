@@ -22,6 +22,7 @@ import {
   readline,
   logHeader,
   chatHistoryPath,
+  countTokens,
   prettyPrintError,
   OPEN_AI_CONFIG,
   WRAP_LIBRARY_URL,
@@ -301,7 +302,7 @@ export class Agent {
       let messages = [...this._initializationMessages, ...this._loadwrapData, ...this._chatInteractions];
   
       // Calculate the total tokens in all messages
-      const totalTokens = messages.reduce((total, msg) => total + this.countTokens(msg.content!), 0);
+      const totalTokens = messages.reduce((total, msg) => total + countTokens(msg.content!), 0);
       if (debugMode) {
         console.log('Total tokens:', totalTokens);
         console.log('Total messages:', messages.length);
@@ -338,11 +339,6 @@ export class Agent {
       spinner.stop();
       throw error;
     }
-  }
-  
-  // Utility function to count the tokens in a string
-  countTokens(text: string): number {
-    return text.split(' ').length;  // Very basic token counting, may not be accurate for all languages
   }
   
 
