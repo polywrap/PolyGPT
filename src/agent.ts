@@ -21,9 +21,9 @@ import {
   logToFile,
   readline,
   logHeader,
-  chatHistoryPath,
   countTokens,
   prettyPrintError,
+  saveChatHistoryToFile,
   OPEN_AI_CONFIG,
   WRAP_LIBRARY_URL,
   WRAP_LIBRARY_NAME
@@ -40,13 +40,13 @@ export class Agent {
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
   private _library = new WrapLibrary.Reader(WRAP_LIBRARY_URL, WRAP_LIBRARY_NAME);
   private _client: PolywrapClient;
-  private _chatHistory: ChatCompletionRequestMessage[] = [];
-  private _initializationMessages: ChatCompletionRequestMessage[] = [];
-  private _loadwrapData: ChatCompletionRequestMessage[] = [];
-  private _chatInteractions: ChatCompletionRequestMessage[] = [];
   private _autoPilotCounter = 0;
   private _autopilotMode = false;
-
+  public _chatHistory: ChatCompletionRequestMessage[] = [];
+  public _initializationMessages: ChatCompletionRequestMessage[] = [];
+  public _loadwrapData: ChatCompletionRequestMessage[] = [];
+  public _chatInteractions: ChatCompletionRequestMessage[] = [];
+  
   private constructor() {
     const builder = new PolywrapClientConfigBuilder()
       .addBundle("web3")
@@ -160,7 +160,6 @@ export class Agent {
   }
 
 
-
   promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall): Promise<boolean> {
     if (this._autopilotMode) {
       console.log(chalk.yellow('>> Running on Autopilot mode'))
@@ -194,7 +193,6 @@ export class Agent {
     });
   }
   
-
 
   async processUserPrompt(userInput: string): Promise<ChatCompletionRequestMessage | void> {
     // Check if the user has entered the autopilot command
@@ -277,15 +275,7 @@ export class Agent {
     return undefined; 
   }
 
-  saveChatHistoryToFile(filename: string) {
-    const combinedChatHistory = [
-      ...this._chatHistory, 
-      ...this._loadwrapData.map(data => ({ role: data.role, content: data.content }))
-    ];
-  
-    const chatHistoryStr = combinedChatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
-    fs.writeFileSync(filename, chatHistoryStr, 'utf-8');
-  }
+
   
   getUserInput(): Promise<string> {
     return new Promise((res) => {
@@ -349,7 +339,6 @@ export class Agent {
       // todo: add function calling to history for better memory management
       return response.function_call;
     } else {
-      //console.log(chalk.yellow("-> No function call used"));
       this._chatHistory.push({ role: "assistant", content: response.content! });
     }
   }
@@ -434,7 +423,7 @@ export class Agent {
     while (true) {
       const userInput = await agent.getUserInput();
       await agent.processUserPrompt(userInput);
-      agent.saveChatHistoryToFile(chatHistoryPath);
+      saveChatHistoryToFile(agent);
     }
   } catch (e) {
     prettyPrintError(e)

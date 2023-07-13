@@ -4,6 +4,7 @@ const figlet = require("figlet");
 const path = require('path');
 import chalk from "chalk";
 import fs from 'fs';
+import { Agent } from "../agent";
 
 
 const getLogFileName = () => {
@@ -70,7 +71,13 @@ if (!fs.existsSync(dirPath)){
     fs.mkdirSync(dirPath, { recursive: true });
 }
 
-export const chatHistoryPath = path.join(dirPath, 'chat-history.txt');
-// Define the file path
 
+export function saveChatHistoryToFile(agent: Agent) {
+  const combinedChatHistory = [
+    ...agent._chatHistory, 
+    ...agent._loadwrapData.map(data => ({ role: data.role, content: data.content }))
+  ];
 
+  const chatHistoryStr = combinedChatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+  fs.writeFileSync(path.join(dirPath, 'chat-history.txt'), chatHistoryStr, 'utf-8');
+}
