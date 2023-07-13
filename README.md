@@ -13,7 +13,7 @@ Mark the repo with a Star ⭐ if you like it!
 # Getting started
 Open your terminal window and run the following commands
 1. `git clone https://github.com/polywrap/gpt-agent-learning-demo.git`
-2. Update your .env file with the appropriate keys for OpenAI and your Ethereum Private Key
+2. Update your .env file with the appropriate keys for OpenAI and reconfigure your agent if needed
 3. `yarn install` will get all dependencies installed
 4. `yarn start` will run the agent loop
 
@@ -119,6 +119,12 @@ In order to reset the memory you can always `yarn start --wipe-memory`
 To see the implementation of the module check [`memory.ts`](./src/memory.ts)
 
 Configure the size of the rolling summary in the `.env`. We recommend a setting a minimum of 500 and a maximum 1500 if you're using `gpt-3.5-turbo-0613` or 3500 with `gpt-4-0613` as your base model.
+
+# Ethereum Integrations
+
+To interact with the Ethereum Network using PolyGPT you can optionally add your Ethereum Private Key to the `.env` file.
+ 
+ **Warning:** PolyGPT is still a prototype and we can't guarantee the precense of errors when the agent is invoking arguments, and having your private key written in plain text is not a good practice, so we highly recommend you only add a private key to a dummy accounts which only have funds that you're willing to lose.
 
 # Collaborating
 
