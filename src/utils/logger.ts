@@ -1,7 +1,10 @@
 import { ChatCompletionRequestMessage } from "openai";
 import winston from "winston";
 const figlet = require("figlet");
+const path = require('path');
 import chalk from "chalk";
+import fs from 'fs';
+
 
 const getLogFileName = () => {
   const date = new Date();
@@ -56,3 +59,18 @@ export function prettyPrintError(error: any): void {
   }
   console.error(chalk.yellow('Message:'), chalk.blueBright(error.message));
 }
+
+
+// Define the directory path
+const dirPath = path.join(__dirname, '..', '..', 'workspace');
+
+// Check if the directory exists
+if (!fs.existsSync(dirPath)){
+    // If the directory does not exist, create it
+    fs.mkdirSync(dirPath, { recursive: true });
+}
+
+export const chatHistoryPath = path.join(dirPath, 'chat-history.txt');
+// Define the file path
+
+

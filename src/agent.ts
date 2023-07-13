@@ -21,6 +21,7 @@ import {
   logToFile,
   readline,
   logHeader,
+  chatHistoryPath,
   prettyPrintError,
   OPEN_AI_CONFIG,
   WRAP_LIBRARY_URL,
@@ -437,7 +438,7 @@ export class Agent {
     while (true) {
       const userInput = await agent.getUserInput();
       await agent.processUserPrompt(userInput);
-      agent.saveChatHistoryToFile('chat-history.txt');
+      agent.saveChatHistoryToFile(chatHistoryPath);
     }
   } catch (e) {
     prettyPrintError(e)
