@@ -118,7 +118,7 @@ In order to reset the memory you can always `yarn start --wipe-memory`
 
 To see the implementation of the module check [`memory.ts`](./src/memory.ts)
 
-Configure the size of the rolling summary in the `.env`. We recommend a setting a minimum of 500 and a maximum 1500 if you're using `gpt-3.5-turbo-0613` or 3500 with `gpt-4-0613` as your base model.
+Configure the size of the rolling summary in the `.env`. We recommend a setting a minimum of 1000 and a maximum 3000 if you're using `gpt-3.5-turbo-0613` or 5000 with `gpt-4-0613` as your base model.
 
 # Ethereum Integrations
 
