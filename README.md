@@ -138,10 +138,13 @@ Remember, the best way to submit these changes is via a Pull Request. If you're 
 
 Also, please feel free to join our [discord](https://discord.com/invite/Z5m88a5qWu) and discuss your ideas or ask any questions. We are an open, welcoming community and we'd love to hear from you!
 
-## Limitations and Debugging
+## Limitations
 
+Please remember that this is still an early prototype and while using it normally you will certainly hit some of it's limitations.
 
 We highly recommend using the `gpt-4-0613` model as it will increase the context window lenght and handle a lot more errors for you automatically instead of breaking like `gpt-3.5-turbo-0613`. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
+
+# Debugging
 
 To run in debug mode just run 
 

@@ -23,6 +23,7 @@ import {
   logHeader,
   countTokens,
   prettyPrintError,
+  chunkAndProcessMessages,
   saveChatHistoryToFile,
   OPEN_AI_CONFIG,
   WRAP_LIBRARY_URL,
@@ -153,7 +154,8 @@ export class Agent {
       temperature: 0
     });
 
-    agent._chatHistory.push(...messages);
+    agent._chatInteractions.push(...messages);
+    // agent._chatHistory.push(...messages);
     console.log(chalk.yellow(">> Agent initialized."))
 
     return agent
@@ -200,7 +202,7 @@ export class Agent {
     if (autopilotMatch) {
       this._autoPilotCounter = parseInt(autopilotMatch[1], 10);
       this._autopilotMode = true;
-      userInput = `Please continue with the next step in the plan.`;
+      userInput = `Entering autopilot mode. Please continue with the next step in the plan.`;
     }
   
     // Save user input to chat interactions
@@ -287,8 +289,10 @@ export class Agent {
     spinner.start();
   
     try {
-      this._chatHistory.push({ role: "user", content: message });
-  
+      // this._chatHistory.push({ role: "user", content: message });
+      this._chatInteractions.push({ role: "user", content: message });
+
+      
       let messages = [...this._initializationMessages, ...this._loadwrapData, ...this._chatInteractions];
   
       // Calculate the total tokens in all messages
@@ -306,7 +310,10 @@ export class Agent {
         this._chatInteractions = [];
         messages = [...this._initializationMessages, ...this._loadwrapData, summary, { role: "user", content: message }];
       }
-  
+
+      const tokenCount = messages.reduce((total, msg) => total + countTokens(msg.content!), 0);
+      // console.log("Counted these many tokens:", tokenCount )
+      
       const completion = await this._openai.createChatCompletion({
         model: process.env.GPT_MODEL!,
         messages,
@@ -315,9 +322,9 @@ export class Agent {
         temperature: 0,
         max_tokens: 500,
       });
-  
       spinner.stop();
       return completion.data.choices[0].message!;
+      
     } catch (error: any) {
       const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
       console.error(chalk.red('Error: '), chalk.yellow(errorMessage));
@@ -339,7 +346,8 @@ export class Agent {
       // todo: add function calling to history for better memory management
       return response.function_call;
     } else {
-      this._chatHistory.push({ role: "assistant", content: response.content! });
+      this._chatInteractions.push({ role: "assistant", content: response.content! });
+      //this._chatHistory.push({ role: "assistant", content: response.content! });
     }
   }
   
@@ -353,7 +361,7 @@ export class Agent {
         content: "Sorry, couldn't process your request",
       };
       this._chatInteractions.push(message);  // Add error message to chat interactions
-      this._chatHistory.push(message);
+      //this._chatHistory.push(message);
       logToFile(message);  // log to file when out of attempts
       return message;
     }
@@ -397,12 +405,23 @@ export class Agent {
   
       return response;
     } else {
+      let messageContent = `Args:\n\`\`\`json\n${JSON.stringify(functionArgs, null, 2)}\n\`\`\`\nResult:\n\`\`\`json\n${JSON.stringify(functionResponse.result, null, 2)}\n\`\`\``;
+      
+      // Check if the message content is longer than CHUNKING_TOKENS, if so, apply chunking
+      const tokenCount = countTokens(messageContent);
+      if (tokenCount > Number(process.env.CHUNKING_TOKENS!)) {
+        console.log("Found chunking opportunity for function response");
+  
+        const combinedResponse = await chunkAndProcessMessages(messageContent, this._openai);
+        messageContent = combinedResponse.content!;  // update messageContent with chunked and processed content
+      }
+  
       const message: ChatCompletionRequestMessage = {
         role: "function",
         name: functionName,
-        content: `Args:\n\`\`\`json\n${JSON.stringify(functionArgs, null, 2)}\n\`\`\`\nResult:\n\`\`\`json\n${JSON.stringify(functionResponse.result, null, 2)}\n\`\`\``,
+        content: messageContent,
       };
-  
+
       if (functionName === "LoadWrap") {
         this._loadwrapData = this._loadwrapData.filter(entry => entry.name !== "LoadWrap")
         this._loadwrapData.push(message);
