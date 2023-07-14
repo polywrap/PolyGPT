@@ -74,8 +74,9 @@ if (!fs.existsSync(dirPath)){
 
 export function saveChatHistoryToFile(agent: Agent) {
   const combinedChatHistory = [
-    ...agent._chatHistory, 
-    ...agent._loadwrapData.map(data => ({ role: data.role, content: data.content }))
+    ...agent._initializationMessages,
+    ...agent._loadwrapData,
+    ...agent._chatInteractions
   ];
 
   const chatHistoryStr = combinedChatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
