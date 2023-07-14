@@ -7,6 +7,10 @@ import fs from 'fs';
 import { Agent } from "../agent";
 
 
+/**
+ * Gets the log file name based on the current date and time.
+ * @returns {string} The log file name.
+ */
 const getLogFileName = () => {
   const date = new Date();
   const formattedDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
@@ -20,6 +24,10 @@ const logger = winston.createLogger({
   ],
 });
 
+/**
+ * Logs a message to file.
+ * @param {ChatCompletionRequestMessage} message The message to log.
+ */
 export const logToFile = (message: ChatCompletionRequestMessage) => {
   logger.info(`
 
@@ -27,6 +35,9 @@ export const logToFile = (message: ChatCompletionRequestMessage) => {
   **${message.role.toUpperCase()}**: ${message.content}`);
 };
 
+/**
+ * Logs a stylized header to the console.
+ */
 export const logHeader = () => {
   figlet.text('PolyGPT', {
     font: 'Slant',
@@ -42,13 +53,17 @@ export const logHeader = () => {
     }
     console.log(data);
     console.log(`
-    You should now be transfered to the AI agent. If it doesn't load restart the CLI application with Ctrl+C.
+    You should now be transferred to the AI agent. If it doesn't load, restart the CLI application with Ctrl+C.
     
     Once loaded, ask it to load a wrap and then to execute one of its functions! Welcome to the future!`)
     logger.info('```\n' + data + '\n```');
   });
 };
 
+/**
+ * Prints an error in a pretty format.
+ * @param {any} error The error to print.
+ */
 export function prettyPrintError(error: any): void {
   console.error(chalk.red('Something went wrong:'));
   if (error.response) {
@@ -72,6 +87,10 @@ if (!fs.existsSync(dirPath)){
 }
 
 
+/**
+ * Saves the chat history to a file.
+ * @param {Agent} agent The agent whose chat history is to be saved.
+ */
 export function saveChatHistoryToFile(agent: Agent) {
   const combinedChatHistory = [
     ...agent._initializationMessages,
