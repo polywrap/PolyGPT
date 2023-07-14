@@ -6,6 +6,15 @@ const enc = get_encoding("gpt2");
 
 const chunkSize = Number(process.env.CHUNKING_TOKENS!);
 
+/**
+ * This function divides a message into chunks of a specified size (in tokens), sends each chunk to the OpenAI API for completion,
+ * and then combines and returns the responses.
+ *
+ * @param {string} message - The message to be chunked and sent to OpenAI.
+ * @param {OpenAIApi} openai - An instance of the OpenAI API.
+ * 
+ * @returns {Promise<ChatCompletionResponseMessage>} - The combined response from all chunks.
+ */
 export async function chunkAndProcessMessages(
   message: string,
   openai: OpenAIApi,
