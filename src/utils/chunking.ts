@@ -12,24 +12,16 @@ export async function chunkAndProcessMessages(
 ): Promise<ChatCompletionResponseMessage> {
   let chunkedResponses = [];
   const countOfTokens = countTokens(message);
-  console.log("Count of tokens: ", countOfTokens);
-
-  // Check token generation
+  console.log(`Total tokens: ${countOfTokens}`);
+  
   const tokens = enc.encode(message);
-  console.log("Tokens: ", tokens);
-
-  // Confirm chunkSize value
-  console.log("Chunk Size: ", chunkSize);
-
+  
   for (let i = 0; i < tokens.length; i += chunkSize) {
     const chunkedTokens = tokens.slice(i, i + chunkSize);
-    
-    // Validate loop indexing
-    console.log("Slice indices: ", i, i + chunkSize);
-    console.log("Tokens length: ", tokens.length);
+    let chunkOfContent = new TextDecoder().decode(enc.decode(chunkedTokens));
 
-    const chunkOfContent = new TextDecoder().decode(enc.decode(chunkedTokens));
-    console.log("Chunk of content: ", chunkOfContent);
+    // Removing excessive white spaces
+    chunkOfContent = chunkOfContent.replace(/\s+/g, ' ');
 
     // skip the loop if the chunk of content is empty
     if (!chunkOfContent.trim()) {
@@ -51,32 +43,19 @@ export async function chunkAndProcessMessages(
       });
     } catch (error) {
       console.log("Error in creating chat completion: ", error);
-      console.log("Error details: ", JSON.stringify(error, getCircularReplacer()));
     }
 
     if (chunkCompletion) {
       chunkedResponses.push(chunkCompletion.data.choices[0].message!);
     }
+
+    console.log(`Current step: ${i / chunkSize}, Remaining steps: ${(tokens.length - i) / chunkSize}`);
   }
 
   const combinedResponse: ChatCompletionResponseMessage = {
     role: "system",
-    content: chunkedResponses.map(res => res.content).join('\n'),
+    content: chunkedResponses.map(res => res.content).join('\n').replace(/\s+/g, ' '),
   };
 
   return combinedResponse;
-}
-
-// This function will handle circular structures
-function getCircularReplacer() {
-  const seen = new WeakSet();
-  return (key: string, value: any) => {
-    if (typeof value === "object" && value !== null) {
-      if (seen.has(value)) {
-        return;
-      }
-      seen.add(value);
-    }
-    return value;
-  };
 }
