@@ -52,24 +52,26 @@ export class Agent {
     const builder = new PolywrapClientConfigBuilder()
       .addBundle("web3")
       .addBundle("sys")
-      //.setPackage("wrap://ens/datetime.polywrap.eth", dateTimePlugin({}) as IWrapPackage,)
-      ;
 
     if (process.env.ETHEREUM_PRIVATE_KEY) {
-      builder.setPackage(
-        "plugin/ethereum-provider@2.0.0",
-        EthProvider.plugin({
-          connections: new EthProvider.Connections({
-            networks: {
-              goerli: new EthProvider.Connection({
-                signer: new Wallet(process.env.ETHEREUM_PRIVATE_KEY as string),
-                provider:
-                  "https://goerli.infura.io/v3/b00b2c2cc09c487685e9fb061256d6a6",
-              }),
-            },
-            defaultNetwork: "goerli"
-          }),
-        }) as IWrapPackage
+      builder.setPackages({
+
+        "wrap://plugin/datetime":
+          dateTimePlugin({}) as IWrapPackage,
+
+        "plugin/ethereum-provider@2.0.0":      
+          EthProvider.plugin({
+            connections: new EthProvider.Connections({
+              networks: {
+                goerli: new EthProvider.Connection({
+                  signer: new Wallet(process.env.ETHEREUM_PRIVATE_KEY as string),
+                  provider:
+                    "https://goerli.infura.io/v3/b00b2c2cc09c487685e9fb061256d6a6",
+                }),
+              },
+              defaultNetwork: "goerli"
+            }),
+          }) as IWrapPackage}
       );
     }
 
