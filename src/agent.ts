@@ -317,7 +317,11 @@ export class Agent {
         this.log('Assistant: ' + chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
 
         // Use the summary function
-        const summary = await summarizeHistory(this._chatInteractions, this._openai);
+        const summary = await summarizeHistory(
+          this._chatInteractions,
+          this._openai,
+          this._logger
+        );
         this._chatInteractions = [];
         messages = [...this._initializationMessages, ...this._loadwrapData, summary, { role: "user", content: message }];
       }

@@ -1,6 +1,8 @@
+import { summarizerPrompt } from './prompt';
+import { Logger } from "./utils";
+
 import chalk from "chalk";
 import fs from 'fs';
-import { summarizerPrompt } from './prompt';
 import {
   ChatCompletionRequestMessage,
   OpenAIApi
@@ -30,7 +32,11 @@ if (!fs.existsSync(dir)){
   fs.mkdirSync(dir);
 }
 
-export async function summarizeHistory(chatInteractions: ChatCompletionRequestMessage[], agent: OpenAIApi): Promise<ChatCompletionRequestMessage> {
+export async function summarizeHistory(
+  chatInteractions: ChatCompletionRequestMessage[],
+  agent: OpenAIApi,
+  logger: Logger
+): Promise<ChatCompletionRequestMessage> {
   try {
     let summarizationRequest: ChatCompletionRequestMessage = {
       role: "system",
@@ -66,13 +72,11 @@ export async function summarizeHistory(chatInteractions: ChatCompletionRequestMe
     return completion.data.choices[0].message!;
   } catch (error: any) {
     const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
-    console.error(chalk.red('Error: '), chalk.yellow(errorMessage));
-    // TODO: revisit this
-    console.log({
+    logger.error(chalk.red('Error: ') + chalk.yellow(errorMessage));
+    logger.logMessage({
       role: "system",
       content: errorMessage
     });
     throw error;
   }
 }
-

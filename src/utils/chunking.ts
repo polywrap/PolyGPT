@@ -1,6 +1,11 @@
-import { OpenAIApi, ChatCompletionResponseMessage } from 'openai';
 import { countTokens } from './count-tokens';
+import { Logger } from './logger';
+
 import { get_encoding } from "@dqbd/tiktoken";
+import {
+  OpenAIApi,
+  ChatCompletionResponseMessage
+} from 'openai';
 
 const enc = get_encoding("gpt2");
 
@@ -18,10 +23,11 @@ const chunkSize = Number(process.env.CHUNKING_TOKENS!);
 export async function chunkAndProcessMessages(
   message: string,
   openai: OpenAIApi,
+  logger: Logger
 ): Promise<ChatCompletionResponseMessage> {
   let chunkedResponses = [];
   const countOfTokens = countTokens(message);
-  console.log(`Total tokens: ${countOfTokens}`);
+  logger.info(`Total tokens: ${countOfTokens}`);
   
   const tokens = enc.encode(message);
   
@@ -51,14 +57,14 @@ export async function chunkAndProcessMessages(
         max_tokens: 100,
       });
     } catch (error) {
-      console.log("Error in creating chat completion: ", error);
+      logger.error("Error in creating chat completion: " + error);
     }
 
     if (chunkCompletion) {
       chunkedResponses.push(chunkCompletion.data.choices[0].message!);
     }
 
-    console.log(`Current step: ${i / chunkSize}, Remaining steps: ${(tokens.length - i) / chunkSize}`);
+    logger.info(`Current step: ${i / chunkSize}, Remaining steps: ${(tokens.length - i) / chunkSize}`);
   }
 
   const combinedResponse: ChatCompletionResponseMessage = {
