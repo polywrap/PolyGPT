@@ -1,19 +1,10 @@
-import { Agent } from "./agent";
-import {
-  prettyPrintError,
-  saveChatHistoryToFile,
-} from "./utils";
+import { run } from "./cli";
 
-(async () => {
-  try {
-    const agent = await Agent.createAgent();
-
-    while (true) {
-      const userInput = await agent.getUserInput();
-      await agent.processUserPrompt(userInput);
-      saveChatHistoryToFile(agent);
-    }
-  } catch (e) {
-    prettyPrintError(e)
-  }
-})()
+run()
+  .then(() => {
+    process.exit();
+  })
+  .catch((err) => {
+    console.error(err);
+    process.abort();
+  });

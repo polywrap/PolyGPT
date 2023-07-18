@@ -13,8 +13,6 @@ const dir = 'workspace'
 export const memoryPath = `${dir}/summary.md`
 dotenv.config();
 
-
-
 if (process.argv.includes('--wipe-memory')) {
   // If the flag is passed, clear the summary file
   fs.writeFile(memoryPath, '', (err) => {
@@ -25,13 +23,11 @@ if (process.argv.includes('--wipe-memory')) {
   console.log(chalk.yellow(">> Summary memory wiped."));
 }
 
-
 // Check if the directory exists
 if (!fs.existsSync(dir)){
   // If the directory does not exist, create it
   fs.mkdirSync(dir);
 }
-
 
 export async function summarizeHistory(chatInteractions: ChatCompletionRequestMessage[], agent: OpenAIApi): Promise<ChatCompletionRequestMessage> {
   try {
