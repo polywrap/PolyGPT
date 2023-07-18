@@ -53,10 +53,10 @@ export class Agent {
     if (process.env.ETHEREUM_PRIVATE_KEY) {
       builder.setPackages({
 
-        "wrap://plugin/datetime":
+        "plugin/datetime":
           dateTimePlugin({}) as IWrapPackage,
 
-        "plugin/ethereum-provider@2.0.0":      
+        "plugin/ethereum-provider@2.0.0":
           EthProvider.plugin({
             connections: new EthProvider.Connections({
               networks: {

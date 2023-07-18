@@ -91,7 +91,7 @@ Do you wish to execute the following function?
 
     Name: InvokeWrap
     Arguments: {
-  "uri": "wrap://plugin/http@1.1.0",
+  "uri": "plugin/http@1.1.0",
   "method": "get",
   "args": {
     "url": "https://api.example.com/data",
