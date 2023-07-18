@@ -1,33 +1,43 @@
 import { ChatCompletionRequestMessage } from "openai";
-import winston from "winston";
+import winston, { Logger } from "winston";
 import figlet from "figlet";
 import chalk from "chalk";
 import fs from 'fs';
 import path from "path";
 
-/**
- * Gets the log file name based on the current date and time.
- * @returns {string} The log file name.
- */
-const getLogFileName = () => {
+let _logDir: string = "chats";
+let _logger: Logger | undefined;
+
+function logger(): Logger {
+  if (_logger) {
+    return _logger;
+  }
+
+  // Generate a unique log file name
   const date = new Date();
-  const formattedDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
-  return `chats/chat_${formattedDate}.md`;
+  const formattedDate = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
+  const logFile = `${_logDir}/chat_${formattedDate}.md`;
+
+  // Create the logger
+  _logger = winston.createLogger({
+    format: winston.format.printf(info => `${info.message}`),
+    transports: [
+      new winston.transports.File({ filename: logFile }),
+    ],
+  });
+  return _logger;
 }
 
-const logger = winston.createLogger({
-  format: winston.format.printf(info => `${info.message}`),
-  transports: [
-    new winston.transports.File({ filename: getLogFileName() }),
-  ],
-});
+export function init(logDir: string) {
+  _logDir = logDir;
+}
 
 /**
  * Logs a message to file.
  * @param {ChatCompletionRequestMessage} message The message to log.
  */
 export const logToFile = (message: ChatCompletionRequestMessage) => {
-  logger.info(`
+  logger().info(`
 
 
   **${message.role.toUpperCase()}**: ${message.content}`);
@@ -54,7 +64,7 @@ export const logHeader = () => {
     You should now be transferred to the AI agent. If it doesn't load, restart the CLI application with Ctrl+C.
     
     Once loaded, ask it to load a wrap and then to execute one of its functions! Welcome to the future!`)
-    logger.info('```\n' + data + '\n```');
+    logger().info('```\n' + data + '\n```');
   });
 };
 
@@ -74,15 +84,6 @@ export function prettyPrintError(error: any): void {
   console.error(chalk.yellow('Message:'), chalk.blueBright(error.message));
 }
 
-// Define the directory path
-const dirPath = path.join(__dirname, '..', '..', 'workspace');
-
-// Check if the directory exists
-if (!fs.existsSync(dirPath)){
-    // If the directory does not exist, create it
-    fs.mkdirSync(dirPath, { recursive: true });
-}
-
 /**
  * Saves the chat history to a file.
  * @param {Agent} agent The agent whose chat history is to be saved.
@@ -90,4 +91,14 @@ if (!fs.existsSync(dirPath)){
 export function saveChatHistoryToFile(chatHistory: ChatCompletionRequestMessage[]) {
   const chatHistoryStr = chatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
   fs.writeFileSync(path.join(dirPath, 'chat-history.txt'), chatHistoryStr, 'utf-8');
+}
+
+// TODO: look at this later
+// Define the directory path
+const dirPath = path.join(__dirname, '..', '..', 'workspace');
+
+// Check if the directory exists
+if (!fs.existsSync(dirPath)){
+    // If the directory does not exist, create it
+    fs.mkdirSync(dirPath, { recursive: true });
 }

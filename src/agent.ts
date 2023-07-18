@@ -32,8 +32,8 @@ import { summarizeHistory, memoryPath } from "./memory";
 let spinner = new clui.Spinner('Thinking...');
 const debugMode = process.argv.includes('--debug');
 
-
 dotenv.config();
+
 export class Agent {
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
   private _library = new WrapLibrary.Reader(WRAP_LIBRARY_URL, WRAP_LIBRARY_NAME);
@@ -77,18 +77,17 @@ export class Agent {
     this._client = new PolywrapClient(config)
   }
 
-
   static async createAgent(): Promise<Agent> {
     const agent = new Agent();
     logHeader();
     console.log(chalk.yellow(">> Fetching wraps library..."));
 
     const availableWraps = await agent._library.getIndex();
-    
+
     console.log("SYSTEM: Cataloging all wraps in the library...");
     console.log(`URL: ${WRAP_LIBRARY_URL}`);
     console.table(availableWraps);
-    
+
     logToFile({
       role: "system",
       content: `Cataloging all wraps in the library:\n\nWrap Library URL: ${WRAP_LIBRARY_URL}\n\n\`\`\`\n${JSON.stringify(availableWraps, null, 2)}\n\`\`\``
