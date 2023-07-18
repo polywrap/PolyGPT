@@ -4,7 +4,7 @@
   "uri": "wrap://ipfs/QmNkqWQuTAiZaLSR3VE53uazuAEqZevv1XQtvAYahuyJ6d",
   "abi": "https://raw.githubusercontent.com/polywrap/ethers/main/wraps/core/polywrap.graphql",
   "hints":[
-    "If you are using ethereum you should always leave the connection arguments empty like so: 'connection': {}",
+    "Always leave the connection arguments empty like so: 'connection': {}",
     "The 'sendTransaction' method requires a 'data' property on the 'tx' object parameter."
   ]
 }
