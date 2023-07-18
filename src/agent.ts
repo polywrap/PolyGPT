@@ -1,8 +1,7 @@
-
 import chalk from "chalk";
 import dotenv from 'dotenv';
 import fs from 'fs';
-const clui = require('clui');
+import clui from "clui";
 import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
@@ -19,7 +18,6 @@ import {
   logToFile,
   readline,
   logHeader,
-  prettyPrintError,
   OPEN_AI_CONFIG,
   WRAP_LIBRARY_URL,
   WRAP_LIBRARY_NAME
@@ -348,6 +346,7 @@ export class Agent {
     } else {
       //console.log(chalk.yellow("-> No function call used"));
       this._chatHistory.push({ role: "assistant", content: response.content! });
+      return undefined;
     }
   }
   
@@ -423,19 +422,3 @@ export class Agent {
     }
   }
 }
-
-(async () => {
-  try {
-    const agent = await Agent.createAgent();
-
-    while (true) {
-      const userInput = await agent.getUserInput();
-      await agent.processUserPrompt(userInput);
-      agent.saveChatHistoryToFile('chat-history.txt');
-    }
-  } catch (e) {
-    prettyPrintError(e)
-  }
-})()
-
-
