@@ -1,11 +1,9 @@
 import { ChatCompletionRequestMessage } from "openai";
 import winston from "winston";
-const figlet = require("figlet");
-const path = require('path');
+import figlet from "figlet";
 import chalk from "chalk";
 import fs from 'fs';
-import { Agent } from "../agent";
-
+import path from "path";
 
 /**
  * Gets the log file name based on the current date and time.
@@ -31,7 +29,7 @@ const logger = winston.createLogger({
 export const logToFile = (message: ChatCompletionRequestMessage) => {
   logger.info(`
 
-  
+
   **${message.role.toUpperCase()}**: ${message.content}`);
 };
 
@@ -76,7 +74,6 @@ export function prettyPrintError(error: any): void {
   console.error(chalk.yellow('Message:'), chalk.blueBright(error.message));
 }
 
-
 // Define the directory path
 const dirPath = path.join(__dirname, '..', '..', 'workspace');
 
@@ -86,18 +83,11 @@ if (!fs.existsSync(dirPath)){
     fs.mkdirSync(dirPath, { recursive: true });
 }
 
-
 /**
  * Saves the chat history to a file.
  * @param {Agent} agent The agent whose chat history is to be saved.
  */
-export function saveChatHistoryToFile(agent: Agent) {
-  const combinedChatHistory = [
-    ...agent._initializationMessages,
-    ...agent._loadwrapData,
-    ...agent._chatInteractions
-  ];
-
-  const chatHistoryStr = combinedChatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+export function saveChatHistoryToFile(chatHistory: ChatCompletionRequestMessage[]) {
+  const chatHistoryStr = chatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
   fs.writeFileSync(path.join(dirPath, 'chat-history.txt'), chatHistoryStr, 'utf-8');
 }

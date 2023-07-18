@@ -11,7 +11,11 @@ export async function run() {
     while (true) {
       const userInput = await agent.getUserInput();
       await agent.processUserPrompt(userInput);
-      saveChatHistoryToFile(agent);
+      saveChatHistoryToFile([
+        ...agent._initializationMessages,
+        ...agent._loadwrapData,
+        ...agent._chatInteractions
+      ]);
     }
   } catch (e) {
     prettyPrintError(e)
