@@ -1,5 +1,5 @@
 import { OpenAIApi, ChatCompletionResponseMessage } from 'openai';
-import { countTokens } from '../utils/token-counter';
+import { countTokens } from './count-tokens';
 import { get_encoding } from "@dqbd/tiktoken";
 
 const enc = get_encoding("gpt2");
