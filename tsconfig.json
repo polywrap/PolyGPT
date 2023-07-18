@@ -2,17 +2,24 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
-    "strict": true,
+    "moduleResolution": "node",
     "esModuleInterop": true,
-    "outDir": "dist",
+    "outDir": "build",
+    "sourceMap": true,
     "resolveJsonModule": true,
-    "typeRoots": [      
-      "custom_typings",
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": [
       "./node_modules/@types",
-      "./readline-sync.d.ts",
+      "./utils/typings.d.ts",
     ]
   },
-  "exclude": [
-    "test"
+  "include": [
+    "./src/**/*"
   ]
 }
