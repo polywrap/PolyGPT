@@ -53,9 +53,19 @@ export const logHeader = () => {
     }
     console.log(data);
     console.log(`
-    You should now be transferred to the AI agent. If it doesn't load, restart the CLI application with Ctrl+C.
+    You should now be transferred to the AI agent. If it doesn't load in 10 seconds, restart the CLI application with Ctrl+C.
     
-    Once loaded, ask it to load a wrap and then to execute one of its functions! Welcome to the future!`)
+    Once loaded, begin by giving it a goal. Right then you'll be able to ask to give you a detailed plan to achieve the goal!
+    
+    To enable autopilot, type "auto -N" and press enter. N is the number of steps you want the autopilot to take. For example, "auto -3" will make the autopilot take 3 steps. Beware this might make your runs take a long time, loop and waste more tokens than needed.
+
+    To exit the application at any time, press Ctrl+C.
+
+    For more info and support join our Discord server: https://discord.com/invite/Z5m88a5qWu
+
+    Welcome to the future!
+    
+    `)
     logger.info('```\n' + data + '\n```');
   });
 };
