@@ -1,8 +1,7 @@
-
 import chalk from "chalk";
 import dotenv from 'dotenv';
 import fs from 'fs';
-const clui = require('clui');
+import clui from "clui";
 import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
@@ -22,9 +21,7 @@ import {
   readline,
   logHeader,
   countTokens,
-  prettyPrintError,
   chunkAndProcessMessages,
-  saveChatHistoryToFile,
   OPEN_AI_CONFIG,
   WRAP_LIBRARY_URL,
   WRAP_LIBRARY_NAME
@@ -313,9 +310,6 @@ export class Agent {
         messages = [...this._initializationMessages, ...this._loadwrapData, summary, { role: "user", content: message }];
       }
 
-      const tokenCount = messages.reduce((total, msg) => total + countTokens(msg.content!), 0);
-      // console.log("Counted these many tokens:", tokenCount )
-      
       const completion = await this._openai.createChatCompletion({
         model: process.env.GPT_MODEL!,
         messages,
@@ -349,7 +343,8 @@ export class Agent {
       return response.function_call;
     } else {
       this._chatInteractions.push({ role: "assistant", content: response.content! });
-      //this._chatHistory.push({ role: "assistant", content: response.content! });
+      //this._chatHistory.push({ role: "assistant", content: response.content! });,
+      return undefined;
     }
   }
   
@@ -436,19 +431,3 @@ export class Agent {
     }
   }
 }
-
-(async () => {
-  try {
-    const agent = await Agent.createAgent();
-
-    while (true) {
-      const userInput = await agent.getUserInput();
-      await agent.processUserPrompt(userInput);
-      saveChatHistoryToFile(agent);
-    }
-  } catch (e) {
-    prettyPrintError(e)
-  }
-})()
-
-

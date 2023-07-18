@@ -1,8 +1,6 @@
 # GPT Agent Learning Demo
 ![Demo Gif](./public/demo.gif)
 
-
-
 PolyGPT is an autonomous agent that learns new capabilities on-demand. The project utilizes Polywrap to implement capabilities as dynamically fetchable WebAssembly modules called Wraps, which update the agent via OpenAI's Functions API. This approach ensures that the agent remains efficient and lightweight, while having access to a wide range of capabilities. Current capabilities include web scraping, local filesystem access, Ethereum transactions, and more.
 
 Mark the repo with a Star ⭐ if you like it!
