@@ -1,6 +1,9 @@
 {
   "aliases": [],
-  "description": "Wrap to create, read, modify, append, and in general perform filesystem actions. Just like nodejs's 'fs' module",
+  "description": "Wrap to create, read, modify, append, and in general perform filesystem actions. Just like nodejs's 'fs' module. Remember that the data is not to be encoded when creating files. The encoding is done by the plugin itself.",
   "uri": "plugin/file-system@1.0.0",
-  "abi": "https://raw.githubusercontent.com/polywrap/file-system/main/interface/polywrap.graphql"
+  "abi": "https://raw.githubusercontent.com/polywrap/file-system/main/interface/polywrap.graphql",
+  "hints":[
+    "For reading and writing files and choosing a `path` always use the prefix ./workspace/ to access the workspace directory. For example, saving a file to the workspace directory would have the path `./workspace/my-file.txt.`"
+  ]
 }

@@ -1,5 +1,5 @@
 # GPT Agent Learning Demo
-![Demo Gif](https://github.com/polywrap/agent-learning-demo/assets/12145726/a9e1fa4e-6bfc-4abd-bb4e-a25779a257fa)
+![Demo Gif](./public/demo.gif)
 
 PolyGPT is an autonomous agent that learns new capabilities on-demand. The project utilizes Polywrap to implement capabilities as dynamically fetchable WebAssembly modules called Wraps, which update the agent via OpenAI's Functions API. This approach ensures that the agent remains efficient and lightweight, while having access to a wide range of capabilities. Current capabilities include web scraping, local filesystem access, Ethereum transactions, and more.
 
@@ -11,7 +11,7 @@ Mark the repo with a Star ⭐ if you like it!
 # Getting started
 Open your terminal window and run the following commands
 1. `git clone https://github.com/polywrap/gpt-agent-learning-demo.git`
-2. Update your .env file with the appropriate keys for OpenAI and your Ethereum Private Key
+2. Update your .env file with the appropriate keys for OpenAI and reconfigure your agent if needed
 3. `yarn install` will get all dependencies installed
 4. `yarn start` will run the agent loop
 
@@ -21,11 +21,14 @@ Then you can start interacting with the bot by filling in the main goal, and the
 
 The bot will initially request a main goal to achieve, here are some examples:
 
-- Write a detailed workout plan for 60 minutes called workout.md
-- Research what is https://polywrap.io potential user market
-- Query https://api.example.com/data with the POST method
-- Get the current gas price for ethereum network
-- Send an ethereum transaction to `0xEthereumAddress` with 10% of my current funds
+| Prompt                                                      | Learned Wraps    | Example                          |
+|-------------------------------------------------------------|------------------|----------------------------------|
+| Tell me what the potential user market of https://polywrap.io is, and write your findings to a summary.md file  | web-scrapper, http, file-system   | [LINK](example-chat-logs/07-12-webscraper-research.md)             |
+| Create an express server, add a route called ‘counter’ which increments every time you ping it, and run this server | file-system, child-process       | [LINK]()     |
+| Read the PDF textbook.pdf, summarize its contents, and write the results to summary.pdf | file-system, pdf                | [LINK](<summary.pdf>)             |
+| Get the Bitcoin price from https://api.coindesk.com/v1/bpi/currentprice.json | web-scrapper, http               | [LINK](example-chat-logs/07-12-http-bitcoin-price.md)     |
+| Read the file at some-domain.eth                              | Ethereum, ipfs, http             | [LINK]()     |
+| How much ETH does example.eth have?                       | ENS, Ethereum                    | [LINK](example-chat-logs/07-12-ens-ethereum-balances.md)     |
 
 ## Autopilot Mode 
 
@@ -37,13 +40,8 @@ We recommend oversight of the Autopilot mode as it will probably steer away from
 
 ## Chat Logs
 
-The bot should be outputting conversations in a [`chats.log`](/chats/) file with the entire chat history to be easily shared with the community. To find this file check the chats folder after running the agent.
+The bot should be outputting conversations in a [`chat.md`](/chats/) file with the entire chat history to be easily shared with the community. To find this file check the chats folder after running the agent.
 
-Here are some cool chats that showcase the utility of this agent:
-  1. [Web scraper researches polywrap](./example-chat-logs/07-06-web-scraper-research-polywrap.log)
-  1. [Ethereum Sign Message](./example-chat-logs/07-04-ethereum-sign-message.log)
-  2. [Filesystem Create Flask App](./example-chat-logs/07-04-filesystem-create-flask-app.log)
-  3. [Ethereum Send Transaction](./example-chat-logs/07-05-ethereum-send-transaction.log)
 
 # Key Concepts
 ## Wraps
@@ -58,9 +56,9 @@ Once a Wrap is loaded, the agent can then invoke it to execute its methods. This
 
 Wraps are developed in a standardized way, allowing them to be easily composed, resulting in even more sophisticated Wraps. They can run on any platform that has the Polywrap client installed. Wraps do not have to be bundled into applications. Instead, they can be safely fetched and run at runtime, allowing applications to stay in-sync with web3 protocol upgrades. This makes it possible for applications on any platform, written in any language, to read and write data to Web3 protocols.
 
-### Wrap Library
+## Wrap Library
 
-All wraps are stored in a [Wrap Library](https://github.com/polywrap/agent-wrap-library) which will be maintained in parallel, adding more commands to the agent on startup.
+All wraps are stored in a [Wrap Library](./wraps/) which will be maintained in parallel, adding more commands to the agent on startup.
 
 ## Functions 
 
@@ -118,7 +116,13 @@ In order to reset the memory you can always `yarn start --wipe-memory`
 
 To see the implementation of the module check [`memory.ts`](./src/memory.ts)
 
-Configure the size of the rolling summary in the `.env`. We recommend a setting a minimum of 500 and a maximum 1500 if you're using `gpt-3.5-turbo-0613` or 3500 with `gpt-4-0613` as your base model.
+Configure the size of the rolling summary in the `.env`. We recommend a setting a minimum of 1000 and a maximum 3000 if you're using `gpt-3.5-turbo-0613` or 5000 with `gpt-4-0613` as your base model.
+
+# Ethereum Integrations
+
+To interact with the Ethereum Network using PolyGPT you can optionally add your Ethereum Private Key to the `.env` file.
+ 
+ **Warning:** PolyGPT is still a prototype and we can't guarantee the precense of errors when the agent is invoking arguments, and having your private key written in plain text is not a good practice, so we highly recommend you only add a private key to a dummy accounts which only have funds that you're willing to lose.
 
 # Collaborating
 
@@ -132,12 +136,19 @@ Remember, the best way to submit these changes is via a Pull Request. If you're 
 
 Also, please feel free to join our [discord](https://discord.com/invite/Z5m88a5qWu) and discuss your ideas or ask any questions. We are an open, welcoming community and we'd love to hear from you!
 
-## Debug mode
+## Limitations
+
+Please remember that this is still an early prototype and while using it normally you will certainly hit some of it's limitations.
+
+We highly recommend using the `gpt-4-0613` model as it will increase the context window lenght and handle a lot more errors for you automatically instead of breaking like `gpt-3.5-turbo-0613`. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
+
+# Debugging
 
 To run in debug mode just run 
 
   `yarn start --debug`
 
+By default the agent will output a `chat-history.txt` which is constantly updated with the current state of the chat history being sent to the agent on each chat completion. This is useful specially because the memory module makes edits the conversation history constantly and the chat logs that you get as output are different from the chat conversation
 
 # Resources and Links
 

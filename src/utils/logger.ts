@@ -1,12 +1,20 @@
 import { ChatCompletionRequestMessage } from "openai";
 import winston from "winston";
 const figlet = require("figlet");
+const path = require('path');
 import chalk from "chalk";
+import fs from 'fs';
+import { Agent } from "../agent";
 
+
+/**
+ * Gets the log file name based on the current date and time.
+ * @returns {string} The log file name.
+ */
 const getLogFileName = () => {
   const date = new Date();
   const formattedDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
-  return `chats/chat_${formattedDate}.log`;
+  return `chats/chat_${formattedDate}.md`;
 }
 
 const logger = winston.createLogger({
@@ -16,11 +24,20 @@ const logger = winston.createLogger({
   ],
 });
 
+/**
+ * Logs a message to file.
+ * @param {ChatCompletionRequestMessage} message The message to log.
+ */
 export const logToFile = (message: ChatCompletionRequestMessage) => {
-  logger.info(`---
-  ${message.role}: ${message.content}`);
+  logger.info(`
+
+  
+  **${message.role.toUpperCase()}**: ${message.content}`);
 };
 
+/**
+ * Logs a stylized header to the console.
+ */
 export const logHeader = () => {
   figlet.text('PolyGPT', {
     font: 'Slant',
@@ -36,13 +53,17 @@ export const logHeader = () => {
     }
     console.log(data);
     console.log(`
-    You should now be transfered to the AI agent. If it doesn't load restart the CLI application with Ctrl+C.
+    You should now be transferred to the AI agent. If it doesn't load, restart the CLI application with Ctrl+C.
     
     Once loaded, ask it to load a wrap and then to execute one of its functions! Welcome to the future!`)
-    logger.info(data);
+    logger.info('```\n' + data + '\n```');
   });
 };
 
+/**
+ * Prints an error in a pretty format.
+ * @param {any} error The error to print.
+ */
 export function prettyPrintError(error: any): void {
   console.error(chalk.red('Something went wrong:'));
   if (error.response) {
@@ -53,4 +74,30 @@ export function prettyPrintError(error: any): void {
     console.error(chalk.yellow('Request:'), chalk.blueBright(JSON.stringify(error.request, null, 2)));
   }
   console.error(chalk.yellow('Message:'), chalk.blueBright(error.message));
+}
+
+
+// Define the directory path
+const dirPath = path.join(__dirname, '..', '..', 'workspace');
+
+// Check if the directory exists
+if (!fs.existsSync(dirPath)){
+    // If the directory does not exist, create it
+    fs.mkdirSync(dirPath, { recursive: true });
+}
+
+
+/**
+ * Saves the chat history to a file.
+ * @param {Agent} agent The agent whose chat history is to be saved.
+ */
+export function saveChatHistoryToFile(agent: Agent) {
+  const combinedChatHistory = [
+    ...agent._initializationMessages,
+    ...agent._loadwrapData,
+    ...agent._chatInteractions
+  ];
+
+  const chatHistoryStr = combinedChatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+  fs.writeFileSync(path.join(dirPath, 'chat-history.txt'), chatHistoryStr, 'utf-8');
 }
