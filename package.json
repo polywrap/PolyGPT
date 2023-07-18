@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/polywrap/polygpt.git"
   },
-  "main": "build/index.js",
+  "main": "build/main.js",
   "bin": {
     "polygpt": "bin/polygpt"
   },

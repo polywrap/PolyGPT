@@ -1,10 +1,10 @@
-import { ChatCompletionRequestMessage } from "openai";
-import winston, { LogEntry } from "winston";
-import stripAnsi from "strip-ansi";
-import figlet from "figlet";
 import chalk from "chalk";
+import figlet from "figlet";
 import fs from 'fs';
+import { ChatCompletionRequestMessage } from "openai";
 import path from "path";
+import stripAnsi from "strip-ansi";
+import winston, { LogEntry } from "winston";
 
 export class Logger {
   protected _logDir: string = "chats";

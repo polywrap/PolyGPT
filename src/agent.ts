@@ -1,21 +1,15 @@
-import chalk from "chalk";
-import dotenv from 'dotenv';
-import fs from 'fs';
-import clui from "clui";
 import {
-  ChatCompletionRequestMessage,
-  ChatCompletionRequestMessageFunctionCall,
-  ChatCompletionResponseMessage,
-  OpenAIApi,
-} from "openai";
-import { PolywrapClient, PolywrapClientConfigBuilder, IWrapPackage } from "@polywrap/client-js";
-import * as EthProvider from "@polywrap/ethereum-provider-js";
-import { dateTimePlugin } from "@polywrap/datetime-plugin-js";
-
-import { Wallet } from "ethers"
-
-import { WrapLibrary } from "./wrap-library";
-import { functionsDescription, functionsMap } from "./open-ai-functions";
+  summarizeHistory,
+  memoryPath
+} from "./memory";
+import {
+  functionsDescription,
+  functionsMap
+} from "./open-ai-functions";
+import {
+  systemPrompts,
+  autopilotPrompt
+} from "./prompt";
 import {
   Logger,
   readline,
@@ -25,8 +19,28 @@ import {
   WRAP_LIBRARY_URL,
   WRAP_LIBRARY_NAME
 } from "./utils";
-import { systemPrompts, autopilotPrompt} from "./prompt";
-import { summarizeHistory, memoryPath } from "./memory";
+import {
+  WrapLibrary
+} from "./wrap-library";
+
+import chalk from "chalk";
+import clui from "clui";
+import dotenv from 'dotenv';
+import { Wallet } from "ethers"
+import fs from 'fs';
+import {
+  ChatCompletionRequestMessage,
+  ChatCompletionRequestMessageFunctionCall,
+  ChatCompletionResponseMessage,
+  OpenAIApi,
+} from "openai";
+import {
+  PolywrapClient,
+  PolywrapClientConfigBuilder,
+  IWrapPackage
+} from "@polywrap/client-js";
+import { dateTimePlugin } from "@polywrap/datetime-plugin-js";
+import * as EthProvider from "@polywrap/ethereum-provider-js";
 
 let spinner = new clui.Spinner('Thinking...');
 const debugMode = process.argv.includes('--debug');
@@ -422,7 +436,7 @@ export class Agent {
       if (tokenCount > Number(process.env.CHUNKING_TOKENS!)) {
         this.log("Found chunking opportunity for function response");
 
-        const combinedResponse = await chunkAndProcessMessages(messageContent, this._openai);
+        const combinedResponse = await chunkAndProcessMessages(messageContent, this._openai, this._logger);
         messageContent = combinedResponse.content!;  // update messageContent with chunked and processed content
       }
 

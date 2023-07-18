@@ -1,6 +1,10 @@
-import { InvokeOptions, PolywrapClient } from "@polywrap/client-js";
-import axios from "axios";
 import { WrapLibrary } from "./wrap-library";
+
+import {
+  InvokeOptions,
+  PolywrapClient
+} from "@polywrap/client-js";
+import axios from "axios";
 
 type Result =
   | {

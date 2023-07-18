@@ -1,5 +1,5 @@
-import { Configuration } from "openai";
 import dotenv from "dotenv";
+import { Configuration } from "openai";
 
 dotenv.config();
 

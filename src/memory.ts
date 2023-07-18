@@ -2,17 +2,18 @@ import { summarizerPrompt } from './prompt';
 import { Logger } from "./utils";
 
 import chalk from "chalk";
+import dotenv from 'dotenv';
 import fs from 'fs';
 import {
   ChatCompletionRequestMessage,
   OpenAIApi
 } from "openai";
-import dotenv from 'dotenv';
 import process from 'process';
+
+dotenv.config();
 
 const dir = 'workspace'
 export const memoryPath = `${dir}/summary.md`
-dotenv.config();
 
 // TODO: revisit this
 
