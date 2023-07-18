@@ -17,9 +17,8 @@ import { Wallet } from "ethers"
 import { WrapLibrary } from "./wrap-library";
 import { functionsDescription, functionsMap } from "./open-ai-functions";
 import {
-  logToFile,
+  Logger,
   readline,
-  logHeader,
   countTokens,
   chunkAndProcessMessages,
   OPEN_AI_CONFIG,
@@ -40,11 +39,12 @@ export class Agent {
   private _client: PolywrapClient;
   private _autoPilotCounter = 0;
   private _autopilotMode = false;
-  public _chatHistory: ChatCompletionRequestMessage[] = [];
-  public _initializationMessages: ChatCompletionRequestMessage[] = [];
-  public _loadwrapData: ChatCompletionRequestMessage[] = [];
-  public _chatInteractions: ChatCompletionRequestMessage[] = [];
-  
+  private _logger: Logger = new Logger();
+  private _chatHistory: ChatCompletionRequestMessage[] = [];
+  private _initializationMessages: ChatCompletionRequestMessage[] = [];
+  private _loadwrapData: ChatCompletionRequestMessage[] = [];
+  private _chatInteractions: ChatCompletionRequestMessage[] = [];
+
   private constructor() {
     const builder = new PolywrapClientConfigBuilder()
       .addBundle("web3")
@@ -77,26 +77,37 @@ export class Agent {
     this._client = new PolywrapClient(config)
   }
 
+  private log(infoOrMsg: string | ChatCompletionRequestMessage): void {
+    if (typeof infoOrMsg === "string") {
+      this._logger.info(infoOrMsg);
+    } else {
+      this._logger.logMessage(infoOrMsg);
+    }
+  }
+
+  private error(msg: string): void {
+    this._logger.error(msg);
+  }
+
   static async createAgent(): Promise<Agent> {
     const agent = new Agent();
-    logHeader();
-    console.log(chalk.yellow(">> Fetching wraps library..."));
+    agent._logger.logHeader();
+    agent.log(chalk.yellow(">> Fetching wraps library..."));
 
     const availableWraps = await agent._library.getIndex();
 
-    console.log("SYSTEM: Cataloging all wraps in the library...");
-    console.log(`URL: ${WRAP_LIBRARY_URL}`);
-    console.table(availableWraps);
+    agent.log("SYSTEM: Cataloging all wraps in the library...");
+    agent.log(`URL: ${WRAP_LIBRARY_URL}`);
 
-    logToFile({
+    agent.log({
       role: "system",
-      content: `Cataloging all wraps in the library:\n\nWrap Library URL: ${WRAP_LIBRARY_URL}\n\n\`\`\`\n${JSON.stringify(availableWraps, null, 2)}\n\`\`\``
+      content: `Cataloging all wraps in the library:\n\nWrap Library URL: ${
+        WRAP_LIBRARY_URL}\n\n\`\`\`\n${JSON.stringify(availableWraps, null, 2)}\n\`\`\``
     });
-    
-    console.log(chalk.yellow(`>> Fetching wrap training data...`));
+
+    agent.log(chalk.yellow(`>> Fetching wrap training data...`));
     const wrapInfos = await agent._library.getWraps(availableWraps.wraps);
     const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
-
 
     // Ask user for main goal and save as a chat message
     const userGoal = await new Promise<string>((resolve) => {
@@ -105,7 +116,7 @@ export class Agent {
       });
     });
 
-    logToFile({
+    agent.log({
       role: "user",
       content: userGoal
     })
@@ -113,23 +124,22 @@ export class Agent {
       role: "user",
       content: `The user has defined the following goal: ${userGoal}`,
     };
-        
+
     // Load the initialization prompts
     const initialization_messages = systemPrompts(wrapInfosString);
     let messages: ChatCompletionRequestMessage[] = initialization_messages
     agent._initializationMessages.push(...messages);
     agent._initializationMessages.push(userGoalMessage);
 
-
     // Load the summary from 'summary.md'
     if (debugMode) {
-      console.log('Current working directory:', process.cwd());
-      console.log('File exists:', fs.existsSync(memoryPath));
-      console.log(memoryPath)
+      agent.log('Current working directory: ' + process.cwd());
+      agent.log('File exists: ' + fs.existsSync(memoryPath));
+      agent.log(memoryPath)
     }
-    
+
     if (fs.existsSync(memoryPath)) {
-      console.log(chalk.yellow(`>> Loaded Memory...`));
+      agent.log(chalk.yellow(`>> Loaded Memory...`));
       const summaryContent = fs.readFileSync(memoryPath, 'utf-8');
       const summaryMessage: ChatCompletionRequestMessage = {
         role: "assistant",
@@ -138,12 +148,11 @@ export class Agent {
       agent._initializationMessages.push(summaryMessage);
       messages = [...agent._initializationMessages, ...agent._loadwrapData, ...agent._chatInteractions];
     }
-    
-    logToFile({
+
+    agent.log({
       role: "system",
       content: `>> Initializing Agent...`
-    })
-    console.log(chalk.yellow(`>> Initializing Agent...`));
+    });
     await agent._openai.createChatCompletion({
       model: process.env.GPT_MODEL!,
       messages,
@@ -153,29 +162,42 @@ export class Agent {
     });
 
     agent._chatInteractions.push(...messages);
-    // agent._chatHistory.push(...messages);
-    console.log(chalk.yellow(">> Agent initialized."))
+    agent.log(chalk.yellow(">> Agent initialized."))
 
     return agent
   }
 
+  async run(): Promise<void> {
+    try {
+      while (true) {
+        const userInput = await this.getUserInput();
+        await this.processUserPrompt(userInput);
+        this._logger.saveChatHistoryToFile([
+          ...this._initializationMessages,
+          ...this._loadwrapData,
+          ...this._chatInteractions
+        ]);
+      }
+    } catch (e) {
+      this._logger.prettyPrintError(e)
+    }
+  }
 
   promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall): Promise<boolean> {
     if (this._autopilotMode) {
-      console.log(chalk.yellow('>> Running on Autopilot mode'))
+      this.log(chalk.yellow('>> Running on Autopilot mode'))
 
-    const automationText = `About to execute the following function\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`;
-    console.log(chalk.cyan(automationText))
-    logToFile({
-      role: "assistant",
-      content: "\n```\n"+ automationText+ "\n```\n"
-    })
+      const automationText = `About to execute the following function\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`;
+      this.log({
+        role: "assistant",
+        content: "\n```\n"+ automationText+ "\n```\n"
+      })
       return Promise.resolve(true);
     }
-  
+
     const confirmationText = "Do you wish to execute the following function?\n\n```" + `${proposedFunction.name} (${proposedFunction.arguments})`+"\n```\n\n(Y/N)\n";
     const confirmationPrompt = chalk.cyan(confirmationText);
-    logToFile({
+    this.log({
       role: "assistant",
       content: confirmationText
     })
@@ -183,7 +205,7 @@ export class Agent {
       readline.question(
         confirmationPrompt,
         async (userInput: string) => {
-          logToFile({
+          this.log({
             role: "user",
             content: userInput
           })
@@ -192,7 +214,6 @@ export class Agent {
       )
     });
   }
-  
 
   async processUserPrompt(userInput: string): Promise<ChatCompletionRequestMessage | void> {
     // Check if the user has entered the autopilot command
@@ -202,64 +223,59 @@ export class Agent {
       this._autopilotMode = true;
       userInput = `Entering autopilot mode. Please continue with the next step in the plan.`;
     }
-  
+
     // Save user input to chat interactions
     const userMessage: ChatCompletionRequestMessage = {
       role: "user",
       content: userInput
     };
     this._chatInteractions.push(userMessage);
-  
+
     // Log the user input to file
-    logToFile(userMessage);
-  
+    this.log(userMessage);
+
     const response = await this.sendMessageToAgent(userInput);
     const proposedFunction = this.checkIfFunctionWasProposed(response!);
-  
+
     if (proposedFunction) {
       const userConfirmedExecution = await this.promptForUserConfirmation(proposedFunction)
-  
+
       if (userConfirmedExecution) {
         const result = await this.executeProposedFunction(proposedFunction);
-  
+
         const resultContent = result.content
-  
+
         // Save assistant's response to chat interactions
         const assistantResponse: ChatCompletionRequestMessage = {
           role: "assistant",
           content: resultContent!
         };
         this._chatInteractions.push(assistantResponse);
-  
+
         // Log the assistant's response to file
-        logToFile(assistantResponse)
-  
-        console.log('Assistant:', chalk.blue(resultContent ?? ""));
+        this.log(assistantResponse)
       } else {
         const message: ChatCompletionRequestMessage = {
           role: "assistant",
           content: "Alright. Will not execute this function",
         }
-    
+
         this._chatInteractions.push(message);
-        console.log('Assistant:',chalk.blue(message.content ?? ""));
-        logToFile(message)
+        this.log(message);
       }
     } else {
       const responseMessage: ChatCompletionRequestMessage = {
         role: "assistant",
         content: response?.content!,
       }
-  
+
       // Save assistant's response to chat interactions
       this._chatInteractions.push(responseMessage);
-  
+
       // Log the assistant's response to file
-      logToFile(responseMessage)
-  
-      console.log('Assistant:', chalk.blue(responseMessage.content ?? ""));
+      this.log(responseMessage)
     }
-  
+
     // If in autopilot mode and there are remaining iterations, automatically re-prompt the user
     if (this._autopilotMode && this._autoPilotCounter > 0) {
       this._autoPilotCounter--;
@@ -271,38 +287,35 @@ export class Agent {
     } else if (this._autoPilotCounter === 0) {
       this._autopilotMode = false;
     }
-  
+
     return undefined; 
   }
 
-
-  
   getUserInput(): Promise<string> {
     return new Promise((res) => {
       readline.question(`Prompt: `, async (userInput: string) => res(userInput))
     });
   }
-  
+
   async sendMessageToAgent(message: string): Promise<ChatCompletionResponseMessage> {
     spinner.start();
-  
+
     try {
       // this._chatHistory.push({ role: "user", content: message });
       this._chatInteractions.push({ role: "user", content: message });
 
-      
       let messages = [...this._initializationMessages, ...this._loadwrapData, ...this._chatInteractions];
-  
+
       // Calculate the total tokens in all messages
       const totalTokens = messages.reduce((total, msg) => total + countTokens(msg.content!), 0);
       if (debugMode) {
-        console.log('Total tokens:', totalTokens);
-        console.log('Total messages:', messages.length);
+        this.log('Total tokens: ' +  totalTokens);
+        this.log('Total messages: ' +  messages.length);
       }
-  
+
       if (totalTokens > Number(process.env.ROLLING_SUMMARY_WINDOW!)) {
-        console.log('Assistant:', chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
-  
+        this.log('Assistant: ' + chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
+
         // Use the summary function
         const summary = await summarizeHistory(this._chatInteractions, this._openai);
         this._chatInteractions = [];
@@ -319,20 +332,18 @@ export class Agent {
       });
       spinner.stop();
       return completion.data.choices[0].message!;
-      
     } catch (error: any) {
       const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
-      console.error(chalk.red('Error: '), chalk.yellow(errorMessage));
-      logToFile({
+      this.error(chalk.red('Error: ') +  chalk.yellow(errorMessage));
+      this.log({
         role: "system",
         content: errorMessage
       });
-  
+
       spinner.stop();
       throw error;
     }
   }
-  
 
   checkIfFunctionWasProposed(
     response: ChatCompletionResponseMessage
@@ -346,7 +357,7 @@ export class Agent {
       return undefined;
     }
   }
-  
+
   async executeProposedFunction(
     functionProposed: ChatCompletionRequestMessageFunctionCall,
     attemptsRemaining = 5
@@ -357,48 +368,47 @@ export class Agent {
         content: "Sorry, couldn't process your request",
       };
       this._chatInteractions.push(message);  // Add error message to chat interactions
-      //this._chatHistory.push(message);
-      logToFile(message);  // log to file when out of attempts
+      this.log(message);  // log to file when out of attempts
       return message;
     }
-  
+
     const functionName = functionProposed.name!;
     const functionArgs = functionProposed.arguments
       ? JSON.parse(functionProposed.arguments)
       : undefined;
-  
+
     const functionResponse = await functionsMap(this._library)[functionName](
       this._client,
       functionArgs
     );
-  
+
     if (!functionResponse.ok) {
       const errorMessage = `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`;
-      console.log(chalk.red(errorMessage));
-  
+      this.log(chalk.red(errorMessage));
+
       const systemMessage: ChatCompletionRequestMessage = {
         role: "system",
         content: "\n```" + errorMessage + "\n```\n",
       };
-      
+
       // Logging error message to the file
-      logToFile(systemMessage);
-      
+      this.log(systemMessage);
+
       // Add error message to chat interactions
       this._chatInteractions.push(systemMessage);  
-  
+
       const response = (await this.sendMessageToAgent(
         `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}`
       ))!;
       const proposedFunction = this.checkIfFunctionWasProposed(response);
-  
+
       if (proposedFunction) {
         return await this.executeProposedFunction(
           proposedFunction,
           attemptsRemaining - 1
         );
       }
-  
+
       return response;
     } else {
       let messageContent = `Args:\n\`\`\`json\n${JSON.stringify(functionArgs, null, 2)}\n\`\`\`\nResult:\n\`\`\`json\n${JSON.stringify(functionResponse.result, null, 2)}\n\`\`\``;
@@ -406,12 +416,12 @@ export class Agent {
       // Check if the message content is longer than CHUNKING_TOKENS, if so, apply chunking
       const tokenCount = countTokens(messageContent);
       if (tokenCount > Number(process.env.CHUNKING_TOKENS!)) {
-        console.log("Found chunking opportunity for function response");
-  
+        this.log("Found chunking opportunity for function response");
+
         const combinedResponse = await chunkAndProcessMessages(messageContent, this._openai);
         messageContent = combinedResponse.content!;  // update messageContent with chunked and processed content
       }
-  
+
       const message: ChatCompletionRequestMessage = {
         role: "function",
         name: functionName,
@@ -423,7 +433,7 @@ export class Agent {
         this._loadwrapData.push(message);
         return { role: "assistant", content: `Wrap loaded  ${JSON.stringify(functionArgs, null, 2)}` }
       }
-  
+
       this._chatInteractions.push(message);  // Add function result to chat interactions
       this._chatHistory.push(message);
       return message;

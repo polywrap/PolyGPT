@@ -1,96 +1,133 @@
 import { ChatCompletionRequestMessage } from "openai";
-import winston, { Logger } from "winston";
+import winston, { LogEntry } from "winston";
+import stripAnsi from "strip-ansi";
 import figlet from "figlet";
 import chalk from "chalk";
 import fs from 'fs';
 import path from "path";
 
-let _logDir: string = "chats";
-let _logger: Logger | undefined;
+export class Logger {
+  protected _logDir: string = "chats";
+  protected _logger: winston.Logger;
 
-function logger(): Logger {
-  if (_logger) {
-    return _logger;
-  }
-
-  // Generate a unique log file name
-  const date = new Date();
-  const formattedDate = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
-  const logFile = `${_logDir}/chat_${formattedDate}.md`;
-
-  // Create the logger
-  _logger = winston.createLogger({
-    format: winston.format.printf(info => `${info.message}`),
-    transports: [
-      new winston.transports.File({ filename: logFile }),
-    ],
-  });
-  return _logger;
-}
-
-export function init(logDir: string) {
-  _logDir = logDir;
-}
-
-/**
- * Logs a message to file.
- * @param {ChatCompletionRequestMessage} message The message to log.
- */
-export const logToFile = (message: ChatCompletionRequestMessage) => {
-  logger().info(`
-
-
-  **${message.role.toUpperCase()}**: ${message.content}`);
-};
-
-/**
- * Logs a stylized header to the console.
- */
-export const logHeader = () => {
-  figlet.text('PolyGPT', {
-    font: 'Slant',
-    horizontalLayout: 'default',
-    verticalLayout: 'default',
-    whitespaceBreak: true
-  }, function(err: Error | null, data?: string) {
-    if (err) {
-      console.log('Something went wrong...');
-      console.dir(err);
-      
-      return;
+  constructor(logDir?: string) {
+    if (logDir) {
+      this._logDir = logDir;
     }
-    console.log(data);
-    console.log(`
-    You should now be transferred to the AI agent. If it doesn't load, restart the CLI application with Ctrl+C.
-    
-    Once loaded, ask it to load a wrap and then to execute one of its functions! Welcome to the future!`)
-    logger().info('```\n' + data + '\n```');
-  });
-};
 
-/**
- * Prints an error in a pretty format.
- * @param {any} error The error to print.
- */
-export function prettyPrintError(error: any): void {
-  console.error(chalk.red('Something went wrong:'));
-  if (error.response) {
-    console.error(chalk.yellow('Response Status:'), chalk.blueBright(error.response.status));
-    console.error(chalk.yellow('Response Data:'), chalk.blueBright(JSON.stringify(error.response.data, null, 2)));
-  }
-  if (error.request) {
-    console.error(chalk.yellow('Request:'), chalk.blueBright(JSON.stringify(error.request, null, 2)));
-  }
-  console.error(chalk.yellow('Message:'), chalk.blueBright(error.message));
-}
+    // Generate a unique log file name
+    const date = new Date();
+    const formattedDate = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
+    const logFile = `${this._logDir}/chat_${formattedDate}.md`;
 
-/**
- * Saves the chat history to a file.
- * @param {Agent} agent The agent whose chat history is to be saved.
- */
-export function saveChatHistoryToFile(chatHistory: ChatCompletionRequestMessage[]) {
-  const chatHistoryStr = chatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
-  fs.writeFileSync(path.join(dirPath, 'chat-history.txt'), chatHistoryStr, 'utf-8');
+    // Create a file transport
+    const fileTransport = new winston.transports.File({ filename: logFile });
+
+    // Cache the old log method
+    const fileTransportLog = fileTransport.log;
+    const oldLog = fileTransportLog?.bind(fileTransport);
+
+    // Override its log function to strip all ansi characters
+    const logSanitizer = (...args: unknown[]) => {
+      const newArgs = [];
+      for (const arg of args) {
+        let len = newArgs.length;
+
+        if (typeof arg === "string") {
+          newArgs.push(stripAnsi(arg));
+        } else if (typeof arg === "object") {
+          const entry = arg as LogEntry;
+          if (entry.message && typeof entry.message == "string") {
+            const newEntry = { ...entry };
+            newEntry.message = stripAnsi(newEntry.message);
+
+            // Required for hidden "Symbol(message)" property
+            const sym = Object.getOwnPropertySymbols(newEntry).find(
+              (v) => v.toString() === "Symbol(message)"
+            );
+            if (sym) {
+              (newEntry as any)[sym] = newEntry.message;
+            }
+
+            newArgs.push(newEntry);
+          }
+        }
+
+        if (len === newArgs.length) {
+          newArgs.push(arg);
+        }
+      }
+
+      if (oldLog) {
+        (oldLog as any)(...newArgs);
+      }
+    }
+    fileTransport.log = logSanitizer.bind(fileTransport);
+
+    // Create a consoler logger
+    const consoleTransport = new winston.transports.Console();
+
+    // Create the logger
+    this._logger = winston.createLogger({
+      format: winston.format.printf(info => `${info.message}`),
+      transports: [
+        fileTransport,
+        consoleTransport
+      ],
+    });
+  }
+
+  info(info: string) {
+    this._logger.info(info);
+  }
+
+  error(msg: string) {
+    this._logger.error(msg);
+  }
+
+  logMessage(message: ChatCompletionRequestMessage) {
+    this._logger.info(`
+
+    **${message.role.toUpperCase()}**: ${message.content}`);
+  }
+
+  logHeader() {
+    const logger = this._logger;
+    figlet.text('PolyGPT', {
+      font: 'Slant',
+      horizontalLayout: 'default',
+      verticalLayout: 'default',
+      whitespaceBreak: true
+    }, function(err: Error | null, data?: string) {
+      if (err) {
+        logger.error('Something went wrong...');
+        logger.error(err);
+        return;
+      }
+      logger.info(`
+      You should now be transferred to the AI agent. If it doesn't load, restart the CLI application with Ctrl+C.
+
+      Once loaded, ask it to load a wrap and then to execute one of its functions! Welcome to the future!`)
+      logger.info('```\n' + data + '\n```');
+    });
+  }
+
+  prettyPrintError(error: any): void {
+    this._logger.error(chalk.red('Something went wrong:'));
+    if (error.response) {
+      this._logger.error(chalk.yellow('Response Status:'), chalk.blueBright(error.response.status));
+      this._logger.error(chalk.yellow('Response Data:'), chalk.blueBright(JSON.stringify(error.response.data, null, 2)));
+    }
+    if (error.request) {
+      this._logger.error(chalk.yellow('Request:'), chalk.blueBright(JSON.stringify(error.request, null, 2)));
+    }
+    this._logger.error(chalk.yellow('Message:'), chalk.blueBright(error.message));
+  }
+
+  saveChatHistoryToFile(chatHistory: ChatCompletionRequestMessage[]) {
+    const chatHistoryStr = chatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
+    fs.writeFileSync(path.join(dirPath, 'chat-history.txt'), chatHistoryStr, 'utf-8');
+  }
 }
 
 // TODO: look at this later
