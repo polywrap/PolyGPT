@@ -7,15 +7,17 @@ x remove commented out code
 x remove "require(...)"
 x adjust comments
 x review globals
-- remove all "TODO:"
+x remove all "TODO:"
+x unify env usage (all comes from env.ts file)
+- review file/folder layout (agent, memory, workspace, wraps, llm)
+- fail immediately if required ENV vars aren't present (open ai api key)
+- review workspace usage
+- review logging
+- review usage of "fs"
 - review prompts
 - review code flow
 - review typings
-- unify env usage (all comes from env.ts file)
 - add comments
-- fail immediately if required ENV vars aren't present (open ai api key)
 - review hints + add missing?
-- review workspace usage
-- review file/folder layout (utils)
-- review logging
-- review usage of "fs"
+- mention .env.template in README
+- review .env.template

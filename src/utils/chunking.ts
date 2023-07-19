@@ -1,5 +1,6 @@
 import { countTokens } from "./count-tokens";
 import { Logger } from "./logger";
+import { env } from "./env";
 
 import { get_encoding } from "@dqbd/tiktoken";
 import {
@@ -8,8 +9,6 @@ import {
 } from "openai";
 
 const enc = get_encoding("gpt2");
-
-const chunkSize = Number(process.env.CHUNKING_TOKENS!);
 
 /**
  * This function divides a message into chunks of a specified size (in tokens), sends each chunk to the OpenAI API for completion,
@@ -31,6 +30,7 @@ export async function chunkAndProcessMessages(
   logger.info(`Total tokens: ${countOfTokens}`);
   
   const tokens = enc.encode(message);
+  const chunkSize = env().CHUNKING_TOKENS;
   
   for (let i = 0; i < tokens.length; i += chunkSize) {
     const chunkedTokens = tokens.slice(i, i + chunkSize);

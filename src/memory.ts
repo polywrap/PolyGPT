@@ -1,5 +1,5 @@
 import { summarizerPrompt } from "./prompt";
-import { Logger } from "./utils";
+import { Logger, env } from "./utils";
 import { Workspace } from "./workspace";
 
 import chalk from "chalk";
@@ -7,7 +7,6 @@ import {
   ChatCompletionRequestMessage,
   OpenAIApi
 } from "openai";
-import process from "process";
 
 export class Memory {
   constructor(
@@ -50,7 +49,7 @@ export class Memory {
       const messages = [...chatInteractions, summarizationRequest];
 
       const completion = await agent.createChatCompletion({
-        model: process.env.GPT_MODEL!,
+        model: env().GPT_MODEL!,
         messages,
         temperature: 0,
         max_tokens: 1000

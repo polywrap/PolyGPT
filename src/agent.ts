@@ -13,9 +13,8 @@ import {
   readline,
   countTokens,
   chunkAndProcessMessages,
+  env,
   OPEN_AI_CONFIG,
-  WRAP_LIBRARY_URL,
-  WRAP_LIBRARY_NAME,
   spinner
 } from "./utils";
 import {
@@ -23,7 +22,6 @@ import {
 } from "./wrap-library";
 
 import chalk from "chalk";
-import dotenv from "dotenv";
 import { Wallet } from "ethers"
 import fs from "fs";
 import {
@@ -40,8 +38,6 @@ import {
 import { dateTimePlugin } from "@polywrap/datetime-plugin-js";
 import * as EthProvider from "@polywrap/ethereum-provider-js";
 
-dotenv.config();
-
 export interface AgentConfig {
   debugMode?: boolean;
   reset?: boolean;
@@ -53,7 +49,10 @@ export class Agent {
   private _logger: Logger = new Logger();
 
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
-  private _library = new WrapLibrary.Reader(WRAP_LIBRARY_URL, WRAP_LIBRARY_NAME);
+  private _library = new WrapLibrary.Reader(
+    env().WRAP_LIBRARY_URL,
+    env().WRAP_LIBRARY_NAME
+  );
   private _client: PolywrapClient;
   private _autoPilotCounter = 0;
   private _autopilotMode = false;
@@ -74,7 +73,7 @@ export class Agent {
       .addBundle("web3")
       .addBundle("sys")
 
-    if (process.env.ETHEREUM_PRIVATE_KEY) {
+    if (env().ETHEREUM_PRIVATE_KEY) {
       builder.setPackages({
 
         "plugin/datetime":
@@ -85,7 +84,7 @@ export class Agent {
             connections: new EthProvider.Connections({
               networks: {
                 goerli: new EthProvider.Connection({
-                  signer: new Wallet(process.env.ETHEREUM_PRIVATE_KEY as string),
+                  signer: new Wallet(env().ETHEREUM_PRIVATE_KEY as string),
                   provider:
                     "https://goerli.infura.io/v3/b00b2c2cc09c487685e9fb061256d6a6",
                 }),
@@ -121,12 +120,12 @@ export class Agent {
     const availableWraps = await agent._library.getIndex();
 
     agent.log("SYSTEM: Cataloging all wraps in the library...");
-    agent.log(`URL: ${WRAP_LIBRARY_URL}`);
+    agent.log(`URL: ${env().WRAP_LIBRARY_URL}`);
 
     agent.log({
       role: "system",
       content: `Cataloging all wraps in the library:\n\nWrap Library URL: ${
-        WRAP_LIBRARY_URL}\n\n\`\`\`\n${JSON.stringify(availableWraps, null, 2)}\n\`\`\``
+        env().WRAP_LIBRARY_URL}\n\n\`\`\`\n${JSON.stringify(availableWraps, null, 2)}\n\`\`\``
     });
 
     agent.log(chalk.yellow(`>> Fetching wrap training data...`));
@@ -177,7 +176,7 @@ export class Agent {
       content: ">> Initializing Agent..."
     });
     await agent._openai.createChatCompletion({
-      model: process.env.GPT_MODEL!,
+      model: env().GPT_MODEL,
       messages,
       functions: functionsDescription,
       function_call: "auto",
@@ -335,7 +334,7 @@ export class Agent {
         this.log("Total messages: " +  messages.length);
       }
 
-      if (totalTokens > Number(process.env.ROLLING_SUMMARY_WINDOW!)) {
+      if (totalTokens > env().ROLLING_SUMMARY_WINDOW) {
         this.log("Assistant: " + chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
 
         const summary = await this._memory.summarize(
@@ -348,7 +347,7 @@ export class Agent {
       }
 
       const completion = await this._openai.createChatCompletion({
-        model: process.env.GPT_MODEL!,
+        model: env().GPT_MODEL,
         messages,
         functions: functionsDescription,
         function_call: "auto",
@@ -375,7 +374,7 @@ export class Agent {
   ): ChatCompletionRequestMessageFunctionCall | undefined {
     if (response.function_call) {
       return response.function_call;
-    } else {
+    } else {process
       this._chatInteractions.push({ role: "assistant", content: response.content! });
       return undefined;
     }
@@ -439,7 +438,7 @@ export class Agent {
 
       // Check if the message content is longer than CHUNKING_TOKENS, if so, apply chunking
       const tokenCount = countTokens(messageContent);
-      if (tokenCount > Number(process.env.CHUNKING_TOKENS!)) {
+      if (tokenCount > env().CHUNKING_TOKENS) {
         this.log("Found chunking opportunity for function response");
 
         // update messageContent with chunked and processed content
