@@ -49,6 +49,7 @@ export class Agent {
     const builder = new PolywrapClientConfigBuilder()
       .addBundle("web3")
       .addBundle("sys")
+      
 
     if (process.env.ETHEREUM_PRIVATE_KEY) {
       builder.setPackages({
@@ -69,7 +70,13 @@ export class Agent {
               defaultNetwork: "goerli"
             }),
           }) as IWrapPackage}
-      );
+      )
+      .addEnv("ipfs/Qmf9mRhNvKN1wfN52VdiZkjQiRw1WWEBYnwkuwzFg1ZjQn", {
+        safeAddress: "0x0a083b47e4270be3467e16540380b130a6d9a09f",
+        connection: {
+          networkNameOrChainId: "goerli",
+        },
+      });
     }
 
     const config = builder.build();
