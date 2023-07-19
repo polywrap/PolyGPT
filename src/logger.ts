@@ -4,6 +4,12 @@ import { ChatCompletionRequestMessage } from "openai";
 import stripAnsi from "strip-ansi";
 import winston, { LogEntry } from "winston";
 import clui from "clui";
+import * as read from "readline";
+const readline = read.promises.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
 
 export class Logger {
   protected _logDir: string = "chats";
@@ -87,6 +93,10 @@ export class Logger {
 
   error(msg: string) {
     this._logger.error(msg);
+  }
+
+  question(query: string): Promise<string> {
+    return readline.question(query);
   }
 
   logMessage(message: ChatCompletionRequestMessage) {

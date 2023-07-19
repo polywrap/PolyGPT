@@ -65,8 +65,6 @@ export class History {
   }
 
 
-
-
   // TODO: maybe move this
   async summarize(
     chatInteractions: Message[],

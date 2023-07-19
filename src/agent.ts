@@ -16,7 +16,6 @@ import {
   autopilotPrompt
 } from "./prompt";
 import { chunkAndProcessMessages } from "./openai-old";
-import { readline } from "./utils";
 import { countTokens } from "./encoding";
 import {
   getWrapClient,
@@ -112,16 +111,12 @@ export class Agent {
     const wrapInfosString = JSON.stringify(wrapInfos, null, 2);
 
     // Ask user for main goal and save as a chat message
-    const userGoal = await new Promise<string>((resolve) => {
-      readline.question("Please enter your main goal: ", (goal: string) => {
-        resolve(goal);
-      });
-    });
+    const userGoal = await agent._logger.question("Please enter your main goal: ");
 
     agent.log({
       role: "user",
       content: userGoal
-    })
+    });
     const userGoalMessage: Message = {
       role: "user",
       content: `The user has defined the following goal: ${userGoal}`,
@@ -171,7 +166,9 @@ export class Agent {
   async run(): Promise<void> {
     try {
       while (true) {
-        const userInput = await this.getUserInput();
+        const userInput = await this._logger.question(
+          "Prompt: "
+        );
         await this.processUserPrompt(userInput);
         this._history.save([
           ...this._history.persistentMsgs,
@@ -201,18 +198,15 @@ export class Agent {
       role: "assistant",
       content: confirmationText
     })
-    return new Promise((res) => {
-      readline.question(
-        confirmationPrompt,
-        async (userInput: string) => {
-          this.log({
-            role: "user",
-            content: userInput
-          })
-          return res(userInput === "Y" || userInput === "y" || userInput === "yy");
-        }
-      )
-    });
+
+    return this._logger.question(confirmationPrompt)
+      .then((response) => {
+        this.log({
+          role: "user",
+          content: response
+        });
+        return ["y", "Y", "yes", "Yes"].includes(response)
+      });
   }
 
   async processUserPrompt(userInput: string): Promise<Message | void> {
@@ -289,12 +283,6 @@ export class Agent {
     }
 
     return undefined; 
-  }
-
-  getUserInput(): Promise<string> {
-    return new Promise((res) => {
-      readline.question("Prompt: ", async (userInput: string) => res(userInput))
-    });
   }
 
   async sendMessageToAgent(message: string): Promise<ChatCompletionResponseMessage> {
