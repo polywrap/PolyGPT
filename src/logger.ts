@@ -3,10 +3,12 @@ import figlet from "figlet";
 import { ChatCompletionRequestMessage } from "openai";
 import stripAnsi from "strip-ansi";
 import winston, { LogEntry } from "winston";
+import clui from "clui";
 
 export class Logger {
   protected _logDir: string = "chats";
   protected _logger: winston.Logger;
+  protected _spinner: clui.Spinner = new clui.Spinner("Thinking...");
 
   constructor(logDir?: string) {
     if (logDir) {
@@ -73,6 +75,10 @@ export class Logger {
         consoleTransport
       ],
     });
+  }
+
+  get spinner() {
+    return this._spinner;
   }
 
   info(info: string) {

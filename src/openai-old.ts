@@ -1,40 +1,37 @@
-import { countTokens } from "./count-tokens";
+import { countTokens, gpt2 } from "./encoding";
 import { Logger } from "./logger";
 import { env } from "./env";
+import { OpenAI } from "./openai";
 
-import { get_encoding } from "@dqbd/tiktoken";
 import {
-  OpenAIApi,
   ChatCompletionResponseMessage
 } from "openai";
-
-const enc = get_encoding("gpt2");
 
 /**
  * This function divides a message into chunks of a specified size (in tokens), sends each chunk to the OpenAI API for completion,
  * and then combines and returns the responses.
  *
  * @param {string} message - The message to be chunked and sent to OpenAI.
- * @param {OpenAIApi} openai - An instance of the OpenAI API.
+ * @param {OpenAI} openai - An instance of the OpenAI API.
  * @param {Logger} logger - A logger to be used for printing feedback.
  * 
  * @returns {Promise<ChatCompletionResponseMessage>} - The combined response from all chunks.
  */
 export async function chunkAndProcessMessages(
   message: string,
-  openai: OpenAIApi,
+  openai: OpenAI,
   logger: Logger
 ): Promise<ChatCompletionResponseMessage> {
   let chunkedResponses = [];
   const countOfTokens = countTokens(message);
   logger.info(`Total tokens: ${countOfTokens}`);
   
-  const tokens = enc.encode(message);
+  const tokens = gpt2.encode(message);
   const chunkSize = env().CHUNKING_TOKENS;
   
   for (let i = 0; i < tokens.length; i += chunkSize) {
     const chunkedTokens = tokens.slice(i, i + chunkSize);
-    let chunkOfContent = new TextDecoder().decode(enc.decode(chunkedTokens));
+    let chunkOfContent = new TextDecoder().decode(gpt2.decode(chunkedTokens));
 
     // Removing excessive white spaces
     chunkOfContent = chunkOfContent.replace(/\s+/g, " ");

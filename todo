@@ -9,15 +9,16 @@ x adjust comments
 x review globals
 x remove all "TODO:"
 x unify env usage (all comes from env.ts file)
-- review file/folder layout (agent, memory, workspace, wraps, llm)
-- fail immediately if required ENV vars aren't present (open ai api key)
+x fail immediately if required ENV vars aren't present (open ai api key)
+- review file/folder layout (agent, llm, wraps, workspace, memory)
 - review workspace usage
-- review logging
 - review usage of "fs"
 - review prompts
 - review code flow
+- review logging
 - review typings
 - add comments
 - review hints + add missing?
 - mention .env.template in README
 - review .env.template
+- review history pushing/saving/summarizing

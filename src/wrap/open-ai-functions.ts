@@ -1,4 +1,4 @@
-import { WrapLibrary } from "./wrap-library";
+import { WrapLibrary } from "./library";
 
 import {
   InvokeOptions,

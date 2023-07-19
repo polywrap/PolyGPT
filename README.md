@@ -106,11 +106,9 @@ Do you wish to execute the following function?
     (Y/N)
 ```
 
-  
-
 # Memory: Rolling summary
 
-This agent uses a simple rolling memory which keeps track of the most recent messages in a short `summary.md` in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
+This agent uses a simple rolling memory which keeps track of the most recent messages in a short `.summary` file in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
 
 In order to reset the memory you can always `yarn start --reset`
 
@@ -148,7 +146,7 @@ To run in debug mode just run
 
   `yarn start --debug`
 
-By default the agent will output a `chat-history.txt` which is constantly updated with the current state of the chat history being sent to the agent on each chat completion. This is useful specially because the memory module makes edits the conversation history constantly and the chat logs that you get as output are different from the chat conversation
+By default the agent will output a `.history` file which is constantly updated with the current state of the chat history being sent to the agent on each chat completion. This is useful specially because the memory module makes edits the conversation history constantly and the chat logs that you get as output are different from the chat conversation
 
 # Resources and Links
 

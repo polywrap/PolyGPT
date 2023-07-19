@@ -64,10 +64,3 @@ export function env(): Env {
     ETHEREUM_PRIVATE_KEY
   };
 }
-
-// TODO: move this
-import { Configuration } from "openai";
-
-export const OPEN_AI_CONFIG = new Configuration({
-  apiKey: env().OPENAI_API_KEY,
-});

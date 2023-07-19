@@ -1,42 +1,35 @@
-import { Memory } from "./memory";
+import { env } from "./env";
+import { Logger } from "./logger";
 import { Workspace } from "./workspace";
+import { OpenAI } from "./openai";
+import {
+  History,
+  Message
+} from "./history";
+
 import {
   functionsDescription,
   functionsMap
-} from "./open-ai-functions";
+} from "./wrap/open-ai-functions";
 import {
   systemPrompts,
   autopilotPrompt
 } from "./prompt";
+import { chunkAndProcessMessages } from "./openai-old";
+import { readline } from "./utils";
+import { countTokens } from "./encoding";
 import {
-  Logger,
-  readline,
-  countTokens,
-  chunkAndProcessMessages,
-  env,
-  OPEN_AI_CONFIG,
-  spinner
-} from "./utils";
-import {
+  getWrapClient,
   WrapLibrary
-} from "./wrap-library";
+} from "./wrap";
 
 import chalk from "chalk";
-import { Wallet } from "ethers"
 import fs from "fs";
 import {
-  ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
   ChatCompletionResponseMessage,
-  OpenAIApi,
 } from "openai";
-import {
-  PolywrapClient,
-  PolywrapClientConfigBuilder,
-  IWrapPackage
-} from "@polywrap/client-js";
-import { dateTimePlugin } from "@polywrap/datetime-plugin-js";
-import * as EthProvider from "@polywrap/ethereum-provider-js";
+import { PolywrapClient } from "@polywrap/client-js";
 
 export interface AgentConfig {
   debugMode?: boolean;
@@ -44,63 +37,49 @@ export interface AgentConfig {
 }
 
 export class Agent {
-  private _memory: Memory;
+  private _logger: Logger;
   private _workspace: Workspace;
-  private _logger: Logger = new Logger();
 
-  private _openai = new OpenAIApi(OPEN_AI_CONFIG);
-  private _library = new WrapLibrary.Reader(
-    env().WRAP_LIBRARY_URL,
-    env().WRAP_LIBRARY_NAME
-  );
+  private _openai: OpenAI;
+  private _history: History;
+
+  private _library: WrapLibrary.Reader;
   private _client: PolywrapClient;
+
   private _autoPilotCounter = 0;
   private _autopilotMode = false;
-  private _chatHistory: ChatCompletionRequestMessage[] = [];
-  private _initializationMessages: ChatCompletionRequestMessage[] = [];
-  private _loadwrapData: ChatCompletionRequestMessage[] = [];
-  private _chatInteractions: ChatCompletionRequestMessage[] = [];
+
+
+  private _chatHistory: Message[] = [];
+  private _chatInteractions: Message[] = [];
 
   private constructor(private _config: AgentConfig = {}) {
+    this._logger = new Logger();
     this._workspace = new Workspace();
-    this._memory = new Memory(this._workspace);
+
+    this._openai = new OpenAI(
+      env().OPENAI_API_KEY,
+      env().GPT_MODEL
+    );
+    this._history = new History(
+      this._logger,
+      this._workspace
+    );
+
+    this._client = getWrapClient(
+      env().ETHEREUM_PRIVATE_KEY
+    );
+    this._library = new WrapLibrary.Reader(
+      env().WRAP_LIBRARY_URL,
+      env().WRAP_LIBRARY_NAME
+    );
 
     if (this._config.reset) {
-      this._memory.reset();
+      this._history.reset();
     }
-
-    const builder = new PolywrapClientConfigBuilder()
-      .addBundle("web3")
-      .addBundle("sys")
-
-    if (env().ETHEREUM_PRIVATE_KEY) {
-      builder.setPackages({
-
-        "plugin/datetime":
-          dateTimePlugin({}) as IWrapPackage,
-
-        "plugin/ethereum-provider@2.0.0":
-          EthProvider.plugin({
-            connections: new EthProvider.Connections({
-              networks: {
-                goerli: new EthProvider.Connection({
-                  signer: new Wallet(env().ETHEREUM_PRIVATE_KEY as string),
-                  provider:
-                    "https://goerli.infura.io/v3/b00b2c2cc09c487685e9fb061256d6a6",
-                }),
-              },
-              defaultNetwork: "goerli"
-            }),
-          }) as IWrapPackage}
-      );
-    }
-
-    const config = builder.build();
-
-    this._client = new PolywrapClient(config)
   }
 
-  private log(infoOrMsg: string | ChatCompletionRequestMessage): void {
+  private log(infoOrMsg: string | Message): void {
     if (typeof infoOrMsg === "string") {
       this._logger.info(infoOrMsg);
     } else {
@@ -143,32 +122,35 @@ export class Agent {
       role: "user",
       content: userGoal
     })
-    const userGoalMessage: ChatCompletionRequestMessage = {
+    const userGoalMessage: Message = {
       role: "user",
       content: `The user has defined the following goal: ${userGoal}`,
     };
 
     // Load the initialization prompts
     const initialization_messages = systemPrompts(wrapInfosString);
-    let messages: ChatCompletionRequestMessage[] = initialization_messages
-    agent._initializationMessages.push(...messages);
-    agent._initializationMessages.push(userGoalMessage);
+    let messages: Message[] = initialization_messages
+    agent._history.add("persistent", [
+      ...messages,
+      userGoalMessage
+    ]);
 
     if (agent._config.debugMode) {
       agent.log("Current working directory: " + process.cwd());
-      agent.log("File exists: " + fs.existsSync(agent._memory.memoryPath));
-      agent.log(agent._memory.memoryPath)
+      agent.log("File exists: " + fs.existsSync(agent._history.saveFile));
+      agent.log(agent._history.saveFile)
     }
 
-    if (fs.existsSync(agent._memory.memoryPath)) {
+    if (fs.existsSync(agent._history.saveFile)) {
       agent.log(chalk.yellow(">> Loaded Memory..."));
-      const summaryContent = fs.readFileSync(agent._memory.memoryPath, "utf-8");
-      const summaryMessage: ChatCompletionRequestMessage = {
+      const summaryContent = fs.readFileSync(agent._history.saveFile, "utf-8");
+      const summaryMessage: Message = {
         role: "assistant",
         content: summaryContent,
       };
-      agent._initializationMessages.push(summaryMessage);
-      messages = [...agent._initializationMessages, ...agent._loadwrapData, ...agent._chatInteractions];
+      // this seems wrong
+      agent._history.add("persistent", summaryMessage);
+      messages = [...agent._history.persistentMsgs, ...agent._chatInteractions];
     }
 
     agent.log({
@@ -176,11 +158,8 @@ export class Agent {
       content: ">> Initializing Agent..."
     });
     await agent._openai.createChatCompletion({
-      model: env().GPT_MODEL,
       messages,
-      functions: functionsDescription,
-      function_call: "auto",
-      temperature: 0
+      functions: functionsDescription
     });
 
     agent._chatInteractions.push(...messages);
@@ -194,9 +173,8 @@ export class Agent {
       while (true) {
         const userInput = await this.getUserInput();
         await this.processUserPrompt(userInput);
-        this._memory.saveChatHistoryToFile([
-          ...this._initializationMessages,
-          ...this._loadwrapData,
+        this._history.save([
+          ...this._history.persistentMsgs,
           ...this._chatInteractions
         ], this._workspace);
       }
@@ -237,7 +215,7 @@ export class Agent {
     });
   }
 
-  async processUserPrompt(userInput: string): Promise<ChatCompletionRequestMessage | void> {
+  async processUserPrompt(userInput: string): Promise<Message | void> {
     // Check if the user has entered the autopilot command
     const autopilotMatch = userInput.match(/^auto -(\d+)$/);
     if (autopilotMatch) {
@@ -247,7 +225,7 @@ export class Agent {
     }
 
     // Save user input to chat interactions
-    const userMessage: ChatCompletionRequestMessage = {
+    const userMessage: Message = {
       role: "user",
       content: userInput
     };
@@ -268,7 +246,7 @@ export class Agent {
         const resultContent = result.content
 
         // Save assistant's response to chat interactions
-        const assistantResponse: ChatCompletionRequestMessage = {
+        const assistantResponse: Message = {
           role: "assistant",
           content: resultContent!
         };
@@ -277,7 +255,7 @@ export class Agent {
         // Log the assistant's response to file
         this.log(assistantResponse)
       } else {
-        const message: ChatCompletionRequestMessage = {
+        const message: Message = {
           role: "assistant",
           content: "Alright. Will not execute this function",
         }
@@ -286,7 +264,7 @@ export class Agent {
         this.log(message);
       }
     } else {
-      const responseMessage: ChatCompletionRequestMessage = {
+      const responseMessage: Message = {
         role: "assistant",
         content: response?.content!,
       }
@@ -301,7 +279,7 @@ export class Agent {
     // If in autopilot mode and there are remaining iterations, automatically re-prompt the user
     if (this._autopilotMode && this._autoPilotCounter > 0) {
       this._autoPilotCounter--;
-      let autopilotAnswer: ChatCompletionRequestMessage | void = await this.processUserPrompt(autopilotPrompt);
+      let autopilotAnswer: Message | void = await this.processUserPrompt(autopilotPrompt);
       if (autopilotAnswer) {
         this._chatInteractions.push(autopilotAnswer);
       }
@@ -320,12 +298,12 @@ export class Agent {
   }
 
   async sendMessageToAgent(message: string): Promise<ChatCompletionResponseMessage> {
-    spinner.start();
+    this._logger.spinner.start();
 
     try {
       this._chatInteractions.push({ role: "user", content: message });
 
-      let messages = [...this._initializationMessages, ...this._loadwrapData, ...this._chatInteractions];
+      let messages = [...this._history.persistentMsgs, ...this._chatInteractions];
 
       // Calculate the total tokens in all messages
       const totalTokens = messages.reduce((total, msg) => total + countTokens(msg.content!), 0);
@@ -337,24 +315,21 @@ export class Agent {
       if (totalTokens > env().ROLLING_SUMMARY_WINDOW) {
         this.log("Assistant: " + chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
 
-        const summary = await this._memory.summarize(
+        const summary = await this._history.summarize(
           this._chatInteractions,
-          this._openai,
-          this._logger
+          this._openai
         );
         this._chatInteractions = [];
-        messages = [...this._initializationMessages, ...this._loadwrapData, summary, { role: "user", content: message }];
+        messages = [...this._history.persistentMsgs, summary, { role: "user", content: message }];
       }
 
       const completion = await this._openai.createChatCompletion({
-        model: env().GPT_MODEL,
         messages,
         functions: functionsDescription,
-        function_call: "auto",
         temperature: 0,
         max_tokens: 500,
       });
-      spinner.stop();
+      this._logger.spinner.stop();
       return completion.data.choices[0].message!;
     } catch (error: any) {
       const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
@@ -364,7 +339,7 @@ export class Agent {
         content: errorMessage
       });
 
-      spinner.stop();
+      this._logger.spinner.stop();
       throw error;
     }
   }
@@ -386,7 +361,7 @@ export class Agent {
   ): Promise<ChatCompletionResponseMessage> {
     // If out of attempts...
     if (attemptsRemaining == 0) {
-      const message: ChatCompletionRequestMessage = {
+      const message: Message = {
         role: "assistant",
         content: "Sorry, couldn't process your request",
       };
@@ -409,7 +384,7 @@ export class Agent {
       const errorMessage = `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`;
       this.log(chalk.red(errorMessage));
 
-      const systemMessage: ChatCompletionRequestMessage = {
+      const systemMessage: Message = {
         role: "system",
         content: "\n```" + errorMessage + "\n```\n",
       };
@@ -446,16 +421,18 @@ export class Agent {
         messageContent = combinedResponse.content!;
       }
 
-      const message: ChatCompletionRequestMessage = {
+      const message: Message = {
         role: "function",
         name: functionName,
         content: messageContent,
       };
 
       if (functionName === "LoadWrap") {
-        this._loadwrapData = this._loadwrapData.filter(entry => entry.name !== "LoadWrap")
-        this._loadwrapData.push(message);
-        return { role: "assistant", content: `Wrap loaded  ${JSON.stringify(functionArgs, null, 2)}` }
+        this._history.add("persistent", message);
+        return {
+          role: "assistant",
+          content: `Wrap loaded  ${JSON.stringify(functionArgs, null, 2)}`
+        };
       }
 
       // Add function result to chat interactions
