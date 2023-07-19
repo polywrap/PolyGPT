@@ -1,5 +1,6 @@
 import { summarizerPrompt } from "./prompt";
 import { Logger } from "./utils";
+import { Workspace } from "./workspace";
 
 import chalk from "chalk";
 import {
@@ -78,5 +79,13 @@ export class Memory {
       });
       throw error;
     }
+  }
+
+  saveChatHistoryToFile(
+    chatHistory: ChatCompletionRequestMessage[],
+    workspace: Workspace
+  ) {
+    const chatHistoryStr = chatHistory.map(msg => `${msg.role}: ${msg.content}`).join("\n");
+    workspace.writeFileSync("chat-history.txt", chatHistoryStr);
   }
 }

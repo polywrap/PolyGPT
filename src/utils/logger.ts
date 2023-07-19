@@ -1,8 +1,6 @@
 import chalk from "chalk";
 import figlet from "figlet";
-import fs from "fs";
 import { ChatCompletionRequestMessage } from "openai";
-import path from "path";
 import stripAnsi from "strip-ansi";
 import winston, { LogEntry } from "winston";
 
@@ -134,19 +132,4 @@ Welcome to the future!`
     }
     this._logger.error(chalk.yellow("Message:"), chalk.blueBright(error.message));
   }
-
-  saveChatHistoryToFile(chatHistory: ChatCompletionRequestMessage[]) {
-    const chatHistoryStr = chatHistory.map(msg => `${msg.role}: ${msg.content}`).join("\n");
-    fs.writeFileSync(path.join(dirPath, "chat-history.txt"), chatHistoryStr, "utf-8");
-  }
-}
-
-// TODO: look at this later
-// Define the directory path
-const dirPath = path.join(__dirname, "../../workspace");
-
-// Check if the directory exists
-if (!fs.existsSync(dirPath)){
-    // If the directory does not exist, create it
-    fs.mkdirSync(dirPath, { recursive: true });
 }

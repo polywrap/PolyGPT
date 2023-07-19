@@ -1,4 +1,5 @@
 import { Memory } from "./memory";
+import { Workspace } from "./workspace";
 import {
   functionsDescription,
   functionsMap
@@ -48,6 +49,7 @@ export interface AgentConfig {
 
 export class Agent {
   private _memory: Memory;
+  private _workspace: Workspace = new Workspace();
   private _logger: Logger = new Logger();
 
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
@@ -192,11 +194,11 @@ export class Agent {
       while (true) {
         const userInput = await this.getUserInput();
         await this.processUserPrompt(userInput);
-        this._logger.saveChatHistoryToFile([
+        this._memory.saveChatHistoryToFile([
           ...this._initializationMessages,
           ...this._loadwrapData,
           ...this._chatInteractions
-        ]);
+        ], this._workspace);
       }
     } catch (e) {
       this._logger.prettyPrintError(e)
