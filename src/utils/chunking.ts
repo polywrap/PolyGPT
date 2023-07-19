@@ -17,6 +17,7 @@ const chunkSize = Number(process.env.CHUNKING_TOKENS!);
  *
  * @param {string} message - The message to be chunked and sent to OpenAI.
  * @param {OpenAIApi} openai - An instance of the OpenAI API.
+ * @param {Logger} logger - A logger to be used for printing feedback.
  * 
  * @returns {Promise<ChatCompletionResponseMessage>} - The combined response from all chunks.
  */

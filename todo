@@ -5,11 +5,13 @@ x use `function` consistently
 x '' vs ""
 x remove commented out code
 x remove "require(...)"
-- adjust comments
+x adjust comments
 - review globals
 - remove all "TODO:"
 - review prompts
+- review code flow
 - review typings
+- unify env usage (all comes from env.ts file)
+- add comments
 - fail immediately if required ENV vars aren't present (open ai api key)
 - review hints + add missing?
-- unify dotenv usage (all comes from env.ts file)

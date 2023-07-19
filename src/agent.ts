@@ -122,7 +122,7 @@ export class Agent {
 
     agent.log(chalk.yellow(`>> Fetching wrap training data...`));
     const wrapInfos = await agent._library.getWraps(availableWraps.wraps);
-    const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
+    const wrapInfosString = JSON.stringify(wrapInfos, null, 2);
 
     // Ask user for main goal and save as a chat message
     const userGoal = await new Promise<string>((resolve) => {
@@ -146,7 +146,6 @@ export class Agent {
     agent._initializationMessages.push(...messages);
     agent._initializationMessages.push(userGoalMessage);
 
-    // Load the summary from 'summary.md'
     if (debugMode) {
       agent.log("Current working directory: " + process.cwd());
       agent.log("File exists: " + fs.existsSync(memoryPath));
