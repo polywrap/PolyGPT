@@ -15,3 +15,5 @@ x adjust comments
 - add comments
 - fail immediately if required ENV vars aren't present (open ai api key)
 - review hints + add missing?
+- review workspace usage
+- review file/folder layout (utils)

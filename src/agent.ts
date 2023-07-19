@@ -17,14 +17,14 @@ import {
   chunkAndProcessMessages,
   OPEN_AI_CONFIG,
   WRAP_LIBRARY_URL,
-  WRAP_LIBRARY_NAME
+  WRAP_LIBRARY_NAME,
+  spinner
 } from "./utils";
 import {
   WrapLibrary
 } from "./wrap-library";
 
 import chalk from "chalk";
-import clui from "clui";
 import dotenv from "dotenv";
 import { Wallet } from "ethers"
 import fs from "fs";
@@ -41,9 +41,6 @@ import {
 } from "@polywrap/client-js";
 import { dateTimePlugin } from "@polywrap/datetime-plugin-js";
 import * as EthProvider from "@polywrap/ethereum-provider-js";
-
-// TODO: revisit this
-let spinner = new clui.Spinner("Thinking...");
 
 dotenv.config();
 
