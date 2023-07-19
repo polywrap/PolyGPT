@@ -1,11 +1,11 @@
-import { countTokens } from './count-tokens';
-import { Logger } from './logger';
+import { countTokens } from "./count-tokens";
+import { Logger } from "./logger";
 
 import { get_encoding } from "@dqbd/tiktoken";
 import {
   OpenAIApi,
   ChatCompletionResponseMessage
-} from 'openai';
+} from "openai";
 
 const enc = get_encoding("gpt2");
 
@@ -36,7 +36,7 @@ export async function chunkAndProcessMessages(
     let chunkOfContent = new TextDecoder().decode(enc.decode(chunkedTokens));
 
     // Removing excessive white spaces
-    chunkOfContent = chunkOfContent.replace(/\s+/g, ' ');
+    chunkOfContent = chunkOfContent.replace(/\s+/g, " ");
 
     // skip the loop if the chunk of content is empty
     if (!chunkOfContent.trim()) {
@@ -69,7 +69,7 @@ export async function chunkAndProcessMessages(
 
   const combinedResponse: ChatCompletionResponseMessage = {
     role: "system",
-    content: chunkedResponses.map(res => res.content).join('\n').replace(/\s+/g, ' '),
+    content: chunkedResponses.map(res => res.content).join("\n").replace(/\s+/g, " "),
   };
 
   return combinedResponse;

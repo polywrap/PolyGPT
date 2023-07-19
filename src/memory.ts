@@ -1,25 +1,25 @@
-import { summarizerPrompt } from './prompt';
+import { summarizerPrompt } from "./prompt";
 import { Logger } from "./utils";
 
 import chalk from "chalk";
-import dotenv from 'dotenv';
-import fs from 'fs';
+import dotenv from "dotenv";
+import fs from "fs";
 import {
   ChatCompletionRequestMessage,
   OpenAIApi
 } from "openai";
-import process from 'process';
+import process from "process";
 
 dotenv.config();
 
-const dir = 'workspace'
-export const memoryPath = `${dir}/summary.md`
+const dir = "workspace";
+export const memoryPath = `${dir}/summary.md`;
 
 // TODO: revisit this
 
-if (process.argv.includes('--wipe-memory')) {
+if (process.argv.includes("--wipe-memory")) {
   // If the flag is passed, clear the summary file
-  fs.writeFile(memoryPath, '', (err) => {
+  fs.writeFile(memoryPath, "", (err) => {
     if (err) {
       throw err;
     }
@@ -46,7 +46,7 @@ export async function summarizeHistory(
 
     // Check if the summary file exists
     if (fs.existsSync(memoryPath)) {
-      const existingSummaryContent = fs.readFileSync(memoryPath, 'utf-8');
+      const existingSummaryContent = fs.readFileSync(memoryPath, "utf-8");
       const existingSummaryMessage: ChatCompletionRequestMessage = {
         role: "assistant",
         content: existingSummaryContent,
@@ -73,7 +73,7 @@ export async function summarizeHistory(
     return completion.data.choices[0].message!;
   } catch (error: any) {
     const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
-    logger.error(chalk.red('Error: ') + chalk.yellow(errorMessage));
+    logger.error(chalk.red("Error: ") + chalk.yellow(errorMessage));
     logger.logMessage({
       role: "system",
       content: errorMessage

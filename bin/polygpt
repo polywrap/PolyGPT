@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-if (['v', 'version', '-v', '--v', '-version', '--version'].includes(process.argv[2])) {
-  var contents = require('fs').readFileSync(__dirname + '/../package.json')
-  var package = JSON.parse(contents)
+if (["v", "version", "-v", "--v", "-version", "--version"].includes(process.argv[2])) {
+  var contents = require("fs").readFileSync(__dirname + "/../package.json");
+  var package = JSON.parse(contents);
 
   // now output the version and exit
-  console.log(package.version)
-  process.exit(0)
+  console.log(package.version);
+  process.exit(0);
 }
 
-var sourceDir = __dirname + '/../build'
-require(sourceDir + '/index').run(process.argv)
+var entry = __dirname + "/../build/index";
+require(entry).run(process.argv);

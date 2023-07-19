@@ -48,4 +48,4 @@ Please make a concise summary plan of execution considering all of the previous 
 
 Begin by listing any important arguments that the user has given you as they are important and should be always kept.`
 
-export const autopilotPrompt = 'You are in autopilot, please continue with the user\'s plan without repeating any past actions.'
+export const autopilotPrompt = "You are in autopilot, please continue with the user's plan without repeating any past actions."

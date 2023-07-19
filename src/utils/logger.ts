@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import figlet from "figlet";
-import fs from 'fs';
+import fs from "fs";
 import { ChatCompletionRequestMessage } from "openai";
 import path from "path";
 import stripAnsi from "strip-ansi";
@@ -93,14 +93,14 @@ export class Logger {
 
   logHeader() {
     const logger = this._logger;
-    figlet.text('PolyGPT', {
-      font: 'Slant',
-      horizontalLayout: 'default',
-      verticalLayout: 'default',
+    figlet.text("PolyGPT", {
+      font: "Slant",
+      horizontalLayout: "default",
+      verticalLayout: "default",
       whitespaceBreak: true
     }, function(err: Error | null, data?: string) {
       if (err) {
-        logger.error('Something went wrong...');
+        logger.error("Something went wrong...");
         logger.error(err);
         return;
       }
@@ -108,31 +108,31 @@ export class Logger {
       You should now be transferred to the AI agent. If it doesn't load, restart the CLI application with Ctrl+C.
 
       Once loaded, ask it to load a wrap and then to execute one of its functions! Welcome to the future!`)
-      logger.info('```\n' + data + '\n```');
+      logger.info("```\n" + data + "\n```");
     });
   }
 
   prettyPrintError(error: any): void {
-    this._logger.error(chalk.red('Something went wrong:'));
+    this._logger.error(chalk.red("Something went wrong:"));
     if (error.response) {
-      this._logger.error(chalk.yellow('Response Status:'), chalk.blueBright(error.response.status));
-      this._logger.error(chalk.yellow('Response Data:'), chalk.blueBright(JSON.stringify(error.response.data, null, 2)));
+      this._logger.error(chalk.yellow("Response Status:"), chalk.blueBright(error.response.status));
+      this._logger.error(chalk.yellow("Response Data:"), chalk.blueBright(JSON.stringify(error.response.data, null, 2)));
     }
     if (error.request) {
-      this._logger.error(chalk.yellow('Request:'), chalk.blueBright(JSON.stringify(error.request, null, 2)));
+      this._logger.error(chalk.yellow("Request:"), chalk.blueBright(JSON.stringify(error.request, null, 2)));
     }
-    this._logger.error(chalk.yellow('Message:'), chalk.blueBright(error.message));
+    this._logger.error(chalk.yellow("Message:"), chalk.blueBright(error.message));
   }
 
   saveChatHistoryToFile(chatHistory: ChatCompletionRequestMessage[]) {
-    const chatHistoryStr = chatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n');
-    fs.writeFileSync(path.join(dirPath, 'chat-history.txt'), chatHistoryStr, 'utf-8');
+    const chatHistoryStr = chatHistory.map(msg => `${msg.role}: ${msg.content}`).join("\n");
+    fs.writeFileSync(path.join(dirPath, "chat-history.txt"), chatHistoryStr, "utf-8");
   }
 }
 
 // TODO: look at this later
 // Define the directory path
-const dirPath = path.join(__dirname, '..', '..', 'workspace');
+const dirPath = path.join(__dirname, "../../workspace");
 
 // Check if the directory exists
 if (!fs.existsSync(dirPath)){

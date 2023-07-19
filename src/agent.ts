@@ -25,9 +25,9 @@ import {
 
 import chalk from "chalk";
 import clui from "clui";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import { Wallet } from "ethers"
-import fs from 'fs';
+import fs from "fs";
 import {
   ChatCompletionRequestMessage,
   ChatCompletionRequestMessageFunctionCall,
@@ -42,8 +42,9 @@ import {
 import { dateTimePlugin } from "@polywrap/datetime-plugin-js";
 import * as EthProvider from "@polywrap/ethereum-provider-js";
 
-let spinner = new clui.Spinner('Thinking...');
-const debugMode = process.argv.includes('--debug');
+// TODO: revisit this
+let spinner = new clui.Spinner("Thinking...");
+const debugMode = process.argv.includes("--debug");
 
 dotenv.config();
 
@@ -125,7 +126,7 @@ export class Agent {
 
     // Ask user for main goal and save as a chat message
     const userGoal = await new Promise<string>((resolve) => {
-      readline.question('Please enter your main goal: ', (goal:string) => {
+      readline.question("Please enter your main goal: ", (goal: string) => {
         resolve(goal);
       });
     });
@@ -147,14 +148,14 @@ export class Agent {
 
     // Load the summary from 'summary.md'
     if (debugMode) {
-      agent.log('Current working directory: ' + process.cwd());
-      agent.log('File exists: ' + fs.existsSync(memoryPath));
+      agent.log("Current working directory: " + process.cwd());
+      agent.log("File exists: " + fs.existsSync(memoryPath));
       agent.log(memoryPath)
     }
 
     if (fs.existsSync(memoryPath)) {
-      agent.log(chalk.yellow(`>> Loaded Memory...`));
-      const summaryContent = fs.readFileSync(memoryPath, 'utf-8');
+      agent.log(chalk.yellow(">> Loaded Memory..."));
+      const summaryContent = fs.readFileSync(memoryPath, "utf-8");
       const summaryMessage: ChatCompletionRequestMessage = {
         role: "assistant",
         content: summaryContent,
@@ -165,7 +166,7 @@ export class Agent {
 
     agent.log({
       role: "system",
-      content: `>> Initializing Agent...`
+      content: ">> Initializing Agent..."
     });
     await agent._openai.createChatCompletion({
       model: process.env.GPT_MODEL!,
@@ -199,12 +200,12 @@ export class Agent {
 
   promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall): Promise<boolean> {
     if (this._autopilotMode) {
-      this.log(chalk.yellow('>> Running on Autopilot mode'))
+      this.log(chalk.yellow(">> Running on Autopilot mode"))
 
       const automationText = `About to execute the following function\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`;
       this.log({
         role: "assistant",
-        content: "\n```\n"+ automationText+ "\n```\n"
+        content: "\n```\n" + automationText + "\n```\n"
       })
       return Promise.resolve(true);
     }
@@ -235,7 +236,7 @@ export class Agent {
     if (autopilotMatch) {
       this._autoPilotCounter = parseInt(autopilotMatch[1], 10);
       this._autopilotMode = true;
-      userInput = `Entering autopilot mode. Please continue with the next step in the plan.`;
+      userInput = "Entering autopilot mode. Please continue with the next step in the plan.";
     }
 
     // Save user input to chat interactions
@@ -307,7 +308,7 @@ export class Agent {
 
   getUserInput(): Promise<string> {
     return new Promise((res) => {
-      readline.question(`Prompt: `, async (userInput: string) => res(userInput))
+      readline.question("Prompt: ", async (userInput: string) => res(userInput))
     });
   }
 
@@ -323,12 +324,12 @@ export class Agent {
       // Calculate the total tokens in all messages
       const totalTokens = messages.reduce((total, msg) => total + countTokens(msg.content!), 0);
       if (debugMode) {
-        this.log('Total tokens: ' +  totalTokens);
-        this.log('Total messages: ' +  messages.length);
+        this.log("Total tokens: " +  totalTokens);
+        this.log("Total messages: " +  messages.length);
       }
 
       if (totalTokens > Number(process.env.ROLLING_SUMMARY_WINDOW!)) {
-        this.log('Assistant: ' + chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
+        this.log("Assistant: " + chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
 
         // Use the summary function
         const summary = await summarizeHistory(
@@ -352,7 +353,7 @@ export class Agent {
       return completion.data.choices[0].message!;
     } catch (error: any) {
       const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
-      this.error(chalk.red('Error: ') +  chalk.yellow(errorMessage));
+      this.error(chalk.red("Error: ") +  chalk.yellow(errorMessage));
       this.log({
         role: "system",
         content: errorMessage
