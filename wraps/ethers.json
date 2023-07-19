@@ -2,5 +2,9 @@
   "aliases": ["ethereum", "eth"],
   "description": "Wrap to interact with the ethereum blockchain",
   "uri": "ipfs/QmNkqWQuTAiZaLSR3VE53uazuAEqZevv1XQtvAYahuyJ6d",
-  "abi": "https://raw.githubusercontent.com/polywrap/ethers/main/wraps/core/polywrap.graphql"
+  "abi": "https://raw.githubusercontent.com/polywrap/ethers/main/wraps/core/polywrap.graphql",
+  "hints":[
+    "Always leave the connection arguments empty like so: 'connection': {}",
+    "The 'sendTransaction' method requires a 'data' property on the 'tx' object parameter."
+  ]
 }
