@@ -8,25 +8,21 @@ import {
   OpenAIApi
 } from "openai";
 import process from "process";
-import fs from "fs";
-
-export interface MemoryConfig {
-  memoryPath: string;
-}
-
-const defaultConfig: MemoryConfig = {
-  memoryPath: "workspace/memory.md"
-};
 
 export class Memory {
-  constructor(private _config: MemoryConfig = defaultConfig) { }
+  constructor(
+    private _workspace: Workspace,
+    private _memoryPath: string = "summary.md"
+  ) { }
 
   get memoryPath(): string {
-    return this._config.memoryPath;
+    return this._memoryPath;
   }
 
   reset() {
-    fs.writeFileSync(this._config.memoryPath, "");
+    this._workspace.writeFileSync(
+      this.memoryPath, ""
+    );
   }
 
   // TODO: revisit this
@@ -35,8 +31,6 @@ export class Memory {
     agent: OpenAIApi,
     logger: Logger
   ): Promise<ChatCompletionRequestMessage> {
-    const memoryPath = this._config.memoryPath;
-
     try {
       let summarizationRequest: ChatCompletionRequestMessage = {
         role: "system",
@@ -44,8 +38,8 @@ export class Memory {
       };
 
       // Check if the summary file exists
-      if (fs.existsSync(memoryPath)) {
-        const existingSummaryContent = fs.readFileSync(memoryPath, "utf-8");
+      if (this._workspace.existsSync(this.memoryPath)) {
+        const existingSummaryContent = this._workspace.readFileSync(this.memoryPath);
         const existingSummaryMessage: ChatCompletionRequestMessage = {
           role: "assistant",
           content: existingSummaryContent,
@@ -63,11 +57,10 @@ export class Memory {
       });
 
       // Update the summary file with the new summary
-      fs.writeFile(memoryPath, completion.data.choices[0].message?.content!, (err) => {
-        if (err) {
-          throw err;
-        }
-      });
+      this._workspace.writeFileSync(
+        this.memoryPath,
+        completion.data.choices[0].message?.content!
+      );
 
       return completion.data.choices[0].message!;
     } catch (error: any) {

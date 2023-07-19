@@ -49,7 +49,7 @@ export interface AgentConfig {
 
 export class Agent {
   private _memory: Memory;
-  private _workspace: Workspace = new Workspace();
+  private _workspace: Workspace;
   private _logger: Logger = new Logger();
 
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
@@ -63,7 +63,8 @@ export class Agent {
   private _chatInteractions: ChatCompletionRequestMessage[] = [];
 
   private constructor(private _config: AgentConfig = {}) {
-    this._memory = new Memory();
+    this._workspace = new Workspace();
+    this._memory = new Memory(this._workspace);
 
     if (this._config.reset) {
       this._memory.reset();

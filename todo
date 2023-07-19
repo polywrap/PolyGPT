@@ -6,7 +6,7 @@ x '' vs ""
 x remove commented out code
 x remove "require(...)"
 x adjust comments
-- review globals
+x review globals
 - remove all "TODO:"
 - review prompts
 - review code flow
@@ -18,3 +18,4 @@ x adjust comments
 - review workspace usage
 - review file/folder layout (utils)
 - review logging
+- review usage of "fs"
