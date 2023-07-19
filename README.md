@@ -112,7 +112,7 @@ Do you wish to execute the following function?
 
 This agent uses a simple rolling memory which keeps track of the most recent messages in a short `summary.md` in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
 
-In order to reset the memory you can always `yarn start --wipe-memory`
+In order to reset the memory you can always `yarn start --reset`
 
 To see the implementation of the module check [`memory.ts`](./src/memory.ts)
 

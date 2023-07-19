@@ -1,13 +1,20 @@
-import { run } from "./index";
+import {
+  Agent,
+  AgentConfig
+} from "./index";
 
-export async function cli() {
+export async function cli(): Promise<void> {
   const debugMode = process.argv.includes("--debug");
-  const wipeMemory = process.argv.includes("--wipe-memory");
+  const reset = process.argv.includes("--reset");
 
-  await run({
+  const config: AgentConfig = {
     debugMode,
-    wipeMemory
-  });
+    reset
+  };
+
+  const agent = await Agent.create(config);
+
+  await agent.run();
 }
 
 if (require.main === module) {

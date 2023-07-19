@@ -1,7 +1,4 @@
-import {
-  summarizeHistory,
-  memoryPath
-} from "./memory";
+import { Memory } from "./memory";
 import {
   functionsDescription,
   functionsMap
@@ -46,21 +43,30 @@ dotenv.config();
 
 export interface AgentConfig {
   debugMode?: boolean;
+  reset?: boolean;
 }
 
 export class Agent {
+  private _memory: Memory;
+  private _logger: Logger = new Logger();
+
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
   private _library = new WrapLibrary.Reader(WRAP_LIBRARY_URL, WRAP_LIBRARY_NAME);
   private _client: PolywrapClient;
   private _autoPilotCounter = 0;
   private _autopilotMode = false;
-  private _logger: Logger = new Logger();
   private _chatHistory: ChatCompletionRequestMessage[] = [];
   private _initializationMessages: ChatCompletionRequestMessage[] = [];
   private _loadwrapData: ChatCompletionRequestMessage[] = [];
   private _chatInteractions: ChatCompletionRequestMessage[] = [];
 
   private constructor(private _config: AgentConfig = {}) {
+    this._memory = new Memory();
+
+    if (this._config.reset) {
+      this._memory.reset();
+    }
+
     const builder = new PolywrapClientConfigBuilder()
       .addBundle("web3")
       .addBundle("sys")
@@ -104,8 +110,8 @@ export class Agent {
     this._logger.error(msg);
   }
 
-  static async createAgent(config: AgentConfig = {}): Promise<Agent> {
-    const agent = new Agent();
+  static async create(config: AgentConfig = {}): Promise<Agent> {
+    const agent = new Agent(config);
     agent._logger.logHeader();
     agent.log(chalk.yellow(">> Fetching wraps library..."));
 
@@ -148,13 +154,13 @@ export class Agent {
 
     if (agent._config.debugMode) {
       agent.log("Current working directory: " + process.cwd());
-      agent.log("File exists: " + fs.existsSync(memoryPath));
-      agent.log(memoryPath)
+      agent.log("File exists: " + fs.existsSync(agent._memory.memoryPath));
+      agent.log(agent._memory.memoryPath)
     }
 
-    if (fs.existsSync(memoryPath)) {
+    if (fs.existsSync(agent._memory.memoryPath)) {
       agent.log(chalk.yellow(">> Loaded Memory..."));
-      const summaryContent = fs.readFileSync(memoryPath, "utf-8");
+      const summaryContent = fs.readFileSync(agent._memory.memoryPath, "utf-8");
       const summaryMessage: ChatCompletionRequestMessage = {
         role: "assistant",
         content: summaryContent,
@@ -329,7 +335,7 @@ export class Agent {
       if (totalTokens > Number(process.env.ROLLING_SUMMARY_WINDOW!)) {
         this.log("Assistant: " + chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
 
-        const summary = await summarizeHistory(
+        const summary = await this._memory.summarize(
           this._chatInteractions,
           this._openai,
           this._logger
