@@ -316,7 +316,6 @@ export class Agent {
     spinner.start();
 
     try {
-      // this._chatHistory.push({ role: "user", content: message });
       this._chatInteractions.push({ role: "user", content: message });
 
       let messages = [...this._initializationMessages, ...this._loadwrapData, ...this._chatInteractions];
@@ -331,7 +330,6 @@ export class Agent {
       if (totalTokens > Number(process.env.ROLLING_SUMMARY_WINDOW!)) {
         this.log("Assistant: " + chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
 
-        // Use the summary function
         const summary = await summarizeHistory(
           this._chatInteractions,
           this._openai,
@@ -368,11 +366,9 @@ export class Agent {
     response: ChatCompletionResponseMessage
   ): ChatCompletionRequestMessageFunctionCall | undefined {
     if (response.function_call) {
-      // todo: add function calling to history for better memory management
       return response.function_call;
     } else {
       this._chatInteractions.push({ role: "assistant", content: response.content! });
-      //this._chatHistory.push({ role: "assistant", content: response.content! });,
       return undefined;
     }
   }
@@ -381,13 +377,14 @@ export class Agent {
     functionProposed: ChatCompletionRequestMessageFunctionCall,
     attemptsRemaining = 5
   ): Promise<ChatCompletionResponseMessage> {
+    // If out of attempts...
     if (attemptsRemaining == 0) {
       const message: ChatCompletionRequestMessage = {
         role: "assistant",
         content: "Sorry, couldn't process your request",
       };
-      this._chatInteractions.push(message);  // Add error message to chat interactions
-      this.log(message);  // log to file when out of attempts
+      this._chatInteractions.push(message);
+      this.log(message);
       return message;
     }
 
@@ -431,14 +428,15 @@ export class Agent {
       return response;
     } else {
       let messageContent = `Args:\n\`\`\`json\n${JSON.stringify(functionArgs, null, 2)}\n\`\`\`\nResult:\n\`\`\`json\n${JSON.stringify(functionResponse.result, null, 2)}\n\`\`\``;
-      
+
       // Check if the message content is longer than CHUNKING_TOKENS, if so, apply chunking
       const tokenCount = countTokens(messageContent);
       if (tokenCount > Number(process.env.CHUNKING_TOKENS!)) {
         this.log("Found chunking opportunity for function response");
 
+        // update messageContent with chunked and processed content
         const combinedResponse = await chunkAndProcessMessages(messageContent, this._openai, this._logger);
-        messageContent = combinedResponse.content!;  // update messageContent with chunked and processed content
+        messageContent = combinedResponse.content!;
       }
 
       const message: ChatCompletionRequestMessage = {
@@ -453,7 +451,8 @@ export class Agent {
         return { role: "assistant", content: `Wrap loaded  ${JSON.stringify(functionArgs, null, 2)}` }
       }
 
-      this._chatInteractions.push(message);  // Add function result to chat interactions
+      // Add function result to chat interactions
+      this._chatInteractions.push(message);
       this._chatHistory.push(message);
       return message;
     }
