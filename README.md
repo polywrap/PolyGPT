@@ -12,8 +12,10 @@ Mark the repo with a Star ⭐ if you like it!
 Open your terminal window and run the following commands
 1. `git clone https://github.com/polywrap/gpt-agent-learning-demo.git`
 2. Update your .env file with the appropriate keys for OpenAI and reconfigure your agent if needed
-3. `yarn install` will get all dependencies installed
-4. `yarn start` will run the agent loop
+3. `nvm install v18.15 `
+4. `nvm use`
+5. `yarn` will get all dependencies installed
+6. `yarn start` will run the agent loop
 
 Then you can start interacting with the bot by filling in the main goal, and then an initial Prompt.
 
