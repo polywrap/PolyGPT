@@ -44,9 +44,12 @@ import * as EthProvider from "@polywrap/ethereum-provider-js";
 
 // TODO: revisit this
 let spinner = new clui.Spinner("Thinking...");
-const debugMode = process.argv.includes("--debug");
 
 dotenv.config();
+
+export interface AgentConfig {
+  debugMode?: boolean;
+}
 
 export class Agent {
   private _openai = new OpenAIApi(OPEN_AI_CONFIG);
@@ -60,7 +63,7 @@ export class Agent {
   private _loadwrapData: ChatCompletionRequestMessage[] = [];
   private _chatInteractions: ChatCompletionRequestMessage[] = [];
 
-  private constructor() {
+  private constructor(private _config: AgentConfig = {}) {
     const builder = new PolywrapClientConfigBuilder()
       .addBundle("web3")
       .addBundle("sys")
@@ -104,7 +107,7 @@ export class Agent {
     this._logger.error(msg);
   }
 
-  static async createAgent(): Promise<Agent> {
+  static async createAgent(config: AgentConfig = {}): Promise<Agent> {
     const agent = new Agent();
     agent._logger.logHeader();
     agent.log(chalk.yellow(">> Fetching wraps library..."));
@@ -146,7 +149,7 @@ export class Agent {
     agent._initializationMessages.push(...messages);
     agent._initializationMessages.push(userGoalMessage);
 
-    if (debugMode) {
+    if (agent._config.debugMode) {
       agent.log("Current working directory: " + process.cwd());
       agent.log("File exists: " + fs.existsSync(memoryPath));
       agent.log(memoryPath)
@@ -321,7 +324,7 @@ export class Agent {
 
       // Calculate the total tokens in all messages
       const totalTokens = messages.reduce((total, msg) => total + countTokens(msg.content!), 0);
-      if (debugMode) {
+      if (this._config.debugMode) {
         this.log("Total tokens: " +  totalTokens);
         this.log("Total messages: " +  messages.length);
       }

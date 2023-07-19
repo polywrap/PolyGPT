@@ -7,12 +7,12 @@
     "type": "git",
     "url": "https://github.com/polywrap/polygpt.git"
   },
-  "main": "build/main.js",
+  "main": "build/index.js",
   "bin": {
     "polygpt": "bin/polygpt"
   },
   "scripts": {
-    "start": "ts-node src/main.ts",
+    "start": "ts-node src/cli.ts",
     "build": "rimraf build && tsc"
   },
   "dependencies": {
