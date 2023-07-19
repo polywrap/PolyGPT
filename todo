@@ -1,0 +1,15 @@
+x unify logging
+x remove needless whitespace
+x order imports
+x use `function` consistently
+x '' vs ""
+x remove commented out code
+x remove "require(...)"
+- adjust comments
+- review globals
+- remove all "TODO:"
+- review prompts
+- review typings
+- fail immediately if required ENV vars aren't present (open ai api key)
+- review hints + add missing?
+- unify dotenv usage (all comes from env.ts file)
