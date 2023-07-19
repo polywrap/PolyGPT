@@ -154,7 +154,6 @@ export class Agent {
     });
 
     agent._chatInteractions.push(...messages);
-    // agent._chatHistory.push(...messages);
     console.log(chalk.yellow(">> Agent initialized."))
 
     return agent
@@ -339,11 +338,9 @@ export class Agent {
     response: ChatCompletionResponseMessage
   ): ChatCompletionRequestMessageFunctionCall | undefined {
     if (response.function_call) {
-      // todo: add function calling to history for better memory management
       return response.function_call;
     } else {
       this._chatInteractions.push({ role: "assistant", content: response.content! });
-      //this._chatHistory.push({ role: "assistant", content: response.content! });,
       return undefined;
     }
   }
@@ -358,7 +355,6 @@ export class Agent {
         content: "Sorry, couldn't process your request",
       };
       this._chatInteractions.push(message);  // Add error message to chat interactions
-      //this._chatHistory.push(message);
       logToFile(message);  // log to file when out of attempts
       return message;
     }
