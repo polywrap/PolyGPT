@@ -32,15 +32,28 @@ export class Chat {
       msgs: []
     }
   };
+  private _summaryTokens: number;
+  private _chunkTokens: number;
 
   constructor(
     private _contextWindowTokens: number,
-    private _summaryTokens: number,
     private _logger: Logger,
     private _workspace: Workspace,
     private _openai: OpenAI,
     private _msgsFile: string = ".msgs",
-  ) { }
+  ) {
+    // Summary size should be ~10% of total tokens
+    const summaryPerc = 0.10;
+    this._summaryTokens = Math.floor(
+      this._contextWindowTokens * summaryPerc
+    );
+
+    // Chunk size should be ~70% of total tokens
+    const chunkPerc = 0.7;
+    this._chunkTokens = Math.floor(
+      this._contextWindowTokens * chunkPerc
+    );
+  }
 
   get messages(): Message[] {
     return [
@@ -54,12 +67,20 @@ export class Chat {
     msg: Message | Message[]
   ) {
     const msgLog = this._msgLogs[type];
-    const msgs = Array.isArray(msg) ? msg : [msg];
+    let msgs = Array.isArray(msg) ? msg : [msg];
 
     for (const msg of msgs) {
       const tokens = gpt2.encode(msg.content || "").length;
-      msgLog.tokens += tokens;
-      msgLog.msgs.push(msg);
+
+      // If the message is larger than the context window
+      if (tokens > this._contextWindowTokens) {
+        const chunked = this._chunk(msg);
+        msgLog.tokens += chunked.tokens;
+        msgLog.msgs.push(...chunked.msgs);
+      } else {
+        msgLog.tokens += tokens;
+        msgLog.msgs.push(msg);
+      }
     }
 
     // Save the full log to disk
@@ -89,6 +110,31 @@ export class Chat {
     await this._summarize("persistent");
   }
 
+  private _chunk(msg: Message): MessageLog {
+    const chunks: MessageLog = {
+      tokens: 0,
+      msgs: []
+    };
+    let content = msg.content || "";
+
+    while (content.length > 0) {
+      // Slice a chunk
+      const contentChunk = content.slice(0, this._chunkTokens);
+
+      // Append the chunk
+      chunks.tokens += gpt2.encode(contentChunk).length;
+      chunks.msgs.push({
+        ...msg,
+        content: contentChunk
+      });
+
+      // Remove the chunk
+      content = content.slice(this._chunkTokens);
+    }
+
+    return chunks;
+  }
+
   private _save() {
     this._workspace.writeFileSync(
       this._msgsFile,
@@ -110,13 +156,12 @@ export class Chat {
     this._logger.notice(`>> Summarizing "${msgType}" Messages (Tokens: ${msgLog.tokens})`);
     this._logger.spinner.start();
 
-    const response = await this._openai.createChatCompletion({
-      messages: msgLog.msgs,
-      temperature: 0,
-      max_tokens: this._summaryTokens
-    });
+    const message = await this._summarizeMessages(msgLog.msgs);
 
-    const message = response.data.choices[0].message!;
+    if (!message) {
+      return msgLog;
+    }
+
     const tokens = gpt2.encode(message.content || "").length;
 
     const newLog: MessageLog = {
@@ -127,5 +172,63 @@ export class Chat {
     this._logger.spinner.stop();
 
     return newLog;
+  }
+
+  private async _summarizeMessages(
+    msgs: Message[]
+  ): Promise<Message | undefined> {
+    let result: Message | undefined;
+    let queue = msgs;
+
+    // While we still have more than 1 message to summarize
+    while (queue.length > 1) {
+      console.log("HERERE", queue.length);
+      // Aggregate as many messages as possible,
+      // based on max size of the context window
+      const toSummarize: Message[] = [];
+      let tokenCounter = 0;
+      let index = 0;
+
+      while (index < queue.length) {
+        const msg = queue[index];
+        const content = msg.content || "";
+        const contentTokens = gpt2.encode(content).length;
+
+        if ((tokenCounter + contentTokens) > (this._contextWindowTokens - this._summaryTokens)) {
+          break;
+        }
+
+        toSummarize.push(msg);
+        tokenCounter += gpt2.encode(content).length;
+        console.log("SUMMIT", index, tokenCounter);
+        index++;
+      }
+
+      console.log("SUMMARIZING", tokenCounter);
+
+      // Summarize
+      const response = await this._openai.createChatCompletion({
+        messages: toSummarize,
+        temperature: 0,
+        max_tokens: this._summaryTokens
+      });
+
+      const message = response.data.choices[0].message!;
+
+      // Remove messages from the queue
+      queue = queue.splice(index);
+
+      // Add the new message to the queue
+      queue = [
+        message,
+        ...queue
+      ];
+    }
+
+    if (queue.length > 0) {
+      result = queue[0];
+    }
+
+    return result;
   }
 }

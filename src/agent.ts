@@ -42,7 +42,6 @@ export class Agent {
     );
     this._chat = new Chat(
       env().CONTEXT_WINDOW_TOKENS,
-      env().SUMMARY_TOKENS,
       this._logger,
       this._workspace,
       this._openai
