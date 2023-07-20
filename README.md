@@ -146,7 +146,7 @@ To run in debug mode just run
 
   `yarn start --debug`
 
-By default the agent will output a `.history` file which is constantly updated with the current state of the chat history being sent to the agent on each chat completion. This is useful specially because the memory module makes edits the conversation history constantly and the chat logs that you get as output are different from the chat conversation
+By default the agent will output a `.msgs` file which is constantly updated with the raw state of all messages being sent to OpenAI on each chat completion. This is useful specially because the memory module makes edits the conversation history constantly and the chat logs that you get as output are different from the chat conversation
 
 # Resources and Links
 

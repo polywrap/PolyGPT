@@ -1,15 +1,16 @@
+import { Message } from "./chat";
+
 import chalk from "chalk";
 import figlet from "figlet";
-import { ChatCompletionRequestMessage } from "openai";
 import stripAnsi from "strip-ansi";
 import winston, { LogEntry } from "winston";
 import clui from "clui";
 import * as read from "readline";
+
 const readline = read.promises.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
-
 
 export class Logger {
   protected _logDir: string = "chats";
@@ -91,18 +92,47 @@ export class Logger {
     this._logger.info(info);
   }
 
-  error(msg: string) {
-    this._logger.error(msg);
+  message(msg: Message) {
+    this._logger.info(`**${msg.role.toUpperCase()}**: ${msg.content}`);
+  }
+
+  notice(msg: string) {
+    this.info(chalk.yellow(msg));
+  }
+
+  success(msg: string) {
+    this.info(chalk.green(msg));
+  }
+
+  error(msg: string, error?: unknown) {
+    if (!error) {
+      this._logger.error(chalk.red(msg));
+      return;
+    }
+
+    let errorStr: string = "";
+    let errorObj = error as Record<string, unknown>;
+    if (
+      typeof error === "object" &&
+      errorObj.message
+    ) {
+      if (errorObj.response) {
+        const responseObj = errorObj.response as Record<string, unknown>;
+        const status = responseObj.status || "N/A";
+        const data = responseObj.data || "N/A";
+        errorStr += `\nResponse Status: ${status}`;
+        errorStr += `\nResponse Data: ${JSON.stringify(data, null, 2)}`;
+      }
+      errorStr += `\nMessage: ${errorObj.message}`;
+    }
+
+    this._logger.error(chalk.red(
+      `${msg}${errorStr}`
+    ));
   }
 
   question(query: string): Promise<string> {
     return readline.question(query);
-  }
-
-  logMessage(message: ChatCompletionRequestMessage) {
-    this._logger.info(`
-
-    **${message.role.toUpperCase()}**: ${message.content}`);
   }
 
   logHeader() {
@@ -135,17 +165,5 @@ Welcome to the future!`
 
       logger.info("```\n" + data + "\n```");
     });
-  }
-
-  prettyPrintError(error: any): void {
-    this._logger.error(chalk.red("Something went wrong:"));
-    if (error.response) {
-      this._logger.error(chalk.yellow("Response Status:"), chalk.blueBright(error.response.status));
-      this._logger.error(chalk.yellow("Response Data:"), chalk.blueBright(JSON.stringify(error.response.data, null, 2)));
-    }
-    if (error.request) {
-      this._logger.error(chalk.yellow("Request:"), chalk.blueBright(JSON.stringify(error.request, null, 2)));
-    }
-    this._logger.error(chalk.yellow("Message:"), chalk.blueBright(error.message));
   }
 }

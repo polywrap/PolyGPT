@@ -7,7 +7,7 @@ export interface Env {
   WRAP_LIBRARY_URL: string;
   WRAP_LIBRARY_NAME: string;
   GPT_MODEL: string;
-  ROLLING_SUMMARY_WINDOW: number;
+  CONTEXT_WINDOW_TOKENS: number;
   CHUNKING_TOKENS: number;
   ETHEREUM_PRIVATE_KEY?: string;
 }
@@ -30,7 +30,7 @@ export function env(): Env {
     WRAP_LIBRARY_URL,
     WRAP_LIBRARY_NAME,
     GPT_MODEL,
-    ROLLING_SUMMARY_WINDOW,
+    CONTEXT_WINDOW_TOKENS,
     CHUNKING_TOKENS,
     ETHEREUM_PRIVATE_KEY
   } = process.env;
@@ -47,8 +47,8 @@ export function env(): Env {
   if (!GPT_MODEL) {
     throw missingEnvError("GPT_MODEL");
   }
-  if (!ROLLING_SUMMARY_WINDOW) {
-    throw missingEnvError("ROLLING_SUMMARY_WINDOW");
+  if (!CONTEXT_WINDOW_TOKENS) {
+    throw missingEnvError("CONTEXT_WINDOW_TOKENS");
   }
   if (!CHUNKING_TOKENS) {
     throw missingEnvError("CHUNKING_TOKENS");
@@ -59,7 +59,7 @@ export function env(): Env {
     WRAP_LIBRARY_URL,
     WRAP_LIBRARY_NAME,
     GPT_MODEL,
-    ROLLING_SUMMARY_WINDOW: Number(ROLLING_SUMMARY_WINDOW),
+    CONTEXT_WINDOW_TOKENS: Number(CONTEXT_WINDOW_TOKENS),
     CHUNKING_TOKENS: Number(CHUNKING_TOKENS),
     ETHEREUM_PRIVATE_KEY
   };

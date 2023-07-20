@@ -1,19 +1,9 @@
 import {
-  Agent,
-  AgentConfig
+  Agent
 } from "./index";
 
 export async function cli(): Promise<void> {
-  const debugMode = process.argv.includes("--debug");
-  const reset = process.argv.includes("--reset");
-
-  const config: AgentConfig = {
-    debugMode,
-    reset
-  };
-
-  const agent = await Agent.create(config);
-
+  const agent = await Agent.create();
   await agent.run();
 }
 

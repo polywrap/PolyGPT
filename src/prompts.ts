@@ -1,6 +1,10 @@
-import { ChatCompletionRequestMessageRoleEnum } from "openai";
+import {
+  ChatCompletionRequestMessage,
+  ChatCompletionRequestMessageRoleEnum
+} from "openai";
+import { WrapLibrary } from "./wrap";
 
-export const systemPrompts = (wrapInfosString: string) => ([
+export const initializeAgent = (wraps: WrapLibrary.Wrap[]): ChatCompletionRequestMessage[] => ([
   {
     role: ChatCompletionRequestMessageRoleEnum.System,
     content:
@@ -27,7 +31,7 @@ varies according to the method's signature. You will map the user's given argume
 - hints: array of hints the user has given you on how to properly invoke this wrap
 
 Here are the JSONs:
-${wrapInfosString}`
+${JSON.stringify(wraps, null, 2)}`
   },
   {
     role: ChatCompletionRequestMessageRoleEnum.System,
