@@ -144,7 +144,7 @@ export class Chat {
 
   private async _summarize(
     msgType: MessageType
-  ): Promise<MessageLog> {
+  ): Promise<void> {
     // Add a final message, instructing the AI to summarize the chat
     this.add(msgType, {
       role: "system",
@@ -159,19 +159,17 @@ export class Chat {
     const message = await this._summarizeMessages(msgLog.msgs);
 
     if (!message) {
-      return msgLog;
+      return;
     }
 
     const tokens = gpt2.encode(message.content || "").length;
 
-    const newLog: MessageLog = {
+    this._msgLogs[msgType] = {
       tokens,
       msgs: [message]
     };
 
     this._logger.spinner.stop();
-
-    return newLog;
   }
 
   private async _summarizeMessages(
@@ -182,7 +180,6 @@ export class Chat {
 
     // While we still have more than 1 message to summarize
     while (queue.length > 1) {
-      console.log("HERERE", queue.length);
       // Aggregate as many messages as possible,
       // based on max size of the context window
       const toSummarize: Message[] = [];
@@ -200,11 +197,8 @@ export class Chat {
 
         toSummarize.push(msg);
         tokenCounter += gpt2.encode(content).length;
-        console.log("SUMMIT", index, tokenCounter);
         index++;
       }
-
-      console.log("SUMMARIZING", tokenCounter);
 
       // Summarize
       const response = await this._openai.createChatCompletion({
