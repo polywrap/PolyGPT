@@ -8,7 +8,7 @@ export interface Env {
   WRAP_LIBRARY_NAME: string;
   GPT_MODEL: string;
   CONTEXT_WINDOW_TOKENS: number;
-  CHUNKING_TOKENS: number;
+  SUMMARY_TOKENS: number;
   ETHEREUM_PRIVATE_KEY?: string;
 }
 
@@ -31,7 +31,7 @@ export function env(): Env {
     WRAP_LIBRARY_NAME,
     GPT_MODEL,
     CONTEXT_WINDOW_TOKENS,
-    CHUNKING_TOKENS,
+    SUMMARY_TOKENS,
     ETHEREUM_PRIVATE_KEY
   } = process.env;
 
@@ -50,8 +50,8 @@ export function env(): Env {
   if (!CONTEXT_WINDOW_TOKENS) {
     throw missingEnvError("CONTEXT_WINDOW_TOKENS");
   }
-  if (!CHUNKING_TOKENS) {
-    throw missingEnvError("CHUNKING_TOKENS");
+  if (!SUMMARY_TOKENS) {
+    throw missingEnvError("SUMMARY_TOKENS");
   }
 
   return {
@@ -60,7 +60,7 @@ export function env(): Env {
     WRAP_LIBRARY_NAME,
     GPT_MODEL,
     CONTEXT_WINDOW_TOKENS: Number(CONTEXT_WINDOW_TOKENS),
-    CHUNKING_TOKENS: Number(CHUNKING_TOKENS),
+    SUMMARY_TOKENS: Number(SUMMARY_TOKENS),
     ETHEREUM_PRIVATE_KEY
   };
 }

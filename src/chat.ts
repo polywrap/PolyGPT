@@ -35,6 +35,7 @@ export class Chat {
 
   constructor(
     private _contextWindowTokens: number,
+    private _summaryTokens: number,
     private _logger: Logger,
     private _workspace: Workspace,
     private _openai: OpenAI,
@@ -71,26 +72,21 @@ export class Chat {
       msgLogs["persistent"].tokens +
       msgLogs["temporary"].tokens;
 
-    while (totalTokens() > this._contextWindowTokens) {
-      this._logger.notice(`>> Summarizing Chat (Tokens: ${totalTokens()})`);
-
-      // Start with "temporary" messages
-      msgLogs["temporary"] = await this._summarizeMsgLog(
-        msgLogs["temporary"]
-      );
-
-      if (totalTokens() < this._contextWindowTokens) {
-        return;
-      }
-
-      // Move onto "persistent" messages
-      msgLogs["persistent"] = await this._summarizeMsgLog(
-        msgLogs["persistent"]
-      );
+    if (totalTokens() < this._contextWindowTokens) {
+      return;
     }
 
-    // Save the full log to disk
-    this._save();
+    this._logger.notice(`! Max Tokens Exceeded (${totalTokens()} / ${this._contextWindowTokens})`);
+
+    // Start with "temporary" messages
+    await this._summarize("temporary");
+
+    if (totalTokens() < this._contextWindowTokens) {
+      return;
+    }
+
+    // Move onto "persistent" messages
+    await this._summarize("persistent");
   }
 
   private _save() {
@@ -100,22 +96,24 @@ export class Chat {
     );
   }
 
-  private async _summarizeMsgLog(
-    msgLog: MessageLog
+  private async _summarize(
+    msgType: MessageType
   ): Promise<MessageLog> {
-    this._logger.spinner.start();
-
-    // Add a final message, instructing the AI to summarize
-    // the chat log
-    msgLog.msgs.push({
+    // Add a final message, instructing the AI to summarize the chat
+    this.add(msgType, {
       role: "system",
       content: summarizerPrompt
     });
 
+    const msgLog = this._msgLogs[msgType];
+
+    this._logger.notice(`>> Summarizing "${msgType}" Messages (Tokens: ${msgLog.tokens})`);
+    this._logger.spinner.start();
+
     const response = await this._openai.createChatCompletion({
       messages: msgLog.msgs,
       temperature: 0,
-      max_tokens: 1000
+      max_tokens: this._summaryTokens
     });
 
     const message = response.data.choices[0].message!;

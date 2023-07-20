@@ -32,7 +32,6 @@ export class OpenAI {
     temperature?: number
     max_tokens?: number
   }) {
-    console.log("HERERERE");
     return this._api.createChatCompletion({
       messages: options.messages,
       model: options.model || this._defaultModel,
