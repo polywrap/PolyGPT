@@ -1,22 +1,27 @@
-import { env } from "./env";
-import { Logger } from "./logger";
-import { Workspace } from "./workspace";
-import { Chat, Message, MessageType } from "./chat";
-import * as Prompts from "./prompts";
 import {
-  OpenAI,
-  OpenAIResponse,
-  OpenAIFunctionCall
-} from "./openai";
+  env,
+  Logger,
+  Workspace
+} from "./sys";
 import {
   WrapLibrary,
   getWrapClient
 } from "./wrap";
+import {
+  Chat,
+  Message,
+  MessageType
+} from "./chat";
+import {
+  OpenAI,
+  OpenAIResponse,
+  OpenAIFunctionCall,
+  functions,
+  functionDescriptions,
+} from "./openai";
+import * as Prompts from "./prompts";
 
 import { PolywrapClient } from "@polywrap/client-js";
-
-// TODO: look at this
-import { functionsDescription, functionsMap } from "./wrap/open-ai-functions";
 
 export class Agent {
   private _logger: Logger;
@@ -189,7 +194,7 @@ export class Agent {
 
       const completion = await this._openai.createChatCompletion({
         messages: this._chat.messages,
-        functions: functionsDescription,
+        functions: functionDescriptions,
         temperature: 0,
         max_tokens: 500
       });
@@ -259,10 +264,12 @@ export class Agent {
       ? JSON.parse(functionCall.arguments)
       : undefined;
 
-    const response = await functionsMap(this._library)[name](
-      this._client,
-      args
-    );
+    const functionToCall = (functions(
+      this._library,
+      this._client
+    ) as any)[name];
+
+    const response = await functionToCall(args);
 
     // If the function call was unsuccessful
     if (!response.ok) {

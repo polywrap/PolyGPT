@@ -1,4 +1,4 @@
-import { Message } from "./chat";
+import { Message } from "../chat";
 
 import chalk from "chalk";
 import figlet from "figlet";

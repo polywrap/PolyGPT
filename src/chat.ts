@@ -1,5 +1,7 @@
-import { Logger } from "./logger";
-import { Workspace } from "./workspace";
+import {
+  Logger,
+  Workspace
+} from "./sys";
 import { OpenAI } from "./openai";
 import { summarizerPrompt } from "./prompts";
 

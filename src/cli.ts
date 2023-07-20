@@ -1,6 +1,4 @@
-import {
-  Agent
-} from "./index";
+import { Agent } from "./";
 
 export async function cli(): Promise<void> {
   const agent = await Agent.create();
