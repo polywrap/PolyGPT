@@ -1,34 +1,13 @@
-x unify logging
-x remove needless whitespace
-x order imports
-x use `function` consistently
-x '' vs ""
-x remove commented out code
-x remove "require(...)"
-x adjust comments
-x review globals
-x remove all "TODO:"
-x unify env usage (all comes from env.ts file)
-x fail immediately if required ENV vars aren't present (open ai api key)
-x cleanup needed: history, agent, open-ai-functions, opanai-old, logger
-x review file/folder layout (agent, llm, wraps, workspace, memory)
-x review code flow
-x review typings
-x review history pushing/saving/summarizing
-x look into open-ai-function typings (add to openai class at startup?)
-- review prompts
 - review logging
   - logging file name is incorrect
   - user input isn't logged to file
   - logging the loading of wraps isn't correct
 - review workspace usage
-- review usage of "fs"
 - add comments
 - review hints + add missing?
 - mention .env.template in README
 - review .env.template
 - TODO: continue between runs
-
 
 # Improvements
 - rendering schema
@@ -37,3 +16,4 @@ x look into open-ai-function typings (add to openai class at startup?)
 
 # Prompts
 I would like to write a summary of the website polywrap.io to a file named "summary.md"
+Get the Bitcoin price from coindesk
