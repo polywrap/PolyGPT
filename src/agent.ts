@@ -1,433 +1,324 @@
-import chalk from "chalk";
-import dotenv from 'dotenv';
-import fs from 'fs';
-import clui from "clui";
 import {
-  ChatCompletionRequestMessage,
-  ChatCompletionRequestMessageFunctionCall,
-  ChatCompletionResponseMessage,
-  OpenAIApi,
-} from "openai";
-import { PolywrapClient, PolywrapClientConfigBuilder, IWrapPackage } from "@polywrap/client-js";
-import * as EthProvider from "@polywrap/ethereum-provider-js";
-import { dateTimePlugin } from "@polywrap/datetime-plugin-js";
-
-import { Wallet } from "ethers"
-
-import { WrapLibrary } from "./wrap-library";
-import { functionsDescription, functionsMap } from "./open-ai-functions";
+  env,
+  Logger,
+  Workspace
+} from "./sys";
 import {
-  logToFile,
-  readline,
-  logHeader,
-  countTokens,
-  chunkAndProcessMessages,
-  OPEN_AI_CONFIG,
-  WRAP_LIBRARY_URL,
-  WRAP_LIBRARY_NAME
-} from "./utils";
-import { systemPrompts, autopilotPrompt} from "./prompt";
-import { summarizeHistory, memoryPath } from "./memory";
+  WrapLibrary,
+  getWrapClient
+} from "./wrap";
+import {
+  Chat,
+  Message,
+  MessageType
+} from "./chat";
+import {
+  OpenAI,
+  OpenAIResponse,
+  OpenAIFunctionCall,
+  functions,
+  functionDescriptions,
+} from "./openai";
+import * as Prompts from "./prompts";
 
-let spinner = new clui.Spinner('Thinking...');
-const debugMode = process.argv.includes('--debug');
+import { PolywrapClient } from "@polywrap/client-js";
 
-
-dotenv.config();
 export class Agent {
-  private _openai = new OpenAIApi(OPEN_AI_CONFIG);
-  private _library = new WrapLibrary.Reader(WRAP_LIBRARY_URL, WRAP_LIBRARY_NAME);
+  private _logger: Logger;
+  private _workspace: Workspace;
+
+  private _chat: Chat;
+  private _openai: OpenAI;
+
+  private _wraps: WrapLibrary.Wrap[];
+  private _library: WrapLibrary.Reader;
   private _client: PolywrapClient;
+
   private _autoPilotCounter = 0;
-  private _autopilotMode = false;
-  public _chatHistory: ChatCompletionRequestMessage[] = [];
-  public _initializationMessages: ChatCompletionRequestMessage[] = [];
-  public _loadwrapData: ChatCompletionRequestMessage[] = [];
-  public _chatInteractions: ChatCompletionRequestMessage[] = [];
-  
+  private _autoPilotMode = false;
+
   private constructor() {
-    const builder = new PolywrapClientConfigBuilder()
-      .addBundle("web3")
-      .addBundle("sys")
+    this._logger = new Logger();
+    this._workspace = new Workspace();
 
-    if (process.env.ETHEREUM_PRIVATE_KEY) {
-      builder.setPackages({
+    this._openai = new OpenAI(
+      env().OPENAI_API_KEY,
+      env().GPT_MODEL
+    );
+    this._chat = new Chat(
+      env().CONTEXT_WINDOW_TOKENS,
+      this._logger,
+      this._workspace,
+      this._openai
+    );
 
-        "wrap://plugin/datetime":
-          dateTimePlugin({}) as IWrapPackage,
-
-        "plugin/ethereum-provider@2.0.0":      
-          EthProvider.plugin({
-            connections: new EthProvider.Connections({
-              networks: {
-                goerli: new EthProvider.Connection({
-                  signer: new Wallet(process.env.ETHEREUM_PRIVATE_KEY as string),
-                  provider:
-                    "https://goerli.infura.io/v3/b00b2c2cc09c487685e9fb061256d6a6",
-                }),
-              },
-              defaultNetwork: "goerli"
-            }),
-          }) as IWrapPackage}
-      );
-    }
-
-    const config = builder.build();
-
-    this._client = new PolywrapClient(config)
+    this._wraps = [];
+    this._library = new WrapLibrary.Reader(
+      env().WRAP_LIBRARY_URL,
+      env().WRAP_LIBRARY_NAME
+    );
+    this._client = getWrapClient(
+      env().ETHEREUM_PRIVATE_KEY
+    );
   }
 
-
-  static async createAgent(): Promise<Agent> {
+  static async create(): Promise<Agent> {
     const agent = new Agent();
-    logHeader();
-    console.log(chalk.yellow(">> Fetching wraps library..."));
 
-    const availableWraps = await agent._library.getIndex();
-    
-    console.log("SYSTEM: Cataloging all wraps in the library...");
-    console.log(`URL: ${WRAP_LIBRARY_URL}`);
-    console.table(availableWraps);
-    
-    logToFile({
-      role: "system",
-      content: `Cataloging all wraps in the library:\n\nWrap Library URL: ${WRAP_LIBRARY_URL}\n\n\`\`\`\n${JSON.stringify(availableWraps, null, 2)}\n\`\`\``
-    });
-    
-    console.log(chalk.yellow(`>> Fetching wrap training data...`));
-    const wrapInfos = await agent._library.getWraps(availableWraps.wraps);
-    const wrapInfosString = JSON.stringify(wrapInfos, null, 2); // Convert wrapInfos to a string
+    // Log agent header
+    agent._logger.logHeader();
 
+    // Load wraps from library
+    await agent._loadWraps();
 
-    // Ask user for main goal and save as a chat message
-    const userGoal = await new Promise<string>((resolve) => {
-      readline.question('Please enter your main goal: ', (goal:string) => {
-        resolve(goal);
-      });
-    });
+    // Initialize the agent's chat
+    agent._initializeChat();
 
-    logToFile({
-      role: "user",
-      content: userGoal
-    })
-    const userGoalMessage: ChatCompletionRequestMessage = {
-      role: "user",
-      content: `The user has defined the following goal: ${userGoal}`,
-    };
-        
-    // Load the initialization prompts
-    const initialization_messages = systemPrompts(wrapInfosString);
-    let messages: ChatCompletionRequestMessage[] = initialization_messages
-    agent._initializationMessages.push(...messages);
-    agent._initializationMessages.push(userGoalMessage);
+    // Ask for the user's goal
+    await agent._askUserForGoal();
 
-
-    // Load the summary from 'summary.md'
-    if (debugMode) {
-      console.log('Current working directory:', process.cwd());
-      console.log('File exists:', fs.existsSync(memoryPath));
-      console.log(memoryPath)
-    }
-    
-    if (fs.existsSync(memoryPath)) {
-      console.log(chalk.yellow(`>> Loaded Memory...`));
-      const summaryContent = fs.readFileSync(memoryPath, 'utf-8');
-      const summaryMessage: ChatCompletionRequestMessage = {
-        role: "assistant",
-        content: summaryContent,
-      };
-      agent._initializationMessages.push(summaryMessage);
-      messages = [...agent._initializationMessages, ...agent._loadwrapData, ...agent._chatInteractions];
-    }
-    
-    logToFile({
-      role: "system",
-      content: `>> Initializing Agent...`
-    })
-    console.log(chalk.yellow(`>> Initializing Agent...`));
-    await agent._openai.createChatCompletion({
-      model: process.env.GPT_MODEL!,
-      messages,
-      functions: functionsDescription,
-      function_call: "auto",
-      temperature: 0
-    });
-
-    agent._chatInteractions.push(...messages);
-    // agent._chatHistory.push(...messages);
-    console.log(chalk.yellow(">> Agent initialized."))
-
-    return agent
+    return agent;
   }
 
-
-  promptForUserConfirmation(proposedFunction: ChatCompletionRequestMessageFunctionCall): Promise<boolean> {
-    if (this._autopilotMode) {
-      console.log(chalk.yellow('>> Running on Autopilot mode'))
-
-    const automationText = `About to execute the following function\n\n${proposedFunction.name} (${proposedFunction.arguments})\n\n(Y/N)\n`;
-    console.log(chalk.cyan(automationText))
-    logToFile({
-      role: "assistant",
-      content: "\n```\n"+ automationText+ "\n```\n"
-    })
-      return Promise.resolve(true);
-    }
-  
-    const confirmationText = "Do you wish to execute the following function?\n\n```" + `${proposedFunction.name} (${proposedFunction.arguments})`+"\n```\n\n(Y/N)\n";
-    const confirmationPrompt = chalk.cyan(confirmationText);
-    logToFile({
-      role: "assistant",
-      content: confirmationText
-    })
-    return new Promise((res) => {
-      readline.question(
-        confirmationPrompt,
-        async (userInput: string) => {
-          logToFile({
-            role: "user",
-            content: userInput
-          })
-          return res(userInput === "Y" || userInput === "y" || userInput === "yy");
-        }
-      )
-    });
-  }
-  
-
-  async processUserPrompt(userInput: string): Promise<ChatCompletionRequestMessage | void> {
-    // Check if the user has entered the autopilot command
-    const autopilotMatch = userInput.match(/^auto -(\d+)$/);
-    if (autopilotMatch) {
-      this._autoPilotCounter = parseInt(autopilotMatch[1], 10);
-      this._autopilotMode = true;
-      userInput = `Entering autopilot mode. Please continue with the next step in the plan.`;
-    }
-  
-    // Save user input to chat interactions
-    const userMessage: ChatCompletionRequestMessage = {
-      role: "user",
-      content: userInput
-    };
-    this._chatInteractions.push(userMessage);
-  
-    // Log the user input to file
-    logToFile(userMessage);
-  
-    const response = await this.sendMessageToAgent(userInput);
-    const proposedFunction = this.checkIfFunctionWasProposed(response!);
-  
-    if (proposedFunction) {
-      const userConfirmedExecution = await this.promptForUserConfirmation(proposedFunction)
-  
-      if (userConfirmedExecution) {
-        const result = await this.executeProposedFunction(proposedFunction);
-  
-        const resultContent = result.content
-  
-        // Save assistant's response to chat interactions
-        const assistantResponse: ChatCompletionRequestMessage = {
-          role: "assistant",
-          content: resultContent!
-        };
-        this._chatInteractions.push(assistantResponse);
-  
-        // Log the assistant's response to file
-        logToFile(assistantResponse)
-  
-        console.log('Assistant:', chalk.blue(resultContent ?? ""));
-      } else {
-        const message: ChatCompletionRequestMessage = {
-          role: "assistant",
-          content: "Alright. Will not execute this function",
-        }
-    
-        this._chatInteractions.push(message);
-        console.log('Assistant:',chalk.blue(message.content ?? ""));
-        logToFile(message)
-      }
-    } else {
-      const responseMessage: ChatCompletionRequestMessage = {
-        role: "assistant",
-        content: response?.content!,
-      }
-  
-      // Save assistant's response to chat interactions
-      this._chatInteractions.push(responseMessage);
-  
-      // Log the assistant's response to file
-      logToFile(responseMessage)
-  
-      console.log('Assistant:', chalk.blue(responseMessage.content ?? ""));
-    }
-  
-    // If in autopilot mode and there are remaining iterations, automatically re-prompt the user
-    if (this._autopilotMode && this._autoPilotCounter > 0) {
-      this._autoPilotCounter--;
-      let autopilotAnswer: ChatCompletionRequestMessage | void = await this.processUserPrompt(autopilotPrompt);
-      if (autopilotAnswer) {
-        this._chatInteractions.push(autopilotAnswer);
-      }
-      return autopilotAnswer;
-    } else if (this._autoPilotCounter === 0) {
-      this._autopilotMode = false;
-    }
-  
-    return undefined; 
-  }
-
-
-  
-  getUserInput(): Promise<string> {
-    return new Promise((res) => {
-      readline.question(`Prompt: `, async (userInput: string) => res(userInput))
-    });
-  }
-  
-  async sendMessageToAgent(message: string): Promise<ChatCompletionResponseMessage> {
-    spinner.start();
-  
+  public async run(): Promise<void> {
     try {
-      // this._chatHistory.push({ role: "user", content: message });
-      this._chatInteractions.push({ role: "user", content: message });
+      while (true) {
+        // Ask the user for input
+        await this._askUserForPrompt();
 
-      
-      let messages = [...this._initializationMessages, ...this._loadwrapData, ...this._chatInteractions];
-  
-      // Calculate the total tokens in all messages
-      const totalTokens = messages.reduce((total, msg) => total + countTokens(msg.content!), 0);
-      if (debugMode) {
-        console.log('Total tokens:', totalTokens);
-        console.log('Total messages:', messages.length);
+        // Get a response from the AI
+        const response = await this._askAiForResponse();
+
+        // Process response, and extract function call
+        const functionCall = this._processAiResponse(response);
+
+        if (functionCall) {
+          // Get confirmation from the user
+          const confirmation = await this._askUserForConfirmation(
+            functionCall
+          );
+
+          if (confirmation) {
+            // Execute function calls
+            await this._executeFunctionCall(functionCall);
+          } else {
+            // Execute a NOOP
+            this._executeNoop(functionCall);
+          }
+        }
+
+        // Finally, ensure the chat fits within the
+        // LLM's context window
+        await this._chat.fitToContextWindow();
       }
-  
-      if (totalTokens > Number(process.env.ROLLING_SUMMARY_WINDOW!)) {
-        console.log('Assistant:', chalk.yellow(">> Summarizing the chat as the total tokens exceeds the current limit..."));
-  
-        // Use the summary function
-        const summary = await summarizeHistory(this._chatInteractions, this._openai);
-        this._chatInteractions = [];
-        messages = [...this._initializationMessages, ...this._loadwrapData, summary, { role: "user", content: message }];
+    } catch (err) {
+      this._logger.error("Unrecoverable error encountered.", err);
+    }
+  }
+
+  private async _loadWraps(): Promise<void> {
+    this._logger.notice(
+      `>> Fetching wrap library index @ ${env().WRAP_LIBRARY_URL}`
+    );
+
+    try {
+      // Fetch the root "index" file
+      const wrapIndex = await this._library.getIndex();
+      this._wraps = await this._library.getWraps(wrapIndex.wraps);
+
+      // Log the names of all known wraps
+      const knownWraps = JSON.stringify(wrapIndex.wraps, null, 2);
+      this._logger.success(
+        `Known Wraps:\n${knownWraps}`
+      );
+    } catch (err) {
+      this._logger.error("Failed to load wrap library.", err);
+    }
+  }
+
+  private _initializeChat(): void {
+    this._chat.add(
+      "persistent",
+      Prompts.initializeAgent(this._wraps)
+    );
+  }
+
+  private async _askUserForGoal(): Promise<void> {
+    const goal = await this._logger.question(
+      "Please enter your main goal: "
+    );
+    this._chat.add("persistent", {
+      role: "user",
+      content: `The user has the following goal: ${goal}`
+    });
+  }
+
+  private async _askUserForPrompt(): Promise<void> {
+    // If we're in auto-pilot, don't ask the user
+    if (this._autoPilotMode && this._autoPilotCounter > 0) {
+      this._autoPilotCounter--;
+
+      if (this._autoPilotCounter <= 0) {
+        this._autoPilotMode = false;
+        this._autoPilotCounter = 0;
       }
+      return;
+    }
+
+    // Receive user input
+    const prompt = await this._logger.question(
+      "Prompt: "
+    );
+
+    // Append to temporary chat history
+    this._chat.add("temporary", {
+      role: "user",
+      content: prompt
+    });
+
+    // Check if the user has entered the auto-pilot
+    const autoPilotMatch = prompt.match(/^auto -(\d+)$/);
+    if (autoPilotMatch) {
+      this._autoPilotCounter = parseInt(autoPilotMatch[1], 10);
+      this._autoPilotMode = true;
+      this._chat.add("temporary", {
+        role: "system",
+        content: "Entering autopilot mode. Please continue with the next step in the plan."
+      });
+    }
+  }
+
+  private async _askAiForResponse(): Promise<OpenAIResponse> {
+    try {
+      this._logger.spinner.start();
 
       const completion = await this._openai.createChatCompletion({
-        model: process.env.GPT_MODEL!,
-        messages,
-        functions: functionsDescription,
-        function_call: "auto",
+        messages: this._chat.messages,
+        functions: functionDescriptions,
         temperature: 0,
-        max_tokens: 500,
+        max_tokens: 500
       });
-      spinner.stop();
-      return completion.data.choices[0].message!;
-      
-    } catch (error: any) {
-      const errorMessage = `Error: ${JSON.stringify(error?.response?.data, null, 2)}`;
-      console.error(chalk.red('Error: '), chalk.yellow(errorMessage));
-      logToFile({
-        role: "system",
-        content: errorMessage
-      });
-  
-      spinner.stop();
-      throw error;
-    }
-  }
-  
 
-  checkIfFunctionWasProposed(
-    response: ChatCompletionResponseMessage
-  ): ChatCompletionRequestMessageFunctionCall | undefined {
-    if (response.function_call) {
-      // todo: add function calling to history for better memory management
-      return response.function_call;
-    } else {
-      this._chatInteractions.push({ role: "assistant", content: response.content! });
-      //this._chatHistory.push({ role: "assistant", content: response.content! });,
-      return undefined;
-    }
-  }
-  
-  async executeProposedFunction(
-    functionProposed: ChatCompletionRequestMessageFunctionCall,
-    attemptsRemaining = 5
-  ): Promise<ChatCompletionResponseMessage> {
-    if (attemptsRemaining == 0) {
-      const message: ChatCompletionRequestMessage = {
-        role: "assistant",
-        content: "Sorry, couldn't process your request",
-      };
-      this._chatInteractions.push(message);  // Add error message to chat interactions
-      //this._chatHistory.push(message);
-      logToFile(message);  // log to file when out of attempts
-      return message;
-    }
-  
-    const functionName = functionProposed.name!;
-    const functionArgs = functionProposed.arguments
-      ? JSON.parse(functionProposed.arguments)
-      : undefined;
-  
-    const functionResponse = await functionsMap(this._library)[functionName](
-      this._client,
-      functionArgs
-    );
-  
-    if (!functionResponse.ok) {
-      const errorMessage = `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}. Retrying.... Attempts left: ${attemptsRemaining}`;
-      console.log(chalk.red(errorMessage));
-  
-      const systemMessage: ChatCompletionRequestMessage = {
-        role: "system",
-        content: "\n```" + errorMessage + "\n```\n",
-      };
-      
-      // Logging error message to the file
-      logToFile(systemMessage);
-      
-      // Add error message to chat interactions
-      this._chatInteractions.push(systemMessage);  
-  
-      const response = (await this.sendMessageToAgent(
-        `The last attempt was unsuccessful. This is the error message: ${functionResponse.error}`
-      ))!;
-      const proposedFunction = this.checkIfFunctionWasProposed(response);
-  
-      if (proposedFunction) {
-        return await this.executeProposedFunction(
-          proposedFunction,
-          attemptsRemaining - 1
+      this._logger.spinner.stop();
+
+      if (completion.data.choices.length < 1) {
+        throw Error("Chat completion choices length was 0...");
+      }
+
+      const choice = completion.data.choices[0];
+
+      if (!choice.message) {
+        throw Error(
+          `Chat completion message was undefined: ${JSON.stringify(choice, null, 2)}`
         );
       }
-  
-      return response;
-    } else {
-      let messageContent = `Args:\n\`\`\`json\n${JSON.stringify(functionArgs, null, 2)}\n\`\`\`\nResult:\n\`\`\`json\n${JSON.stringify(functionResponse.result, null, 2)}\n\`\`\``;
-      
-      // Check if the message content is longer than CHUNKING_TOKENS, if so, apply chunking
-      const tokenCount = countTokens(messageContent);
-      if (tokenCount > Number(process.env.CHUNKING_TOKENS!)) {
-        console.log("Found chunking opportunity for function response");
-  
-        const combinedResponse = await chunkAndProcessMessages(messageContent, this._openai);
-        messageContent = combinedResponse.content!;  // update messageContent with chunked and processed content
-      }
-  
-      const message: ChatCompletionRequestMessage = {
-        role: "function",
-        name: functionName,
-        content: messageContent,
-      };
 
-      if (functionName === "LoadWrap") {
-        this._loadwrapData = this._loadwrapData.filter(entry => entry.name !== "LoadWrap")
-        this._loadwrapData.push(message);
-        return { role: "assistant", content: `Wrap loaded  ${JSON.stringify(functionArgs, null, 2)}` }
-      }
-  
-      this._chatInteractions.push(message);  // Add function result to chat interactions
-      this._chatHistory.push(message);
-      return message;
+      return choice.message;
+    } catch (err) {
+      this._logger.spinner.stop();
+      throw err;
     }
+  }
+
+  private _processAiResponse(
+    response: OpenAIResponse
+  ): OpenAIFunctionCall | undefined {
+    if (response.function_call) {
+      return response.function_call;
+    }
+
+    this._logMessage("assistant", response.content!);
+
+    return undefined;
+  }
+
+  private async _askUserForConfirmation(
+    functionCall: OpenAIFunctionCall
+  ): Promise<boolean> {
+
+    const functionCallStr =
+      `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
+
+    if (this._autoPilotMode) {
+      this._logger.notice(">> Running in AutoPilot mode");
+      this._logger.info(
+        `About to execute the following function:\n\n${functionCallStr}`
+      );
+      return Promise.resolve(true);
+    }
+
+    const query =
+      "Do you wish to execute the following function?\n\n" +
+      `${functionCallStr}\n(Y/N)\n`;
+
+    const response = await this._logger.question(query);
+
+    return ["y", "Y", "yes", "Yes"].includes(response);
+  }
+
+  private async _executeFunctionCall(
+    functionCall: OpenAIFunctionCall
+  ): Promise<void> {
+    const name = functionCall.name!;
+    const args = functionCall.arguments
+      ? JSON.parse(functionCall.arguments)
+      : undefined;
+
+    const functionToCall = (functions(
+      this._library,
+      this._client
+    ) as any)[name];
+
+    const response = await functionToCall(args);
+
+    // If the function call was unsuccessful
+    if (!response.ok) {
+      // Record the specifics of the failure
+      this._logMessage(
+        "system",
+        `The function failed, this is the error: ${response.error}`
+      );
+      return;
+    }
+
+    // The function call succeeded, record the results
+    const argsStr = JSON.stringify(args, null, 2);
+    const resultStr = JSON.stringify(response.result, null, 2);
+    const functionCallSummary =
+      `Args:\n\`\`\`json\n${argsStr}\n\`\`\`\n` +
+      `Result:\n\`\`\`json\n${resultStr}\n\`\`\`\n`;
+
+    const message: Message = {
+      role: "function",
+      name,
+      content: functionCallSummary
+    };
+
+    this._logger.message(message);
+
+    if (name === "LoadWrap") {
+      this._chat.add("persistent", message);
+    } else {
+      this._chat.add("temporary", message);
+    }
+  }
+
+  private _executeNoop(
+    functionCall: OpenAIFunctionCall
+  ): void {
+    this._logMessage(
+      "assistant",
+      `The user asked to not execute the function "${functionCall.name}".`
+    );
+  }
+
+  private _logMessage(
+    role: Message["role"],
+    content: string,
+    type: MessageType = "temporary",
+  ): void {
+    const message: Message = { role, content };
+    this._chat.add(type, message);
+    this._logger.message(message);
   }
 }

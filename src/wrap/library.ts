@@ -20,7 +20,7 @@ export namespace WrapLibrary {
     }[]
   }
 
-  interface Wrap extends WrapData {
+  export interface Wrap extends WrapData {
     name: string;
   }
 

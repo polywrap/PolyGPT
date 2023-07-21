@@ -15,8 +15,7 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "typeRoots": [
-      "./node_modules/@types",
-      "./utils/typings.d.ts",
+      "./node_modules/@types"
     ]
   },
   "include": [

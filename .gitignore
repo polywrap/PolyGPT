@@ -1,6 +1,7 @@
 node_modules
 build
 chats
+workspace
 .env
 dist
 cache

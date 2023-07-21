@@ -1,23 +1,56 @@
-import { InvokeOptions, PolywrapClient } from "@polywrap/client-js";
+import { WrapLibrary } from "./wrap";
+
+import {
+  ChatCompletionRequestMessage,
+  ChatCompletionResponseMessage,
+  ChatCompletionRequestMessageFunctionCall,
+  Configuration,
+  OpenAIApi
+} from "openai";
+import {
+  InvokeOptions,
+  PolywrapClient
+} from "@polywrap/client-js";
 import axios from "axios";
-import { WrapLibrary } from "./wrap-library";
 
-type Result =
-  | {
-    ok: true;
-    result: any;
+export {
+  ChatCompletionResponseMessage as OpenAIResponse,
+  ChatCompletionRequestMessageFunctionCall as OpenAIFunctionCall
+};
+
+export class OpenAI {
+  private _configuration: Configuration;
+  private _api: OpenAIApi;
+
+  constructor(
+    private _apiKey: string,
+    private _defaultModel: string
+  ) {
+    this._configuration = new Configuration({
+      apiKey: this._apiKey
+    });
+    this._api = new OpenAIApi(this._configuration);
   }
-  | {
-    ok: false;
-    error: string;
-  };
 
-export type AgentFunction = (
-  client: PolywrapClient,
-  ...args: any[]
-) => Promise<Result>;
+  createChatCompletion(options: {
+    messages: ChatCompletionRequestMessage[];
+    model?: string;
+    functions?: any;
+    temperature?: number
+    max_tokens?: number
+  }) {
+    return this._api.createChatCompletion({
+      messages: options.messages,
+      model: options.model || this._defaultModel,
+      functions: options.functions,
+      function_call: options.functions ? "auto" : undefined,
+      temperature: options.temperature || 0,
+      max_tokens: options.max_tokens
+    });
+  }
+}
 
-export const functionsDescription = [
+export const functionDescriptions = [
   {
     name: "InvokeWrap",
     description: `A function to invoke or execute any wrap method. 
@@ -65,10 +98,11 @@ export const functionsDescription = [
   },
 ];
 
-export const functionsMap: (library: WrapLibrary.Reader) => Record<string, AgentFunction> = (
-  library: WrapLibrary.Reader
+export const functions = (
+  library: WrapLibrary.Reader,
+  client: PolywrapClient
 ) => ({
-  InvokeWrap: async (client: PolywrapClient, options: InvokeOptions) => {
+  InvokeWrap: async (options: InvokeOptions) => {
     try {
       const result = await client.invoke(options);
       return result.ok
@@ -87,7 +121,7 @@ export const functionsMap: (library: WrapLibrary.Reader) => Record<string, Agent
       };
     }
   },
-  LoadWrap: async (_: PolywrapClient, { name }: { name: string }) => {
+  LoadWrap: async ({ name }: { name: string }) => {
     try {
       const wrapInfo = await library.getWrap(name);
       const { data: wrapSchemaString } = await axios.get<string>(wrapInfo.abi);

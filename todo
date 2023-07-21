@@ -1,0 +1,19 @@
+- review logging
+  - logging file name is incorrect
+  - user input isn't logged to file
+  - logging the loading of wraps isn't correct
+- review workspace usage
+- add comments
+- review hints + add missing?
+- mention .env.template in README
+- review .env.template
+- TODO: continue between runs
+
+# Improvements
+- rendering schema
+- outputting invocation error
+- prompt informing AI about polywrap
+
+# Prompts
+I would like to write a summary of the website polywrap.io to a file named "summary.md"
+Get the Bitcoin price from coindesk

@@ -1,5 +1,5 @@
 # GPT Agent Learning Demo
-![Demo Gif](./public/demo.gif)
+![Demo Gif](./imgs/demo.gif)
 
 PolyGPT is an autonomous agent that learns new capabilities on-demand. The project utilizes Polywrap to implement capabilities as dynamically fetchable WebAssembly modules called Wraps, which update the agent via OpenAI's Functions API. This approach ensures that the agent remains efficient and lightweight, while having access to a wide range of capabilities. Current capabilities include web scraping, local filesystem access, Ethereum transactions, and more.
 
@@ -91,7 +91,7 @@ Do you wish to execute the following function?
 
     Name: InvokeWrap
     Arguments: {
-  "uri": "wrap://plugin/http@1.1.0",
+  "uri": "plugin/http@1.1.0",
   "method": "get",
   "args": {
     "url": "https://api.example.com/data",
@@ -106,13 +106,11 @@ Do you wish to execute the following function?
     (Y/N)
 ```
 
-  
-
 # Memory: Rolling summary
 
-This agent uses a simple rolling memory which keeps track of the most recent messages in a short `summary.md` in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
+This agent uses a simple rolling memory which keeps track of the most recent messages in a short `.summary` file in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
 
-In order to reset the memory you can always `yarn start --wipe-memory`
+In order to reset the memory you can always `yarn start --reset`
 
 To see the implementation of the module check [`memory.ts`](./src/memory.ts)
 
@@ -148,7 +146,7 @@ To run in debug mode just run
 
   `yarn start --debug`
 
-By default the agent will output a `chat-history.txt` which is constantly updated with the current state of the chat history being sent to the agent on each chat completion. This is useful specially because the memory module makes edits the conversation history constantly and the chat logs that you get as output are different from the chat conversation
+By default the agent will output a `.msgs` file which is constantly updated with the raw state of all messages being sent to OpenAI on each chat completion. This is useful specially because the memory module makes edits the conversation history constantly and the chat logs that you get as output are different from the chat conversation
 
 # Resources and Links
 
