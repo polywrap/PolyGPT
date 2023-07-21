@@ -10,22 +10,24 @@ x review globals
 x remove all "TODO:"
 x unify env usage (all comes from env.ts file)
 x fail immediately if required ENV vars aren't present (open ai api key)
-- cleanup needed: history, agent, open-ai-functions, opanai-old, logger
-- review file/folder layout (agent, llm, wraps, workspace, memory)
+x cleanup needed: history, agent, open-ai-functions, opanai-old, logger
+x review file/folder layout (agent, llm, wraps, workspace, memory)
+x review code flow
+x review typings
+x review history pushing/saving/summarizing
+x look into open-ai-function typings (add to openai class at startup?)
+- review prompts
+- review logging
+  - logging file name is incorrect
+  - user input isn't logged to file
+  - logging the loading of wraps isn't correct
 - review workspace usage
 - review usage of "fs"
-- review prompts
-- review code flow
-- review logging
-- review typings
 - add comments
 - review hints + add missing?
 - mention .env.template in README
 - review .env.template
-- review history pushing/saving/summarizing
 - TODO: continue between runs
-- look into open-ai-function typings (add to openai class at startup?)
-- rename logger to log
 
 
 # Improvements

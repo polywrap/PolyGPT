@@ -3,7 +3,6 @@ import {
   Workspace
 } from "./sys";
 import { OpenAI } from "./openai";
-import { summarizerPrompt } from "./prompts";
 
 import {
   ChatCompletionRequestMessage as Message
@@ -147,12 +146,6 @@ export class Chat {
   private async _summarize(
     msgType: MessageType
   ): Promise<void> {
-    // Add a final message, instructing the AI to summarize the chat
-    this.add(msgType, {
-      role: "system",
-      content: summarizerPrompt
-    });
-
     const msgLog = this._msgLogs[msgType];
 
     this._logger.notice(`>> Summarizing "${msgType}" Messages (Tokens: ${msgLog.tokens})`);
