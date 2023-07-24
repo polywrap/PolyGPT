@@ -1,18 +1,27 @@
+import { Workspace } from "../sys";
+import { workspacePlugin } from "./workspace-plugin";
+
 import {
   PolywrapClient,
   PolywrapClientConfigBuilder,
   IWrapPackage
 } from "@polywrap/client-js";
+import * as Sys from "@polywrap/sys-config-bundle-js";
 import { dateTimePlugin } from "@polywrap/datetime-plugin-js";
 import * as EthProvider from "@polywrap/ethereum-provider-js";
 import { Wallet } from "ethers"
 
 export function getWrapClient(
+  workspace: Workspace,
   ethereumPrivateKey: string | undefined
 ): PolywrapClient {
   const builder = new PolywrapClientConfigBuilder()
     .addBundle("web3")
     .addBundle("sys")
+    .setPackage(
+      Sys.bundle.fileSystem.uri,
+      workspacePlugin(workspace)({}) as IWrapPackage
+    );
 
   if (ethereumPrivateKey) {
     builder.setPackages({

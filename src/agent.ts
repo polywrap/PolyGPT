@@ -60,6 +60,7 @@ export class Agent {
       env().WRAP_LIBRARY_NAME
     );
     this._client = getWrapClient(
+      this._workspace,
       env().ETHEREUM_PRIVATE_KEY
     );
   }
@@ -300,9 +301,12 @@ export class Agent {
       content: functionCallSummary
     };
 
-
     if (name === "LoadWrap") {
-      this._chat.add("persistent", message);
+      this._chat.add("persistent", {
+        role: "system",
+        content: `Loaded Wrap: ${args.name}`
+      });
+      this._chat.add("temporary", message);
       this._logger.success(`> Loaded wrap: ${args?.name}\n`);
     } else {
       this._chat.add("temporary", message);

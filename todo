@@ -1,13 +1,18 @@
-x mention .env.template in README
-- review README
-- review .env.template
-- review wrap-library
 - review logging
   - logging file name is incorrect
   - user input isn't logged to file
   - logging the loading of wraps isn't correct
 - review workspace usage
 - review hints + add missing?
+
+# Test
+- ENS
+- ethers
+- filesystem
+- http
+- web-scraper
+- ipfs
+- safe
 
 # Improvements
 - rendering schema

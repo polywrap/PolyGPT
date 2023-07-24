@@ -18,6 +18,8 @@
   "dependencies": {
     "@dqbd/tiktoken": "~1.0.7",
     "@polywrap/client-js": "~0.11.0",
+    "@polywrap/file-system-plugin-js": "~0.10.0",
+    "@polywrap/plugin-js": "~0.11.0",
     "@polywrap/sys-config-bundle-js": "~0.11.0",
     "@polywrap/web3-config-bundle-js": "~0.11.0",
     "axios": "~1.4.0",

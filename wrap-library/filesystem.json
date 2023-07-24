@@ -2,8 +2,5 @@
   "aliases": ["fs", "file-system", "file system"],
   "description": "Interact with the operating system's filesystem.",
   "uri": "plugin/file-system@1.0.0",
-  "abi": "https://raw.githubusercontent.com/polywrap/file-system/main/interface/polywrap.graphql",
-  "hints":[
-    "All file operations must be performed within the ./workspace directory."
-  ]
+  "abi": "https://raw.githubusercontent.com/polywrap/file-system/main/interface/polywrap.graphql"
 }
