@@ -70,11 +70,9 @@ export class Chat {
     const msgLog = this._msgLogs[type];
     let msgs = Array.isArray(msg) ? msg : [msg];
   
-    if (type === "temporary" && msg ) {
+    if (type === "temporary") {
       for (const m of msgs) {
-        if (m.role === "assistant") {
-          this._logger.message(m);
-        }
+        this._logger.message(m);
       }
     }
   

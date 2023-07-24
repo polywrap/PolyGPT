@@ -6,7 +6,9 @@ import stripAnsi from "strip-ansi";
 import winston, { LogEntry } from "winston";
 import clui from "clui";
 import * as read from "readline";
+import { Workspace } from "./workspace";
 
+let workspace = new Workspace();
 const readline = read.promises.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -93,8 +95,17 @@ export class Logger {
   }
 
   message(msg: Message) {
-    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.blue(msg.content)}`);
-  }
+    if (msg.role === "assistant") {
+      this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.blue(msg.content)}\n`);
+    }
+    else if (msg.role === "user") {
+      // Update the file manually without using the logger
+      workspace.writeFileSync(this._logDir, `**${msg.role.toUpperCase()}**: ${msg.content}\n`)
+    } else {
+      console.log(msg)
+    };
+  };
+
 
   notice(msg: string) {
     this.info(chalk.yellow(msg));

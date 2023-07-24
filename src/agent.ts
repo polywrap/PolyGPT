@@ -319,6 +319,6 @@ export class Agent {
   ): void {
     const message: Message = { role, content };
     this._chat.add(type, message);
-    //this._logger.message(message);
+    this._logger.message(message);
   }
 }
