@@ -50,7 +50,7 @@ Once PolyGPT is run, there will be a `./workspace` directory created. This is th
 
 ## Logging
 
-In addition to logging to the terminal, you can find a markdown version of the chat log in the `./chats` directory. If you do something cool, and want to share, simply: move your chat log into the `./examples` directory, name it something descriptive, and make a pull-request on GitHub!
+Logs are printed to the console, and to a new file for each run within the `./chats` directory. Accomplish something cool!? Share your agent's log by moving it to the `./examples` directory, giving it a meaningful name, and create a pull-request on GitHub!
 
 ## Debugging
 
