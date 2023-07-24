@@ -6,7 +6,7 @@
 
 Learning is accomplished by utilizing [wraps](https://docs.polywrap.io/concepts/wraps): portable modules that get downloaded and executed at run-time.
 
-Whenever the agent is unable to accomplish a task, it searches for a wrap that may contain the functionality it needs in the ["wrap library"](./wrap-library/). Wrap libraries can be hosted as stand-alone repositories, allowing communities of developers to collaborate on new collections of capabilities that agents can make use of.
+Whenever the agent is unable to accomplish a task, it searches for a wrap that may contain the functionality it is missing. These wraps are discovered within a ["wrap library"](./wrap-library/): a collection of simple JSON files describing wraps that can be downloaded. Wrap libraries can be published as stand-alone repositories, allowing multiple developers to collaborate on new collections of capabilities that agents can make use of.
 
 Join the [discord](https://discord.polywrap.io) for help using PolyGPT, or integrating wraps into your own agents!
 
