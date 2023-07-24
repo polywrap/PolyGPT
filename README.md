@@ -1,13 +1,27 @@
-# GPT Agent Learning Demo
-![Demo Gif](./imgs/demo.gif)
+# PolyGPT
 
-PolyGPT is an autonomous agent that learns new capabilities on-demand. The project utilizes Polywrap to implement capabilities as dynamically fetchable WebAssembly modules called Wraps, which update the agent via OpenAI's Functions API. This approach ensures that the agent remains efficient and lightweight, while having access to a wide range of capabilities. Current capabilities include web scraping, local filesystem access, Ethereum transactions, and more.
+**An autonomous agent that can learn new capabilities on-demand**.  
 
-Mark the repo with a Star ⭐ if you like it!
+![learning-agent](./imgs/learning-agent.png)
+
+This is accomplished by utilizing [wraps](https://docs.polywrap.io/concepts/wraps): portable modules that get downloaded and executed at run-time.
+
+Whenever the agent is unable to accomplish a task, it searches for a wrap that may contain the functionality it needs in the ["wrap library"](./wrap-library/). Wrap libraries can be hosted as stand-alone repositories, allowing communities of developers to collaborate on new collections of capabilities that agents can make use of.
+
+Current capabilities include:
+- filesytem
+- http
+- web-scraper
+- ipfs
+- ens
+- ethers
+- and more...
+
+Join the [discord](https://discord.polywrap.io) for help using PolyGPT, or integrating wraps into your own projects!
+
+**Star ⭐** if you like what you see :grin:
+
 ---
-
-
-
 # Getting started
 Open your terminal window and run the following commands
 1. `git clone https://github.com/polywrap/gpt-agent-learning-demo.git`
