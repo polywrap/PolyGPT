@@ -1,6 +1,6 @@
 {
-    "aliases": ["safe creation", "safe deployment", "safe deploy"],
-    "description": "The Gnosis Safe Factory wrap allows you to deploy Safes from any environment.",
-    "uri": "ipfs/QmR7yiQv5jULzZ8ysHbCtjMowLiuiv2hX6Z4DiyfdQd5Pp",
-    "abi": "https://raw.githubusercontent.com/polywrap/safe-contracts-wrapper/main/packages/safe-factory-wrapper/src/schema.graphql"
-  }
+  "aliases": ["safe", "safe creation", "safe deployment", "safe deploy"],
+  "description": "The Gnosis Safe Factory wrap allows you to deploy Safes from any environment.",
+  "uri": "ipfs/QmR7yiQv5jULzZ8ysHbCtjMowLiuiv2hX6Z4DiyfdQd5Pp",
+  "abi": "https://raw.githubusercontent.com/polywrap/safe-contracts-wrapper/main/packages/safe-factory-wrapper/src/schema.graphql"
+}

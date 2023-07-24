@@ -53,26 +53,26 @@ export class OpenAI {
 export const functionDescriptions = [
   {
     name: "InvokeWrap",
-    description: `A function to invoke or execute any wrap method. 
-                  It receives an option object with a uri, method and optional args
-                  For example
-                  Function = InvokeWrap
-                  Arguments = Options {
-                    uri: <URI Here>,
-                    method: <Method Name>,
-                    args: <Args if necessary>
-                  }`,
+    description: `Invoke a function on a wrap.`,
     parameters: {
       type: "object",
       properties: {
-        options: {
-          type: "object",
-          description:
-            `The options to invoke a wrap method, including the URI, METHOD, ARGS,
-            where ARGS is optional, and both Uri and Method are required`,
+        uri: {
+          type: "string",
+          description: "The wrap's URI"
         },
+        method: {
+          type: "string",
+          description: "The function to be called on the wrap"
+        },
+        args: {
+          type: "object",
+          description: "The arguments to pass into the function being called",
+          additionalProperties: true
+        }
       },
-      required: ["options"],
+      required: ["uri", "method", "args"],
+      additionalProperties: false
     },
   },
   {

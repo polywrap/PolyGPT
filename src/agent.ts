@@ -36,6 +36,9 @@ export class Agent {
   private _library: WrapLibrary.Reader;
   private _client: PolywrapClient;
 
+  // If the agent executed a function last iteration
+  private _executedLastIteration = false;
+
   private _autoPilotCounter = 0;
   private _autoPilotMode = false;
 
@@ -60,6 +63,7 @@ export class Agent {
       env().WRAP_LIBRARY_NAME
     );
     this._client = getWrapClient(
+      this._workspace,
       env().ETHEREUM_PRIVATE_KEY
     );
   }
@@ -82,8 +86,10 @@ export class Agent {
   public async run(): Promise<void> {
     try {
       while (true) {
-        // Ask the user for input
-        await this._askUserForPrompt();
+        if (!this._executedLastIteration) {
+          // Ask the user for input
+          await this._askUserForPrompt();
+        }
 
         // Get a response from the AI
         const response = await this._askAiForResponse();
@@ -103,7 +109,10 @@ export class Agent {
           } else {
             // Execute a NOOP
             this._executeNoop(functionCall);
+            this._executedLastIteration = false;
           }
+        } else {
+          this._executedLastIteration = false;
         }
       }
     } catch (err) {
@@ -277,6 +286,8 @@ export class Agent {
 
     const response = await functionToCall(args);
 
+    this._executedLastIteration = true;
+
     // If the function call was unsuccessful
     if (!response.ok) {
       // Record the specifics of the failure
@@ -300,9 +311,12 @@ export class Agent {
       content: functionCallSummary
     };
 
-
     if (name === "LoadWrap") {
-      this._chat.add("persistent", message);
+      this._chat.add("persistent", {
+        role: "system",
+        content: `Loaded Wrap: ${args.name}`
+      });
+      this._chat.add("temporary", message);
       this._logger.success(`> Loaded wrap: ${args?.name}\n`);
     } else {
       this._chat.add("temporary", message);
