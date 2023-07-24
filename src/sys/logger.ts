@@ -6,9 +6,7 @@ import stripAnsi from "strip-ansi";
 import winston, { LogEntry } from "winston";
 import clui from "clui";
 import * as read from "readline";
-import { Workspace } from "./workspace";
 
-let workspace = new Workspace();
 const readline = read.promises.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -17,6 +15,7 @@ const readline = read.promises.createInterface({
 export class Logger {
   protected _logDir: string = "chats";
   protected _logger: winston.Logger;
+  protected _logToFile: (info: string) => void;
   protected _spinner: clui.Spinner = new clui.Spinner("Thinking...");
 
   constructor(logDir?: string) {
@@ -73,6 +72,13 @@ export class Logger {
     }
     fileTransport.log = logSanitizer.bind(fileTransport);
 
+    // Helper for logging specifically to a file
+    this._logToFile = (info: string) => {
+      if (fileTransport.log) {
+        fileTransport.log(info, () => {});
+      }
+    }
+
     // Create a consoler logger
     const consoleTransport = new winston.transports.Console();
 
@@ -95,17 +101,8 @@ export class Logger {
   }
 
   message(msg: Message) {
-    if (msg.role === "assistant") {
-      this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.blue(msg.content)}\n`);
-    }
-    else if (msg.role === "user") {
-      // Update the file manually without using the logger
-      workspace.writeFileSync(this._logDir, `**${msg.role.toUpperCase()}**: ${msg.content}\n`)
-    } else {
-      console.log(msg)
-    };
+    this._logger.info(`**${msg.role.toUpperCase()}**: ${msg.content}`);
   };
-
 
   notice(msg: string) {
     this.info(chalk.yellow(msg));
@@ -142,8 +139,10 @@ export class Logger {
     ));
   }
 
-  question(query: string): Promise<string> {
-    return readline.question(query);
+  async question(query: string): Promise<string> {
+    const response = await readline.question(query);
+    this._logToFile(response);
+    return response;
   }
 
   logHeader() {
