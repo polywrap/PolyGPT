@@ -93,7 +93,7 @@ export class Logger {
   }
 
   message(msg: Message) {
-    this._logger.info(`**${msg.role.toUpperCase()}**: ${msg.content}`);
+    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.blue(msg.content)}`);
   }
 
   notice(msg: string) {
