@@ -20,8 +20,20 @@ Join the [discord](https://discord.polywrap.io) for help using PolyGPT, or integ
 - ens
 - ethers
 
+# Getting Started
 
-
+1. Clone the repository:  
+    > `git clone https://github.com/polywrap/polygpt`  
+2. Copy the `.env.template` file and rename it to `.env`:  
+    > `cp .env.template .env`  
+3. Find the line that says `OPENAI_API_KEY=`, and add your unique OpenAI API Key.  
+    > `OPENAI_API_KEY=sk-...`
+4. Use the correct version of Node.JS:  
+    > `nvm install && nvm use`  
+5. Install all dependencies:
+    > `yarn install`  
+6. Run PolyGPT!
+    > `yarn start`  
 
 
 
