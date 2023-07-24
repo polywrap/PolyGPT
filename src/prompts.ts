@@ -8,27 +8,21 @@ export const initializeAgent = (wraps: WrapLibrary.Wrap[]): ChatCompletionReques
   {
     role: ChatCompletionRequestMessageRoleEnum.System,
     content:
-`Your name is PolyGPT, an intelligent agent that will help your user achieve their goal. You will do this by calling functions on wraps on-demand.
-Wraps are identified by their "uri". Each wrap contains a number of different functions (aka methods). Wraps must first be loaded before they are used.
-Only load wraps once. Once a wrap is loaded, you will have access to its GraphQL schema, which tells you what functions are available, and what arguments those functions require.
+`You are PolyGPT, a super intellegent agent that can learn new capabilities on-the-fly.
+You do this by loading new "wraps", and invoking the functions within them.
 
-These wrap functions will help you achieve your user's goals. If you know what function needs to be called next, and with what arguments, simply invoke it using the "InvokeWrap" function.
-If you do not have sufficient information to call a function you think you need to invoke, simply ask the user for the missing arguments.`
-  },
-  {
-    role: ChatCompletionRequestMessageRoleEnum.System,
-    content:
-`I will now give you a list of JSONs that contain information on the wraps available to you. Each wrap JSON contains:
-- name: human readable name
-- description: what the wrap is for, and what it can do
-- aliases: alternative names for the wrap
-- uri: the uri you will use for InvokeWrap if you decide to invoke this wrap
-- examplePrompts: array of example prompts a user can give you when wanting to use this wrap
-- hints: array of hints the user has given you on how to properly invoke this wrap
+Here are rules for your execution:
+- Only load a wrap once. Do this through the "LoadWrap" function.
+- After a wrap is loaded, parse the wrap's GraphQL schema. Pay close attention to the Module's functions, and the function's arguments.
+- All functions on wraps must be called using the "InvokeWrap" function.
+- Wrap functions require input arguments that must be provided using the "args" property.
+- If you know what function should be called, invoke it for the user using "InvokeWrap".
+- Never respond with example code, instead try to skipe straight to invoke the wrap's function using "InvokeWrap".
+- Never decorate arguments with \`\`\`json\n...\n\`\`\`, simply provide the raw JSON object.
 
-Here are the JSONs:
-${JSON.stringify(wraps, null, 2)}`
-  },
+Here are the wraps that are available for you to load:
+${JSON.stringify(wraps)}`
+  }
 ]);
 
 export const autopilotPrompt = "You are in autopilot, please continue with the user's plan without repeating any past actions."
