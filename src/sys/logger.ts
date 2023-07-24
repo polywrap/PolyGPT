@@ -100,10 +100,14 @@ export class Logger {
   info(info: string) {
     this._logger.info(info);
   }
-
+  
   message(msg: Message) {
-    this._logger.info(`**${msg.role.toUpperCase()}**: ${msg.content}`);
+    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.blue(msg.content)}`);
   };
+
+  action(msg: Message) {
+    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.gray(msg.content)}`);
+  }
 
   notice(msg: string) {
     this.info(chalk.yellow(msg));
@@ -141,7 +145,7 @@ export class Logger {
   }
 
   async question(query: string): Promise<string> {
-    const response = await readline.question(query);
+    const response = await readline.question(chalk.cyan(query));
     this._fileLogger.info(`${query} ${response}`);
     return response;
   }

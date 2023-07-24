@@ -294,7 +294,7 @@ export class Agent {
       content: functionCallSummary
     };
 
-    this._logger.message(message);
+    this._logger.action(message);
 
     if (name === "LoadWrap") {
       this._chat.add("persistent", message);
