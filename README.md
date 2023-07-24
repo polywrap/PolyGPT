@@ -1,153 +1,79 @@
-# GPT Agent Learning Demo
-![Demo Gif](./imgs/demo.gif)
+# PolyGPT
 
-PolyGPT is an autonomous agent that learns new capabilities on-demand. The project utilizes Polywrap to implement capabilities as dynamically fetchable WebAssembly modules called Wraps, which update the agent via OpenAI's Functions API. This approach ensures that the agent remains efficient and lightweight, while having access to a wide range of capabilities. Current capabilities include web scraping, local filesystem access, Ethereum transactions, and more.
+**An autonomous agent that can learn new capabilities on-demand**.  
 
-Mark the repo with a Star ⭐ if you like it!
----
+![learning-agent](./imgs/learning-agent.png)
 
+Learning is accomplished by utilizing [wraps](https://docs.polywrap.io/concepts/wraps): portable modules that get downloaded and executed at run-time.
 
+Whenever the agent is unable to accomplish a task, it searches for a wrap that may contain the functionality it needs in the ["wrap library"](./wrap-library/). Wrap libraries can be hosted as stand-alone repositories, allowing communities of developers to collaborate on new collections of capabilities that agents can make use of.
 
-# Getting started
-Open your terminal window and run the following commands
-1. `git clone https://github.com/polywrap/gpt-agent-learning-demo.git`
-2. Update your .env file with the appropriate keys for OpenAI and reconfigure your agent if needed
-3. `yarn install` will get all dependencies installed
-4. `yarn start` will run the agent loop
+Join the [discord](https://discord.polywrap.io) for help using PolyGPT, or integrating wraps into your own agents!
 
-Then you can start interacting with the bot by filling in the main goal, and then an initial Prompt.
+**Star ⭐** if you like what you see :grin:
 
-## Example Goals:
+# Examples
 
-The bot will initially request a main goal to achieve, here are some examples:
+| Goal | Wraps Learned |  
+|-|-|  
+| [Tell me what the potential user market of https://polywrap.io is, and write your findings to a summary.md file](./examples/TODO) | [web-scraper](./wrap-library/web-scraper.json)</br>[http](./wrap-library/http.json)</br>[filesystem](./wrap-library/filesystem.json) |  
+| TODO | TODO |  
 
-| Prompt                                                      | Learned Wraps    | Example                          |
-|-------------------------------------------------------------|------------------|----------------------------------|
-| Tell me what the potential user market of https://polywrap.io is, and write your findings to a summary.md file  | web-scrapper, http, file-system   | [LINK](example-chat-logs/07-12-webscraper-research.md)             |
-| Create an express server, add a route called ‘counter’ which increments every time you ping it, and run this server | file-system, child-process       | [LINK]()     |
-| Read the PDF textbook.pdf, summarize its contents, and write the results to summary.pdf | file-system, pdf                | [LINK](<summary.pdf>)             |
-| Get the Bitcoin price from https://api.coindesk.com/v1/bpi/currentprice.json | web-scrapper, http               | [LINK](example-chat-logs/07-12-http-bitcoin-price.md)     |
-| Read the file at some-domain.eth                              | Ethereum, ipfs, http             | [LINK]()     |
-| How much ETH does example.eth have?                       | ENS, Ethereum                    | [LINK](example-chat-logs/07-12-ens-ethereum-balances.md)     |
+# Getting Started
 
-## Autopilot Mode 
+## Setup  
 
-To enable Autopilot and let the model execute freely the next operations sent the Prompt: `auto -N` where `N` is the amount of automatic stepts you want the agent to take.
+1. Clone the repository  
+    > `git clone https://github.com/polywrap/polygpt`  
+2. Copy the `.env.template` file and rename it to `.env`  
+    > `cp .env.template .env`  
+3. Find the line that says `OPENAI_API_KEY=`, and add your unique OpenAI API Key  
+    > `OPENAI_API_KEY=sk-...`
+4. Use the correct version of Node.JS  
+    > `nvm install && nvm use`  
+5. Install all dependencies
+    > `yarn install`  
+6. Run PolyGPT!
+    > `yarn start`  
 
-This command will trigger mostly execution steps where the agent loads wrappers and executes theirs functions.
+NOTE: Please remember that this is a prototype. Its main purpose is to demonstrate how wraps can be used for agent learning.
 
-We recommend oversight of the Autopilot mode as it will probably steer away from its main goal or waste tokens when it goes on loops.
+## Special Prompts  
 
-## Chat Logs
+| Prompt | Description |
+|-|-|
+| `!auto N` | Allow the agent to execute on "autopilot" for `N` number of steps |
 
-The bot should be outputting conversations in a [`chat.md`](/chats/) file with the entire chat history to be easily shared with the community. To find this file check the chats folder after running the agent.
+## Workspace
 
+Once PolyGPT is run, there will be a `./workspace` directory created. This is the root directory for the agent. Any files will be read & written from this directory.
 
-# Key Concepts
-## Wraps
-Wraps are groups of methods that the agent can execute on demand. They are the core components of the Polywrap framework, designed to be portable and composable. This means they can run in any environment and can easily and safely call into one another.
+## Logging
 
-The agent first needs to `LoadWrap` in order to learn its methods, and then it can `InvokeWrap` to execute them.
+Logs are printed to the console, and to a new file for each run within the `./chats` directory. Accomplish something cool!? Share your agent's log by: moving it to the `./examples` directory, giving it a meaningful name, and creating a pull-request on GitHub!
 
-Before an agent can use a Wrap, it first needs to load it. This process allows the agent to learn the methods and capabilities of the Wrap. This is done using the LoadWrap function.
+## Debugging
 
-Once a Wrap is loaded, the agent can then invoke it to execute its methods. This is done using the InvokeWrap function.
+PolyGPT keeps an up-to-date version of all messages being sent to the OpenAI API in the `./workspace/.msgs` file. All of these messages will be sent to OpenAI on each chat completion. This is useful because as the message log grows, summarizations are performed upon the message history to fit them within a maximum context window token limit.
 
+## GPT-4
 
-Wraps are developed in a standardized way, allowing them to be easily composed, resulting in even more sophisticated Wraps. They can run on any platform that has the Polywrap client installed. Wraps do not have to be bundled into applications. Instead, they can be safely fetched and run at runtime, allowing applications to stay in-sync with web3 protocol upgrades. This makes it possible for applications on any platform, written in any language, to read and write data to Web3 protocols.
+While using the `gpt-3.5-turbo-0613` model will work, we highly recommend using the `gpt-4-0613` model. It will double the context window size to 8k tokens. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
 
-## Wrap Library
+## Ethereum Integrations
 
-All wraps are stored in a [Wrap Library](./wraps/) which will be maintained in parallel, adding more commands to the agent on startup.
+To interact with the Ethereum network using PolyGPT, you can optionally add your wallet's private key to the `.env` file. We recommend using a **development wallet** that contains only a small amount of funds to pay for any gas needed.
 
-## Functions 
-
-The agent consists of only 2 versatile functions that are exposed to the user. They leverage the polywrap client and showcase its versatility.
-
-### LoadWrap(name:string)
-
-The `LoadWrap` function fetches a wrap from the library using its `name`, allowing the agent to access its methods. Once a wrap is loaded, the agent can provide you with information on how to interact with it. Note that loading a new wrap will replace the currently loaded wrap.
-
-```
-Prompt: Load the http wrap
-
-Do you wish to execute the following function?
-
-    Name: LoadWrap
-    Arguments: {
-  "name": "http"
-}
-
-    (Y/N)
-```
-
-
-### InvokeWrap(options: object)
-The `InvokeWrap` function calls a method from the loaded wrap using the [`PolywrapClient`](https://github.com/polywrap/javascript-client). The function takes an `options` object which must include a `uri` and a `method`. You can also pass `args` in the `options` object that will be used by the selected method.
-```
-Prompt: Invoke the GET method wit the url https://api.example.com/data
-
-Do you wish to execute the following function?
-
-    Name: InvokeWrap
-    Arguments: {
-  "uri": "plugin/http@1.1.0",
-  "method": "get",
-  "args": {
-    "url": "https://api.example.com/data",
-    "request": {
-      "headers": {
-        "Content-Type": "application/json"
-      }
-    }
-  }
-}
-
-    (Y/N)
-```
-
-# Memory: Rolling summary
-
-This agent uses a simple rolling memory which keeps track of the most recent messages in a short `.summary` file in the workspace. This file helps the bot keep on track towards its goals and also being aware of the previous taken steps.
-
-In order to reset the memory you can always `yarn start --reset`
-
-To see the implementation of the module check [`memory.ts`](./src/memory.ts)
-
-Configure the size of the rolling summary in the `.env`. We recommend a setting a minimum of 1000 and a maximum 3000 if you're using `gpt-3.5-turbo-0613` or 5000 with `gpt-4-0613` as your base model.
-
-# Ethereum Integrations
-
-To interact with the Ethereum Network using PolyGPT you can optionally add your Ethereum Private Key to the `.env` file.
- 
- **Warning:** PolyGPT is still a prototype and we can't guarantee the precense of errors when the agent is invoking arguments, and having your private key written in plain text is not a good practice, so we highly recommend you only add a private key to a dummy accounts which only have funds that you're willing to lose.
+**Warning:** PolyGPT is still a prototype, we cannot guarantee that errors will not occur. We also realize that having your private key written in plain text is not a best practice, so we highly recommend you only add a private key to a development accounts which only has funds that you're willing to lose. Wallet integration will be improved in the future so that raw private key usage is not required.
 
 # Collaborating
 
-We are eager to work with the community to continue improving this agent. If you're interested in contributing, we welcome Pull Requests! Here are some ways you can contribute:
+We are eager to work with the community to continue improving this agent, and building more wraps. If you're interested in contributing, we welcome pull-requests! Here are some ways you can contribute:
 
 - **Bug Fixes:** If you spot a bug or an error, feel free to fix it and submit a PR. Please include a description of the bug and how your code fixes it.
-- **Feature Additions:** We are open to new features! If you have an idea, please share it on our [discord](https://discord.com/invite/Z5m88a5qWu) first. That way, we can discuss it as a community. If the idea is approved, you can go ahead and add it.
+- **Feature Additions:** We are open to new features! If you have an idea, please share it on our [discord](https://discord.polywrap.io), or make an issue in this repo.
 - **Documentation:** Good documentation makes for a good project. If you spot areas in our docs that can be improved, or if something is not documented and should be, feel free to make these changes.
 
-Remember, the best way to submit these changes is via a Pull Request. If you're new to Github, you can learn about PRs [here](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests).
+Remember, the best way to submit these changes is via a pull-request. If you're new to Github, you can learn about PRs [here](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests).
 
 Also, please feel free to join our [discord](https://discord.com/invite/Z5m88a5qWu) and discuss your ideas or ask any questions. We are an open, welcoming community and we'd love to hear from you!
-
-## Limitations
-
-Please remember that this is still an early prototype and while using it normally you will certainly hit some of it's limitations.
-
-We highly recommend using the `gpt-4-0613` model as it will increase the context window lenght and handle a lot more errors for you automatically instead of breaking like `gpt-3.5-turbo-0613`. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
-
-# Debugging
-
-To run in debug mode just run 
-
-  `yarn start --debug`
-
-By default the agent will output a `.msgs` file which is constantly updated with the raw state of all messages being sent to OpenAI on each chat completion. This is useful specially because the memory module makes edits the conversation history constantly and the chat logs that you get as output are different from the chat conversation
-
-# Resources and Links
-
-[Discord](https://discord.com/invite/Z5m88a5qWu)  |  [Wrap Library](https://github.com/polywrap/agent-wrap-library)  |  [Polywrap Docs](https://docs.polywrap.io)  |  [ChatGPT Docs](https://platform.openai.com/docs/guides/gpt/function-calling)
