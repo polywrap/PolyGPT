@@ -102,11 +102,11 @@ export class Logger {
   }
   
   message(msg: Message) {
-    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.blue(msg.content)}`);
+    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.blue(msg.content)}\n`);
   };
 
   action(msg: Message) {
-    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.gray(msg.content)}`);
+    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.gray(msg.content)}\n`);
   }
 
   notice(msg: string) {
@@ -146,7 +146,7 @@ export class Logger {
 
   async question(query: string): Promise<string> {
     const response = await readline.question(chalk.cyan(query));
-    this._fileLogger.info(`${query} ${response}`);
+    this._fileLogger.info(`**USER**: ${response}\n`);
     return response;
   }
 
