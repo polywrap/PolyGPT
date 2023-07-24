@@ -21,8 +21,8 @@
 
 # Prompts
 ## Testing
-* Get the Bitcoin price from coindesk
-* learn about polywrap.io, and write what you learn to a polywrap.md file
+* Summarize the contents of https://polywrap.io in 100 words, and write what you learn to a polywrap.md file
+* Use wikipedia to learn about the game "frogger", and write a summary of your findings to a file named frogger.txt
 * I would like to write a summary of the website polywrap.io to a file named "summary.md"
 
 ## Success

@@ -2,5 +2,17 @@
   "aliases": ["fs", "file-system", "file system"],
   "description": "Interact with the operating system's filesystem.",
   "uri": "plugin/file-system@1.0.0",
-  "abi": "https://raw.githubusercontent.com/polywrap/file-system/main/interface/polywrap.graphql"
+  "abi": "https://raw.githubusercontent.com/polywrap/file-system/main/interface/polywrap.graphql",
+  "hints": [
+    "When writing text to a file using the writeFile function, you do not need to encode the text"
+  ],
+  "examples": [
+    {
+      "method": "writeFile",
+      "args": {
+        "path": "some-file.txt",
+        "data": "some text"
+      }
+    }
+  ]
 }

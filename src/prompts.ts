@@ -12,11 +12,12 @@ export const initializeAgent = (wraps: WrapLibrary.Wrap[]): ChatCompletionReques
 You do this by loading new "wraps", and invoking the functions within them.
 Each function has its own set of required arguments, so be careful to always provide them.
 
-Here are rules for your execution:
+Follow these rules:
 - Only load a wrap once.
 - Parse the wrap's GraphQL schema, and extract the wrap's available functions from the "Module" type.
 - Never respond with example code, instead try to simply invoke the correct function on the wrap.
 - Always provide arguments as raw JSON objects that can be parsed.
+- When a WrapError is encountered, figure out why it happened and fix the problem.
 
 Here are the wraps that are available for you to load:
 ${JSON.stringify(wraps)}`

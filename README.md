@@ -14,10 +14,10 @@ Join the [discord](https://discord.polywrap.io) for help using PolyGPT, or integ
 
 # Examples
 
-| Goal | Wraps Learned |  
+| Goal | Wraps Used |  
 |-|-|  
-| [Tell me what the potential user market of https://polywrap.io is, and write your findings to a summary.md file](./examples/TODO) | [web-scraper](./wrap-library/web-scraper.json)</br>[http](./wrap-library/http.json)</br>[filesystem](./wrap-library/filesystem.json) |  
-| TODO | TODO |  
+| [Get the Bitcoin price from coindesk](./examples/07-24-btc-price-lookup-and-save.md) | [http](./wrap-library/http.json)</br>[filesystem](./wrap-library/filesystem.json) |  
+| [Summarize the contents of https://polywrap.io in 100 words, and write what you learn to a polywrap.md file](./examples/07-25-summarize-site-to-file.md) | [web-scraper](./wrap-library/web-scraper.json)</br>[filesystem](./wrap-library/filesystem.json) |  
 
 # Getting Started
 
