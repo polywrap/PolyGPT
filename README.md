@@ -54,7 +54,7 @@ Logs are printed to the console, and to a new file for each run within the `./ch
 
 ## Debugging
 
-PolyGPT keeps an up-to-date version of all messages being sent to the OpenAI API in the `./workspace/.msgs` file. All of these messages will be sent to OpenAI on each chat completion. This is useful because as the message log grows, summarizations happen to maintain a context window within a given maxiumum token limit.
+PolyGPT keeps an up-to-date version of all messages being sent to the OpenAI API in the `./workspace/.msgs` file. All of these messages will be sent to OpenAI on each chat completion. This is useful because as the message log grows, summarizations are performed upon the message history to fit them within a maximum context window token limit.
 
 ## GPT-4
 
