@@ -74,7 +74,7 @@ export class Chat {
       const tokens = gpt2.encode(msg.content || "").length;
 
       // If the message is larger than the context window
-      if (tokens > this._contextWindowTokens) {
+      if (tokens > this._chunkTokens) {
         const chunked = this._chunk(msg);
         msgLog.tokens += chunked.tokens;
         msgLog.msgs.push(...chunked.msgs);
@@ -153,6 +153,8 @@ export class Chat {
 
     const message = await this._summarizeMessages(msgLog.msgs);
 
+    this._logger.spinner.stop();
+
     if (!message) {
       return;
     }
@@ -163,8 +165,6 @@ export class Chat {
       tokens,
       msgs: [message]
     };
-
-    this._logger.spinner.stop();
   }
 
   private async _summarizeMessages(

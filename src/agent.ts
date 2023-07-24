@@ -106,10 +106,6 @@ export class Agent {
             this._executeNoop(functionCall);
           }
         }
-
-        // Finally, ensure the chat fits within the
-        // LLM's context window
-        await this._chat.fitToContextWindow();
       }
     } catch (err) {
       this._logger.error("Unrecoverable error encountered.", err);
@@ -190,6 +186,10 @@ export class Agent {
 
   private async _askAiForResponse(): Promise<OpenAIResponse> {
     try {
+      // Ensure the chat fits within the LLM's context window
+      // before we make an API call, ensuring we don't overflow
+      await this._chat.fitToContextWindow();
+
       this._logger.spinner.start();
 
       const completion = await this._openai.createChatCompletion({

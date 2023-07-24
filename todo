@@ -10,6 +10,8 @@
 - TODO: continue between runs
 
 # Improvements
+- chat.add -> if (tokens > chunkTokens)?
+- regression -> presistent messages are being summarized, wraps loaded are being forgotten
 - rendering schema
 - outputting invocation error
 - prompt informing AI about polywrap
