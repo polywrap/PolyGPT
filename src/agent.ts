@@ -141,7 +141,7 @@ export class Agent {
 
   private async _askUserForGoal(): Promise<void> {
     const goal = await this._logger.question(
-      "Please enter your main goal: "
+      "PLEASE ENTER YOUR MAIN GOAL: "
     );
     this._chat.add("persistent", {
       role: "user",
@@ -163,7 +163,7 @@ export class Agent {
 
     // Receive user input
     const prompt = await this._logger.question(
-      "Prompt: "
+      "PROMPT: "
     );
 
     // Append to temporary chat history

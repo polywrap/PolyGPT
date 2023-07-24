@@ -102,11 +102,12 @@ export class Logger {
   }
   
   message(msg: Message) {
-    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.blue(msg.content)}\n`);
+    this._fileLogger.info(`**${msg.role.toUpperCase()}**: ${msg.content}\n`);
+    console.log(`${msg.role.toUpperCase()}: ${chalk.blue(msg.content)}`);
   };
 
   action(msg: Message) {
-    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.gray(msg.content)}\n`);
+    this.info(`**${msg.role.toUpperCase()}**: ${chalk.gray(msg.content)}\n`);
   }
 
   notice(msg: string) {
