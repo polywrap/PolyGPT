@@ -4,7 +4,7 @@
 
 ![learning-agent](./imgs/learning-agent.png)
 
-This is accomplished by utilizing [wraps](https://docs.polywrap.io/concepts/wraps): portable modules that get downloaded and executed at run-time.
+Learning is accomplished by utilizing [wraps](https://docs.polywrap.io/concepts/wraps): portable modules that get downloaded and executed at run-time.
 
 Whenever the agent is unable to accomplish a task, it searches for a wrap that may contain the functionality it needs in the ["wrap library"](./wrap-library/). Wrap libraries can be hosted as stand-alone repositories, allowing communities of developers to collaborate on new collections of capabilities that agents can make use of.
 
