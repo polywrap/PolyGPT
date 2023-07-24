@@ -15,7 +15,7 @@ const readline = read.promises.createInterface({
 export class Logger {
   protected _logDir: string = "chats";
   protected _logger: winston.Logger;
-  protected _logToFile: (info: string) => void;
+  protected _fileLogger: winston.Logger;
   protected _spinner: clui.Spinner = new clui.Spinner("Thinking...");
 
   constructor(logDir?: string) {
@@ -72,13 +72,6 @@ export class Logger {
     }
     fileTransport.log = logSanitizer.bind(fileTransport);
 
-    // Helper for logging specifically to a file
-    this._logToFile = (info: string) => {
-      if (fileTransport.log) {
-        fileTransport.log(info, () => {});
-      }
-    }
-
     // Create a consoler logger
     const consoleTransport = new winston.transports.Console();
 
@@ -88,6 +81,14 @@ export class Logger {
       transports: [
         fileTransport,
         consoleTransport
+      ],
+    });
+
+    // Create a logger just for file logging
+    this._fileLogger = winston.createLogger({
+      format: winston.format.printf(info => `${info.message}`),
+      transports: [
+        fileTransport
       ],
     });
   }
@@ -141,7 +142,7 @@ export class Logger {
 
   async question(query: string): Promise<string> {
     const response = await readline.question(query);
-    this._logToFile(response);
+    this._fileLogger.info(`${query} ${response}`);
     return response;
   }
 

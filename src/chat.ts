@@ -69,16 +69,10 @@ export class Chat {
   ) {
     const msgLog = this._msgLogs[type];
     let msgs = Array.isArray(msg) ? msg : [msg];
-  
-    if (type === "temporary") {
-      for (const m of msgs) {
-        this._logger.message(m);
-      }
-    }
-  
+
     for (const msg of msgs) {
       const tokens = gpt2.encode(msg.content || "").length;
-  
+
       // If the message is larger than the context window
       if (tokens > this._chunkTokens) {
         const chunked = this._chunk(msg);
@@ -89,11 +83,10 @@ export class Chat {
         msgLog.msgs.push(msg);
       }
     }
-  
+
     // Save the full log to disk
     this._save();
   }
-  
 
   public async fitToContextWindow(): Promise<void> {
     const msgLogs = this._msgLogs;
