@@ -113,7 +113,7 @@ export class Agent {
 
   private async _loadWraps(): Promise<void> {
     this._logger.notice(
-      `>> Fetching wrap library index @ ${env().WRAP_LIBRARY_URL}`
+      `> Fetching wrap library index @ ${env().WRAP_LIBRARY_URL}\n`
     );
 
     try {
@@ -168,7 +168,7 @@ export class Agent {
     }
 
     // Receive user input
-    const prompt = await this._logger.question(
+    const prompt = await this._logger.prompt(
       "Prompt: "
     );
 
@@ -246,7 +246,7 @@ export class Agent {
       `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
 
     if (this._autoPilotMode) {
-      this._logger.notice(">> Running in AutoPilot mode");
+      this._logger.notice("> Running in AutoPilot mode \n");
       this._logger.info(
         `About to execute the following function:\n\n${functionCallStr}`
       );
@@ -259,7 +259,7 @@ export class Agent {
 
     const response = await this._logger.question(query);
 
-    return ["y", "Y", "yes", "Yes"].includes(response);
+    return ["y", "Y", "yes", "Yes", "yy"].includes(response);
   }
 
   private async _executeFunctionCall(
@@ -300,12 +300,13 @@ export class Agent {
       content: functionCallSummary
     };
 
-    this._logger.message(message);
 
     if (name === "LoadWrap") {
       this._chat.add("persistent", message);
+      this._logger.success(`> Loaded wrap: ${args?.name}\n`);
     } else {
       this._chat.add("temporary", message);
+      this._logger.action(message);
     }
   }
 
