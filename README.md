@@ -58,13 +58,13 @@ PolyGPT keeps an up-to-date version of all messages being sent to the OpenAI API
 
 ## GPT-4
 
-While using the `gpt-3.5-turbo-0613` model will work, we highly recommend using the `gpt-4-0613` model. It will double the context window window size to 8k tokens. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
+While using the `gpt-3.5-turbo-0613` model will work, we highly recommend using the `gpt-4-0613` model. It will double the context window size to 8k tokens. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
 
 ## Ethereum Integrations
 
 To interact with the Ethereum network using PolyGPT, you can optionally add your wallet's private key to the `.env` file. We recommend using a **development wallet** that contains only a small amount of funds to pay for any gas needed.
 
-**Warning:** PolyGPT is still a prototype, we cannot guarantee that errors will not occur. We also realize that having your private key written in plain text is not a good practice, so we highly recommend you only add a private key to a dummy accounts which only have funds that you're willing to lose. Wallet integration will be improved in the future so raw private keys usage is not required.
+**Warning:** PolyGPT is still a prototype, we cannot guarantee that errors will not occur. We also realize that having your private key written in plain text is not a best practice, so we highly recommend you only add a private key to a development accounts which only has funds that you're willing to lose. Wallet integration will be improved in the future so that raw private key usage is not required.
 
 # Collaborating
 
