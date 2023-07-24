@@ -18,6 +18,7 @@ Join the [discord](https://discord.polywrap.io) for help using PolyGPT, or integ
 |-|-|  
 | [Get the Bitcoin price from coindesk](./examples/07-24-btc-price-lookup-and-save.md) | [http](./wrap-library/http.json)</br>[filesystem](./wrap-library/filesystem.json) |  
 | [Summarize the contents of https://polywrap.io in 100 words, and write what you learn to a polywrap.md file](./examples/07-25-summarize-site-to-file.md) | [web-scraper](./wrap-library/web-scraper.json)</br>[filesystem](./wrap-library/filesystem.json) |  
+| [Who owns the domain vitalik.eth and how much ETH do they have?</br>Write this result to a file named "balances.csv", with columns: "ens", "address", and "balance".](./examples/07-25-ens-lookup-to-csv.md) | [ens](./wrap-library/ens.json)</br>[ethers](./wrap-library/ethers.json)</br>[filesystem](./wrap-library/filesystem.json) |  
 
 # Getting Started
 
