@@ -105,7 +105,7 @@ export class Logger {
   };
 
   action(msg: Message) {
-    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.cyan(msg.content)}`);
+    this._logger.info(`**${msg.role.toUpperCase()}**: ${chalk.gray(msg.content)}`);
   }
 
   notice(msg: string) {
