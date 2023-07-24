@@ -24,7 +24,7 @@ export class Logger {
 
     // Generate a unique log file name
     const date = new Date();
-    const formattedDate = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
+    const formattedDate = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}_${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
     const logFile = `${this._logDir}/chat_${formattedDate}.md`;
 
     // Create a file transport
