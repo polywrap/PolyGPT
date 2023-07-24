@@ -8,21 +8,40 @@ This is accomplished by utilizing [wraps](https://docs.polywrap.io/concepts/wrap
 
 Whenever the agent is unable to accomplish a task, it searches for a wrap that may contain the functionality it needs in the ["wrap library"](./wrap-library/). Wrap libraries can be hosted as stand-alone repositories, allowing communities of developers to collaborate on new collections of capabilities that agents can make use of.
 
-Current capabilities include:
+Join the [discord](https://discord.polywrap.io) for help using PolyGPT, or integrating wraps into your own agents!
+
+**Star ⭐** if you like what you see :grin:
+
+## Current Capabilities
 - filesytem
 - http
 - web-scraper
 - ipfs
 - ens
 - ethers
-- and more...
 
-Join the [discord](https://discord.polywrap.io) for help using PolyGPT, or integrating wraps into your own projects!
 
-**Star ⭐** if you like what you see :grin:
 
----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Getting started
+
 Open your terminal window and run the following commands
 1. `git clone https://github.com/polywrap/gpt-agent-learning-demo.git`
 2. Update your .env file with the appropriate keys for OpenAI and reconfigure your agent if needed
