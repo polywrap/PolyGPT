@@ -42,7 +42,7 @@ NOTE: Please remember that this is a prototype. Its main purpose is to demonstra
 
 | Prompt | Description |
 |-|-|
-| `!autopilot N` | Allow the agent to execute on "autopilot" for `N` number of steps |
+| `!auto N` | Allow the agent to execute on "autopilot" for `N` number of steps |
 
 ## Workspace
 

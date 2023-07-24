@@ -172,8 +172,8 @@ export class Agent {
       content: prompt
     });
 
-    // Check if the user has entered the !autopilot special prompt
-    const autoPilotMatch = prompt.match(/^!autopilot (\d+)$/);
+    // Check if the user has entered the !auto special prompt
+    const autoPilotMatch = prompt.match(/^!auto (\d+)$/);
     if (autoPilotMatch) {
       this._autoPilotCounter = parseInt(autoPilotMatch[1], 10);
       this._autoPilotMode = true;
