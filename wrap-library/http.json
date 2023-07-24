@@ -1,6 +1,6 @@
 {
   "aliases": [],
-  "description": "Wrap to perform HTTP calls",
+  "description": "Perform HTTP calls",
   "uri": "plugin/http@1.1.0",
   "abi": "https://raw.githubusercontent.com/polywrap/http/main/interface/polywrap.graphql"
 }

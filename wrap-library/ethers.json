@@ -1,6 +1,6 @@
 {
-  "aliases": ["ethereum", "eth"],
-  "description": "Wrap to interact with the ethereum blockchain",
+  "aliases": ["ethereum", "eth", "ether", "ethers"],
+  "description": "Interact with the ethereum blockchain",
   "uri": "ipfs/QmNkqWQuTAiZaLSR3VE53uazuAEqZevv1XQtvAYahuyJ6d",
   "abi": "https://raw.githubusercontent.com/polywrap/ethers/main/wraps/core/polywrap.graphql",
   "hints":[
