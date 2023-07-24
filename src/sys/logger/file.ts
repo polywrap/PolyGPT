@@ -21,7 +21,7 @@ export class FileLogger implements ILogger {
   }
 
   info(info: string): void {
-    fs.appendFileSync(this._filePath, info);
+    fs.appendFileSync(this._filePath, info + "\n\n");
   }
 
   message(msg: Message): void {
@@ -29,7 +29,7 @@ export class FileLogger implements ILogger {
       msg.role.length > 1 ? msg.role.substring(1) : ""
     );
 
-    this.info(`**${roleUpper}**: ${msg.content}\n`);
+    this.info(`**${roleUpper}**: ${msg.content}\n  \n`);
   }
 
   action(msg: Message): void {
@@ -37,14 +37,14 @@ export class FileLogger implements ILogger {
   }
 
   notice(msg: string): void {
-    this.info(msg);
+    this.info(msg + "\n  \n");
   }
 
   success(msg: string): void {
-    this.info(msg);
+    this.info(msg + "\n  \n");
   }
 
   error(msg: string): void {
-    this.info(msg);
+    this.info(msg + "\n  \n");
   }
 }

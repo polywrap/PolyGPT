@@ -94,8 +94,9 @@ export class Logger implements ILogger {
   }
 
   async question(query: string): Promise<string> {
+    this._fileLogger.info(`**System**: ${query}\n`);
     const response = await readline.question(chalk.cyan(query));
-    this._fileLogger.info(`**USER**: ${response}\n`);
+    this._fileLogger.info(`**User**: ${response}\n`);
     return response;
   }
 
@@ -112,7 +113,7 @@ export class Logger implements ILogger {
         logger.error("Something went wrong...", err);
         return;
       }
-      logger.info("```\n" + data + "\n```");
+      logger.info("```\n" + data + "\n```\n");
       logger.info("Support: https://discord.polywrap.io");
     });
   }
