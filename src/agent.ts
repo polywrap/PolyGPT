@@ -24,6 +24,8 @@ import * as Prompts from "./prompts";
 import { PolywrapClient } from "@polywrap/client-js";
 
 export class Agent {
+  private _goal: string | undefined;
+
   private _logger: Logger;
   private _workspace: Workspace;
 
@@ -73,9 +75,6 @@ export class Agent {
 
     // Initialize the agent's chat
     agent._initializeChat();
-
-    // Ask for the user's goal
-    await agent._askUserForGoal();
 
     return agent;
   }
@@ -147,9 +146,16 @@ export class Agent {
       role: "user",
       content: `The user has the following goal: ${goal}`
     });
+    this._goal = goal;
   }
 
   private async _askUserForPrompt(): Promise<void> {
+    // If the user has not defined a goal, ask for it
+    if (!this._goal) {
+      await this._askUserForGoal();
+      return;
+    }
+
     // If we're in auto-pilot, don't ask the user
     if (this._autoPilotMode && this._autoPilotCounter > 0) {
       this._autoPilotCounter--;
