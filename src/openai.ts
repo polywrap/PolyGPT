@@ -67,10 +67,12 @@ export const functionDescriptions = [
         },
         args: {
           type: "object",
-          description: "Input arguments for the function"
+          description: "The arguments to pass into the function being called",
+          additionalProperties: true
         }
       },
-      required: ["uri", "method", "args"]
+      required: ["uri", "method", "args"],
+      additionalProperties: false
     },
   },
   {

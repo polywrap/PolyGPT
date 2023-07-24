@@ -2,13 +2,11 @@
   - logging file name is incorrect
   - user input isn't logged to file
   - logging the loading of wraps isn't correct
-- review workspace usage
-- review hints + add missing?
 
 # Test
+- filesystem
 - ENS
 - ethers
-- filesystem
 - http
 - web-scraper
 - ipfs
@@ -22,8 +20,19 @@
 - prompt informing AI about polywrap
 
 # Prompts
-I would like to write a summary of the website polywrap.io to a file named "summary.md"
-Get the Bitcoin price from coindesk
+## Testing
+* Get the Bitcoin price from coindesk
+* learn about polywrap.io, and write what you learn to a polywrap.md file
+* I would like to write a summary of the website polywrap.io to a file named "summary.md"
+
+## Success
+* Get the Bitcoin price from coindesk
+  * y
+  * do this
+  * y
+  * Thank you :) please write this to a file named btc-price.txt
+  * y
+  * y
 
 # Future Features
 - continue between runs
