@@ -1,21 +1,25 @@
+x mention .env.template in README
+- review README
+- review .env.template
+- review wrap-library
 - review logging
   - logging file name is incorrect
   - user input isn't logged to file
   - logging the loading of wraps isn't correct
 - review workspace usage
-- add comments
 - review hints + add missing?
-- mention .env.template in README
-- review .env.template
-- TODO: continue between runs
 
 # Improvements
-- chat.add -> if (tokens > chunkTokens)?
-- regression -> presistent messages are being summarized, wraps loaded are being forgotten
 - rendering schema
 - outputting invocation error
+- regression -> presistent messages are being summarized, wraps loaded are being forgotten
+- update README GIF
 - prompt informing AI about polywrap
 
 # Prompts
 I would like to write a summary of the website polywrap.io to a file named "summary.md"
 Get the Bitcoin price from coindesk
+
+# Future Features
+- continue between runs
+- release to npm and allow simple running via `npx`
