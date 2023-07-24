@@ -168,7 +168,7 @@ export class Agent {
     }
 
     // Receive user input
-    const prompt = await this._logger.question(
+    const prompt = await this._logger.prompt(
       "Prompt: "
     );
 
@@ -259,7 +259,7 @@ export class Agent {
 
     const response = await this._logger.question(query);
 
-    return ["y", "Y", "yes", "Yes"].includes(response);
+    return ["y", "Y", "yes", "Yes", "yy"].includes(response);
   }
 
   private async _executeFunctionCall(

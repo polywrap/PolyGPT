@@ -100,6 +100,12 @@ export class Logger implements ILogger {
     return response;
   }
 
+  async prompt(query: string): Promise<string> {
+    const response = await readline.question(chalk.cyan(query));
+    this._fileLogger.info(`**User**: ${response}\n`);
+    return response;
+  }
+
   logHeader() {
     const logger = this;
 
