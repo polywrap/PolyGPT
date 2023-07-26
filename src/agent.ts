@@ -35,7 +35,7 @@ export class Agent {
   private _wraps: WrapLibrary.Wrap[];
   private _library: WrapLibrary.Reader;
   private _client: PolywrapClient;
-
+  private _knownWraps: { [key: string]: string };
   // If the agent executed a function last iteration
   private _executedLastIteration = false;
 
@@ -62,6 +62,8 @@ export class Agent {
       env().WRAP_LIBRARY_URL,
       env().WRAP_LIBRARY_NAME
     );
+    this._knownWraps = {};
+
     this._client = getWrapClient(
       this._workspace,
       env().ETHEREUM_PRIVATE_KEY
@@ -130,11 +132,14 @@ export class Agent {
       const wrapIndex = await this._library.getIndex();
       this._wraps = await this._library.getWraps(wrapIndex.wraps);
 
-      // Log the names of all known wraps
+
+      // Log the names of all known wraps and save the wrap descriptions
       const knownWraps = JSON.stringify(wrapIndex.wraps, null, 2);
-      this._logger.success(
-        `Known Wraps:\n${knownWraps}`
-      );
+      this._logger.success(`Known Wraps:\n${knownWraps}`);
+      for (let wrap of this._wraps) {
+        // Save the wrap and its description
+        this._knownWraps[wrap.name] = wrap.description;
+      }
     } catch (err) {
       this._logger.error("Failed to load wrap library.", err);
     }
@@ -312,12 +317,15 @@ export class Agent {
     };
 
     if (name === "LearnWrap") {
+      // Retrieve the wrap description
+      const wrapDescription = this._knownWraps[args?.name] || 'No description available';
+    
       this._chat.add("persistent", {
         role: "system",
-        content: `Loaded Wrap: ${args.name}`
+        content: `Loaded Wrap: ${args.name}\nDescription: ${wrapDescription}`
       });
       this._chat.add("temporary", message);
-      this._logger.success(`> 🧠 Learned a wrap: ${args?.name} \n`);
+      this._logger.success(`\n> 🧠 Learned a wrap: ${args?.name}\nDescription: ${wrapDescription} \n`);
     } else {
       this._chat.add("temporary", message);
       this._logger.action(message);
