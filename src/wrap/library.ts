@@ -10,6 +10,7 @@ export namespace WrapLibrary {
     description: string;
     uri: string;
     abi: string;
+    repo: string;
     examplePrompts: {
       prompt: string;
       result: {
@@ -19,6 +20,8 @@ export namespace WrapLibrary {
       }
     }[]
   }
+
+
 
   export interface Wrap extends WrapData {
     name: string;

@@ -2,5 +2,7 @@
   "aliases": [],
   "description": "Interact with IPFS",
   "uri": "embed/ipfs-http-client@1.0.0",
-  "abi": "https://raw.githubusercontent.com/polywrap/ipfs/main/wrappers/ipfs-http-client/src/schema.graphql"
+  "abi": "https://raw.githubusercontent.com/polywrap/ipfs/main/wrappers/ipfs-http-client/src/schema.graphql",
+  "repo": "https://github.com/polywrap/ipfs"
+
 }

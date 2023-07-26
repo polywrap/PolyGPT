@@ -3,6 +3,7 @@
   "description": "Interact with the operating system's filesystem.",
   "uri": "plugin/file-system@1.0.0",
   "abi": "https://raw.githubusercontent.com/polywrap/file-system/main/interface/polywrap.graphql",
+  "repo": "https://github.com/polywrap/file-system",
   "hints": [
     "When writing text to a file using the writeFile function, you do not need to encode the text"
   ],

@@ -5,7 +5,7 @@ import {
 } from "./sys";
 import {
   WrapLibrary,
-  getWrapClient
+    getWrapClient
 } from "./wrap";
 import {
   Chat,
@@ -35,7 +35,7 @@ export class Agent {
   private _wraps: WrapLibrary.Wrap[];
   private _library: WrapLibrary.Reader;
   private _client: PolywrapClient;
-  private _knownWraps: { [key: string]: string };
+  private _knownWraps: { [key: string]: {description: string, repo: string} };
   // If the agent executed a function last iteration
   private _executedLastIteration = false;
 
@@ -137,8 +137,8 @@ export class Agent {
       const knownWraps = JSON.stringify(wrapIndex.wraps, null, 2);
       this._logger.success(`Known Wraps:\n${knownWraps}`);
       for (let wrap of this._wraps) {
-        // Save the wrap and its description
-        this._knownWraps[wrap.name] = wrap.description;
+        // Save the wrap, its description and repo
+        this._knownWraps[wrap.name] = {"description":wrap.description, "repo":wrap.repo};
       }
     } catch (err) {
       this._logger.error("Failed to load wrap library.", err);
@@ -317,15 +317,21 @@ export class Agent {
     };
 
     if (name === "LearnWrap") {
+
+      interface WrapDescription {
+        description: string;
+        repo: string;
+      }
+
       // Retrieve the wrap description
-      const wrapDescription = this._knownWraps[args?.name] || 'No description available';
+      const wrapDescription: WrapDescription = this._knownWraps[args?.name] || 'No description available';
     
       this._chat.add("persistent", {
         role: "system",
         content: `Loaded Wrap: ${args.name}\nDescription: ${wrapDescription}`
       });
       this._chat.add("temporary", message);
-      this._logger.success(`\n> 🧠 Learned a wrap: ${args?.name}\nDescription: ${wrapDescription} \n`);
+      this._logger.success(`\n> 🧠 Learned a wrap: ${args?.name}\n> Description: ${wrapDescription["description"]} \n> Repo: ${wrapDescription["repo"]}\n`);
     } else {
       this._chat.add("temporary", message);
       this._logger.action(message);
