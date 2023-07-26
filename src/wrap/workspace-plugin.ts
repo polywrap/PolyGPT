@@ -1,9 +1,8 @@
 import { Workspace } from "../sys";
 
+import { FileSystemPlugin } from "@polywrap/file-system-plugin-js";
 import {
-  FileSystemPlugin
-} from "@polywrap/file-system-plugin-js";
-import {
+  Module,
   Args_exists,
   Args_mkdir,
   Args_readFile,
@@ -18,53 +17,58 @@ import {
   PluginPackage
 } from "@polywrap/plugin-js";
 
-export class WorkspacePlugin extends FileSystemPlugin {
-  constructor(
-    private _workspace: Workspace
-  ) {
-    super({});
+interface WorkspaceConfig {
+  workspace: Workspace;
+}
+
+export class WorkspacePlugin extends Module<WorkspaceConfig> {
+  private _plugin: FileSystemPlugin;
+
+  constructor(config: WorkspaceConfig) {
+    super(config);
+    this._plugin = new FileSystemPlugin({});
   }
 
   readFile(args: Args_readFile): Promise<Uint8Array> {
-    args.path = this._workspace.toWorkspacePath(args.path);
-    return super.readFile(args);
+    args.path = this.config.workspace.toWorkspacePath(args.path);
+    return this._plugin.readFile(args);
   }
 
   readFileAsString(args: Args_readFileAsString): Promise<string> {
-    args.path = this._workspace.toWorkspacePath(args.path);
-    return super.readFileAsString(args);
+    args.path = this.config.workspace.toWorkspacePath(args.path);
+    return this._plugin.readFileAsString(args);
   }
 
   exists(args: Args_exists): Promise<boolean> {
-    args.path = this._workspace.toWorkspacePath(args.path);
-    return super.exists(args);
+    args.path = this.config.workspace.toWorkspacePath(args.path);
+    return this._plugin.exists(args);
   }
 
   writeFile(args: Args_writeFile): Promise<boolean | null> {
-    args.path = this._workspace.toWorkspacePath(args.path);
-    return super.writeFile(args);
+    args.path = this.config.workspace.toWorkspacePath(args.path);
+    return this._plugin.writeFile(args);
   }
 
   mkdir(args: Args_mkdir): Promise<boolean | null> {
-    args.path = this._workspace.toWorkspacePath(args.path);
-    return super.mkdir(args);
+    args.path = this.config.workspace.toWorkspacePath(args.path);
+    return this._plugin.mkdir(args);
   }
 
   rm(args: Args_rm): Promise<boolean | null> {
-    args.path = this._workspace.toWorkspacePath(args.path);
-    return super.rm(args);
+    args.path = this.config.workspace.toWorkspacePath(args.path);
+    return this._plugin.rm(args);
   }
 
   rmdir(args: Args_rmdir): Promise<boolean | null> {
-    args.path = this._workspace.toWorkspacePath(args.path);
-    return super.rmdir(args);
+    args.path = this.config.workspace.toWorkspacePath(args.path);
+    return this._plugin.rmdir(args);
   }
 }
 
 export const workspacePlugin = (workspace: Workspace): PluginFactory<{}> => {
   return () =>
     new PluginPackage(
-      new WorkspacePlugin(workspace),
+      new WorkspacePlugin({ workspace }) as any,
       manifest
     );
 }
