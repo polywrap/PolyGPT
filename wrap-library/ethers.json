@@ -2,7 +2,7 @@
   "aliases": ["ethereum", "eth", "ether", "ethers"],
   "description": "Interact with the ethereum blockchain",
   "uri": "ipfs/QmNkqWQuTAiZaLSR3VE53uazuAEqZevv1XQtvAYahuyJ6d",
-  "abi": "https://raw.githubusercontent.com/polywrap/ens/main/polywrap.graphql",
+  "abi": "https://raw.githubusercontent.com/polywrap/ens/1c370243ca9d75905c360e1ab4b09f69d3eb7a70/polywrap.graphql",
   "repo": "https://github.com/polywrap/ethers",
   "hints":[
     "Always leave the connection arguments empty like so: 'connection': {}",
