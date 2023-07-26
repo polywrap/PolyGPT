@@ -74,7 +74,7 @@ export class Agent {
     // Log agent header
     agent._logger.logHeader();
 
-    // Load wraps from library
+    // Learn wraps from library
     await agent._learnWraps();
 
     // Initialize the agent's chat
@@ -311,13 +311,13 @@ export class Agent {
       content: functionCallSummary
     };
 
-    if (name === "LoadWrap") {
+    if (name === "LearnWrap") {
       this._chat.add("persistent", {
         role: "system",
         content: `Loaded Wrap: ${args.name}`
       });
       this._chat.add("temporary", message);
-      this._logger.success(`> Loaded wrap: ${args?.name}\n`);
+      this._logger.success(`> 🧠 Learned a wrap: ${args?.name} \n`);
     } else {
       this._chat.add("temporary", message);
       this._logger.action(message);
