@@ -1,3 +1,5 @@
 {
   "wraps": ["ethers", "http", "ipfs", "filesystem", "web-scraper", "ens", "safe-factory", "safe-manager"]
 }
+
+Look up my ethereum address,  then create an ethereum transaction to send 10% of my funds to the 0x0a083b47e4270be3467e16540380b130a6d9a09f gnosis safe, finally use the safe manager wrap to create a transaction to send that back to me. You'll need to create the transaction, sign it and then approve it. Please begin with a simple step by step plan of what you are going to do before executing it.

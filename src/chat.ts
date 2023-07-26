@@ -108,7 +108,7 @@ export class Chat {
     }
 
     // Move onto "persistent" messages
-    await this._summarize("persistent");
+    //await this._summarize("persistent");
   }
 
   private _chunk(msg: Message): MessageLog {
@@ -161,6 +161,7 @@ export class Chat {
 
     const tokens = gpt2.encode(message.content || "").length;
 
+    console.log("HERERHERHERH", message.content, tokens);
     this._msgLogs[msgType] = {
       tokens,
       msgs: [message]

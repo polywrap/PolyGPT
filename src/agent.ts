@@ -5,7 +5,7 @@ import {
 } from "./sys";
 import {
   WrapLibrary,
-    getWrapClient
+  getWrapClient
 } from "./wrap";
 import {
   Chat,
@@ -131,7 +131,6 @@ export class Agent {
       // Fetch the root "index" file
       const wrapIndex = await this._library.getIndex();
       this._wraps = await this._library.getWraps(wrapIndex.wraps);
-
 
       // Log the names of all known wraps and save the wrap descriptions
       const knownWraps = JSON.stringify(wrapIndex.wraps, null, 2);

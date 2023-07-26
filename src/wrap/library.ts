@@ -21,8 +21,6 @@ export namespace WrapLibrary {
     }[]
   }
 
-
-
   export interface Wrap extends WrapData {
     name: string;
   }
