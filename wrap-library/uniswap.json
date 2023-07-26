@@ -1,7 +1,7 @@
 {
   "aliases": ["uniswap", "uni", "uniswap-v3"],
   "description": "Get token prices, liquidity, and other data from Uniswap v3. Swap tokens and wrap ether with this wrap.",
-  "uri": "plugin/file-system@1.0.0",
+  "uri": "ipfs/QmUGTMYE1upBBFGh4TLMDR6BKWK3TtPLMdzAiuLdUeQYVD",
   "abi": "https://raw.githubusercontent.com/polywrap/uniswap/main/v3/wrap/src/schema.graphql",
   "repo": "https://github.com/polywrap/uniswap/tree/main/v3"
 }
