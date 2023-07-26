@@ -75,7 +75,7 @@ export class Agent {
     agent._logger.logHeader();
 
     // Load wraps from library
-    await agent._loadWraps();
+    await agent._learnWraps();
 
     // Initialize the agent's chat
     agent._initializeChat();
@@ -120,7 +120,7 @@ export class Agent {
     }
   }
 
-  private async _loadWraps(): Promise<void> {
+  private async _learnWraps(): Promise<void> {
     this._logger.notice(
       `> Fetching wrap library index @ ${env().WRAP_LIBRARY_URL}\n`
     );
@@ -311,13 +311,13 @@ export class Agent {
       content: functionCallSummary
     };
 
-    if (name === "LoadWrap") {
+    if (name === "LearnWrap") {
       this._chat.add("persistent", {
         role: "system",
         content: `Loaded Wrap: ${args.name}`
       });
       this._chat.add("temporary", message);
-      this._logger.success(`> Loaded wrap: ${args?.name}\n`);
+      this._logger.success(`> Learnt wrap: ${args?.name}\n`);
     } else {
       this._chat.add("temporary", message);
       this._logger.action(message);

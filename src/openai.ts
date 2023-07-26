@@ -76,11 +76,11 @@ export const functionDescriptions = [
     },
   },
   {
-    name: "LoadWrap",
+    name: "LearnWrap",
     description: `A function to fetch the graphql schema for method analysis and introspection. 
                   It receives a wrap name.
                   For example
-                  Function = LoadWrap
+                  Function = LearnWrap
                   Arguments = Options {
                     name: <Wrap Name Here>
                   }`,
@@ -121,7 +121,7 @@ export const functions = (
       };
     }
   },
-  LoadWrap: async ({ name }: { name: string }) => {
+  LearnWrap: async ({ name }: { name: string }) => {
     try {
       const wrapInfo = await library.getWrap(name);
       const { data: wrapSchemaString } = await axios.get<string>(wrapInfo.abi);
