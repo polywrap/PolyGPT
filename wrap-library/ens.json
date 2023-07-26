@@ -2,5 +2,5 @@
   "aliases": ["ens", "ethereum name service", ".eth"],
   "description": "The Ethereum Name Service (ENS) registry, enabling the reading & registration of .eth domains",
   "uri": "ipfs/QmbESzCRArrazFff9EbDeZ44fmENBZfVBkG7AMrAvjevQL",
-  "abi": "https://raw.githubusercontent.com/polywrap/ens/main/src/schema.graphql"
+  "abi": "https://raw.githubusercontent.com/polywrap/ens/main/polywrap.graphql"
 }
