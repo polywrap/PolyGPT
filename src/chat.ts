@@ -161,7 +161,6 @@ export class Chat {
 
     const tokens = gpt2.encode(message.content || "").length;
 
-    console.log("HERERHERHERH", message.content, tokens);
     this._msgLogs[msgType] = {
       tokens,
       msgs: [message]
