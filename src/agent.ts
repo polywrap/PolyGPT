@@ -215,7 +215,7 @@ export class Agent {
         messages: this._chat.messages,
         functions: functionDescriptions,
         temperature: 0,
-        max_tokens: 500
+        max_tokens: Number(env().OPENAI_API_KEY)
       });
 
       this._logger.spinner.stop();
