@@ -71,7 +71,9 @@ PolyGPT keeps an up-to-date version of all messages being sent to the OpenAI API
 
 ## GPT-4
 
-While using the `gpt-3.5-turbo-0613` model will work, we highly recommend using the `gpt-4-0613` model. It will double the context window size to 8k tokens. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
+While using the `gpt-3.5-turbo-0613` model will work, we highly recommend using the `gpt-4-0613` model or the `gpt-3.5-turbo-16k-0613` model. They will increase the context window size to 8k tokens. 
+
+While the GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability), the `gpt-3.5-turbo-16k-0613` model should be generally available.
 
 ## Ethereum Integrations
 
