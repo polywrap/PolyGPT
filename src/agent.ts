@@ -316,6 +316,8 @@ export class Agent {
     };
 
     if (name === "LearnWrap") {
+      const wrapDescription = this._knownWraps[args?.name];
+
       this._chat.add("persistent", {
         role: "system",
         content: `Loaded Wrap: ${args.name}\nDescription: ${wrapDescription}`
