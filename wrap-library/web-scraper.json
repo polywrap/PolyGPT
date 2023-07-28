@@ -2,5 +2,7 @@
   "aliases": ["internet", "scraper"],
   "description": "Query the internet and scrape its contents",
   "uri": "ipfs/QmXKA6qc3TMiBZn5DyydYwdc9o2uSShqFdV7yTgYjF2xdu",
-  "abi": "https://raw.githubusercontent.com/polywrap/web-scraper/master/polywrap.graphql"
+  "abi": "https://raw.githubusercontent.com/polywrap/web-scraper/master/polywrap.graphql",
+  "repo": "https://github.com/polywrap/web-scraper"
+
 }

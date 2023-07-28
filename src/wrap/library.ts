@@ -10,6 +10,7 @@ export namespace WrapLibrary {
     description: string;
     uri: string;
     abi: string;
+    repo: string;
     examplePrompts: {
       prompt: string;
       result: {

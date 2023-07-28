@@ -21,7 +21,13 @@ export function getWrapClient(
     .setPackage(
       Sys.bundle.fileSystem.uri,
       workspacePlugin(workspace)({}) as IWrapPackage
-    );
+    ) 
+    .addEnv("ipfs/Qmf9mRhNvKN1wfN52VdiZkjQiRw1WWEBYnwkuwzFg1ZjQn", { 
+      safeAddress: "0x0a083b47e4270be3467e16540380b130a6d9a09f", 
+      connection: { 
+        networkNameOrChainId: "goerli", 
+      },
+    });
 
   if (ethereumPrivateKey) {
     builder.setPackages({
