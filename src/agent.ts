@@ -35,7 +35,7 @@ export class Agent {
   private _wraps: WrapLibrary.Wrap[];
   private _library: WrapLibrary.Reader;
   private _client: PolywrapClient;
-
+  private _knownWraps: { [key: string]: {description: string, repo: string} };
   // If the agent executed a function last iteration
   private _executedLastIteration = false;
 
@@ -62,6 +62,8 @@ export class Agent {
       env().WRAP_LIBRARY_URL,
       env().WRAP_LIBRARY_NAME
     );
+    this._knownWraps = {};
+
     this._client = getWrapClient(
       this._workspace,
       env().ETHEREUM_PRIVATE_KEY
@@ -74,7 +76,7 @@ export class Agent {
     // Log agent header
     agent._logger.logHeader();
 
-    // Load wraps from library
+    // Learn wraps from library
     await agent._learnWraps();
 
     // Initialize the agent's chat
@@ -130,11 +132,13 @@ export class Agent {
       const wrapIndex = await this._library.getIndex();
       this._wraps = await this._library.getWraps(wrapIndex.wraps);
 
-      // Log the names of all known wraps
+      // Log the names of all known wraps and save the wrap descriptions
       const knownWraps = JSON.stringify(wrapIndex.wraps, null, 2);
-      this._logger.success(
-        `Known Wraps:\n${knownWraps}`
-      );
+      this._logger.success(`Known Wraps:\n${knownWraps}`);
+      for (let wrap of this._wraps) {
+        // Save the wrap, its description and repo
+        this._knownWraps[wrap.name] = {"description":wrap.description, "repo":wrap.repo};
+      }
     } catch (err) {
       this._logger.error("Failed to load wrap library.", err);
     }
@@ -211,7 +215,7 @@ export class Agent {
         messages: this._chat.messages,
         functions: functionDescriptions,
         temperature: 0,
-        max_tokens: 500
+        max_tokens: Number(env().OPENAI_API_KEY)
       });
 
       this._logger.spinner.stop();
@@ -312,12 +316,14 @@ export class Agent {
     };
 
     if (name === "LearnWrap") {
+      const wrapDescription = this._knownWraps[args?.name];
+
       this._chat.add("persistent", {
         role: "system",
-        content: `Loaded Wrap: ${args.name}`
+        content: `Loaded Wrap: ${args.name}\nDescription: ${wrapDescription}`
       });
       this._chat.add("temporary", message);
-      this._logger.success(`> Learnt wrap: ${args?.name}\n`);
+      this._logger.success(`\n> 🧠 Learnt a wrap: ${args?.name}\n> Description: ${wrapDescription["description"]} \n> Repo: ${wrapDescription["repo"]}\n`);
     } else {
       this._chat.add("temporary", message);
       this._logger.action(message);

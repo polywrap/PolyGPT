@@ -9,6 +9,7 @@ export interface Env {
   GPT_MODEL: string;
   CONTEXT_WINDOW_TOKENS: number;
   ETHEREUM_PRIVATE_KEY?: string;
+  MAX_TOKENS_PER_RESPONSE?: number;
 }
 
 let _env: Env | undefined;
@@ -30,7 +31,8 @@ export function env(): Env {
     WRAP_LIBRARY_NAME,
     GPT_MODEL,
     CONTEXT_WINDOW_TOKENS,
-    ETHEREUM_PRIVATE_KEY
+    ETHEREUM_PRIVATE_KEY,
+    MAX_TOKENS_PER_RESPONSE
   } = process.env;
 
   if (!OPENAI_API_KEY) {
@@ -48,6 +50,9 @@ export function env(): Env {
   if (!CONTEXT_WINDOW_TOKENS) {
     throw missingEnvError("CONTEXT_WINDOW_TOKENS");
   }
+  if (!MAX_TOKENS_PER_RESPONSE) {
+    throw missingEnvError("MAX_TOKENS_PER_RESPONSE");
+  }
 
   return {
     OPENAI_API_KEY,
@@ -55,6 +60,7 @@ export function env(): Env {
     WRAP_LIBRARY_NAME,
     GPT_MODEL,
     CONTEXT_WINDOW_TOKENS: Number(CONTEXT_WINDOW_TOKENS),
-    ETHEREUM_PRIVATE_KEY
+    ETHEREUM_PRIVATE_KEY,
+    MAX_TOKENS_PER_RESPONSE: Number(MAX_TOKENS_PER_RESPONSE)
   };
 }
