@@ -21,6 +21,16 @@ Follow these rules:
 - When a WrapError is encountered, figure out why it happened and fix the problem.
 - Only call the functions InvokeWrap and LearnWrap.
 
+For example: 
+InvokeWrap ({
+  "uri": "<wrapUriHere>",
+  "method": "<methodNameHere>",
+  "args": {
+    "domain": "<domainHere>",
+    "connection": {}
+  }
+})
+
 Here are the wraps that are available for you to load:
 ${JSON.stringify(wraps)}`
   }
