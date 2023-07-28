@@ -316,21 +316,12 @@ export class Agent {
     };
 
     if (name === "LearnWrap") {
-
-      interface WrapDescription {
-        description: string;
-        repo: string;
-      }
-
-      // Retrieve the wrap description
-      const wrapDescription: WrapDescription = this._knownWraps[args?.name] || 'No description available';
-    
       this._chat.add("persistent", {
         role: "system",
         content: `Loaded Wrap: ${args.name}\nDescription: ${wrapDescription}`
       });
       this._chat.add("temporary", message);
-      this._logger.success(`\n> 🧠 Learned a wrap: ${args?.name}\n> Description: ${wrapDescription["description"]} \n> Repo: ${wrapDescription["repo"]}\n`);
+      this._logger.success(`\n> 🧠 Learnt a wrap: ${args?.name}\n> Description: ${wrapDescription["description"]} \n> Repo: ${wrapDescription["repo"]}\n`);
     } else {
       this._chat.add("temporary", message);
       this._logger.action(message);

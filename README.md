@@ -4,7 +4,7 @@
 
 ![learning-agent](./imgs/learning-agent.png)
 
-Learning is accomplished by utilizing [wraps](https://docs.polywrap.io/concepts/wraps): portable modules that get downloaded and executed at run-time.
+Learning is accomplished via [wraps](https://docs.polywrap.io/concepts/wraps): utility modules that the agent can import at run-time.
 
 Whenever the agent is unable to accomplish a task, it searches for a wrap that may contain the functionality it is missing. These wraps are discovered within a ["wrap library"](./wrap-library/): a collection of simple JSON files describing wraps that can be downloaded. Wrap libraries can be published as stand-alone repositories, allowing multiple developers to collaborate on new collections of capabilities that agents can make use of.
 
@@ -71,7 +71,9 @@ PolyGPT keeps an up-to-date version of all messages being sent to the OpenAI API
 
 ## GPT-4
 
-While using the `gpt-3.5-turbo-0613` model will work, we highly recommend using the `gpt-4-0613` model. It will double the context window size to 8k tokens. The GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability).
+While using the `gpt-3.5-turbo-0613` model will work, we highly recommend using the `gpt-4-0613` model or the `gpt-3.5-turbo-16k-0613` model. They will increase the context window size to 8k tokens. 
+
+While the GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability), the `gpt-3.5-turbo-16k-0613` model should be generally available.
 
 ## Ethereum Integrations
 

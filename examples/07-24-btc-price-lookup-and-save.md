@@ -29,7 +29,7 @@ Known Wraps:
 **System**: Do you wish to execute the following function?
 
 ```
-LoadWrap ({
+LearnWrap ({
   "name": "http"
 })
 ```
@@ -38,7 +38,7 @@ LoadWrap ({
 
 **User**: y
 
-> Loaded wrap: http
+> Learnt wrap: http
 
 
 **Assistant**: To get the Bitcoin price from coindesk using the `http` wrap, you can use the `get` method of the `Module` type.
@@ -104,7 +104,7 @@ Result:
 **System**: Do you wish to execute the following function?
 
 ```
-LoadWrap ({
+LearnWrap ({
   "name": "filesystem"
 })
 ```
@@ -113,7 +113,7 @@ LoadWrap ({
 
 **User**: y
 
-> Loaded wrap: filesystem
+> Learnt wrap: filesystem
 
 
 **System**: Do you wish to execute the following function?

@@ -29,7 +29,7 @@ Known Wraps:
 **System**: Do you wish to execute the following function?
 
 ```
-LoadWrap ({
+LearnWrap ({
   "name": "web-scraper"
 })
 ```
@@ -38,7 +38,7 @@ LoadWrap ({
 
 **User**: y
 
-> Loaded wrap: web-scraper
+> Learnt wrap: web-scraper
 
 **System**: Do you wish to execute the following function?
 
@@ -74,7 +74,7 @@ Result:
 **System**: Do you wish to execute the following function?
 
 ```
-LoadWrap ({
+LearnWrap ({
   "name": "filesystem"
 })
 ```
@@ -83,7 +83,7 @@ LoadWrap ({
 
 **User**: y
 
-> Loaded wrap: filesystem
+> Learnt wrap: filesystem
 
 **System**: Do you wish to execute the following function?
 
