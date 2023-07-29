@@ -21,14 +21,11 @@ Follow these rules:
 - When a WrapError is encountered, figure out why it happened and fix the problem.
 - Only call the functions InvokeWrap and LearnWrap.
 
-For example: 
+- Take this function call for example: 
 InvokeWrap ({
   "uri": "<wrapUriHere>",
   "method": "<methodNameHere>",
-  "args": {
-    "domain": "<domainHere>",
-    "connection": {}
-  }
+  "args": {...}
 })
 
 Here are the wraps that are available for you to load:
