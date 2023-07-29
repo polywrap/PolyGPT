@@ -1,7 +1,7 @@
 {
-    "aliases": ["safe manager", "safe management"],
-    "description": "The Gnosis Safe Manager wrap allows you to interact with safes that have already been deployed with the safe-deplploy wrap.",
-    "uri": "ipfs/Qmf9mRhNvKN1wfN52VdiZkjQiRw1WWEBYnwkuwzFg1ZjQn",
-    "abi": "https://raw.githubusercontent.com/polywrap/safe-contracts-wrapper/main/packages/safe-managers-wrapper/src/schema.graphql",
-    "repo": "https://github.com/polywrap/safe-contracts-wrapper"
-  }
+  "aliases": ["safe manager", "safe management"],
+  "description": "The Gnosis Safe Manager wrap allows you to interact with safes that have already been deployed with the safe-deplploy wrap.",
+  "uri": "ipfs/Qmf9mRhNvKN1wfN52VdiZkjQiRw1WWEBYnwkuwzFg1ZjQn",
+  "abi": "https://raw.githubusercontent.com/polywrap/safe-contracts-wrapper/main/packages/safe-managers-wrapper/src/schema.graphql",
+  "repo": "https://github.com/polywrap/safe-contracts-wrapper"
+}
