@@ -34,6 +34,10 @@ export namespace WrapLibrary {
       public name: string
     ) { }
 
+    get wraps(): Record<string, Wrap> {
+      return this._wraps;
+    }
+
     async getIndex(): Promise<Index> {
       if (this._index) {
         return this._index;
@@ -63,6 +67,12 @@ export namespace WrapLibrary {
 
     async getWraps(names: string[]): Promise<Wrap[]> {
       return Promise.all(names.map((name) => this.getWrap(name)))
+    }
+
+    async loadWraps(): Promise<Index> {
+      const index = await this.getIndex();
+      await this.getWraps(index.wraps);
+      return index;
     }
   }
 }
