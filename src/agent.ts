@@ -36,6 +36,7 @@ export class Agent {
   private _library: WrapLibrary.Reader;
   private _client: PolywrapClient;
   private _knownWraps: { [key: string]: {description: string, repo: string} };
+
   // If the agent executed a function last iteration
   private _executedLastIteration = false;
 
@@ -215,7 +216,7 @@ export class Agent {
         messages: this._chat.messages,
         functions: functionDescriptions,
         temperature: 0,
-        max_tokens: Number(env().OPENAI_API_KEY)
+        max_tokens: env().MAX_TOKENS_PER_RESPONSE
       });
 
       this._logger.spinner.stop();

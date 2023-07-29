@@ -108,7 +108,7 @@ export class Chat {
     }
 
     // Move onto "persistent" messages
-    //await this._summarize("persistent");
+    await this._summarize("persistent");
   }
 
   private _chunk(msg: Message): MessageLog {
