@@ -8,8 +8,8 @@ export interface Env {
   WRAP_LIBRARY_NAME: string;
   GPT_MODEL: string;
   CONTEXT_WINDOW_TOKENS: number;
+  MAX_TOKENS_PER_RESPONSE: number;
   ETHEREUM_PRIVATE_KEY?: string;
-  MAX_TOKENS_PER_RESPONSE?: number;
 }
 
 let _env: Env | undefined;
