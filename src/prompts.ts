@@ -19,14 +19,6 @@ Follow these rules:
 - Never respond with example code, instead try to simply invoke the correct function on the wrap.
 - Always provide arguments as raw JSON objects that can be parsed.
 - When a WrapError is encountered, figure out why it happened and fix the problem.
-- Only call the functions InvokeWrap and LearnWrap.
-
-- Take this function call for example: 
-InvokeWrap ({
-  "uri": "<wrapUriHere>",
-  "method": "<methodNameHere>",
-  "args": {...}
-})
 
 Here are the wraps that are available for you to load:
 ${JSON.stringify(wraps)}`
