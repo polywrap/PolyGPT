@@ -84,43 +84,37 @@ export class Agent {
 
     return agent;
   }
-
+  
   public async run(): Promise<void> {
     try {
       while (true) {
-        if (!this._executedLastIteration) {
-          // Ask the user for input
-          await this._askUserForPrompt();
-        }
-
-        // Get a response from the AI
-        const response = await this._askAiForResponse();
-
-        // Process response, and extract function call
-        const functionCall = this._processAiResponse(response);
-
-        if (functionCall) {
-          // Get confirmation from the user
-          const confirmation = await this._askUserForConfirmation(
-            functionCall
-          );
-
-          if (confirmation) {
-            // Execute function calls
-            await this._executeFunctionCall(functionCall);
-          } else {
-            // Execute a NOOP
-            this._executeNoop(functionCall);
-            this._executedLastIteration = false;
+        let response: OpenAIResponse | null = null;
+        let functionCall: OpenAIFunctionCall | undefined = undefined;
+        do {
+          if (!this._executedLastIteration) {
+            // Ask the user for input
+            await this._askUserForPrompt();
           }
-        } else {
-          this._executedLastIteration = false;
-        }
+  
+          // Get a response from the AI
+          response = await this._askAiForResponse();
+  
+          // Process response, and extract function call
+          functionCall = this._processAiResponse(response);
+  
+          if (functionCall) {
+            // Check if the function exists, prompt for approval, and execute
+            await this._executeFunctionIfExists(functionCall);
+          }
+        } while (this._executedLastIteration && functionCall);
+  
+        this._executedLastIteration = false;
       }
     } catch (err) {
       this._logger.error("Unrecoverable error encountered.", err);
     }
   }
+  
 
   private async _learnWraps(): Promise<void> {
     this._logger.notice(
@@ -254,26 +248,26 @@ export class Agent {
   private async _askUserForConfirmation(
     functionCall: OpenAIFunctionCall
   ): Promise<boolean> {
-
-    const functionCallStr =
-      `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
-
     if (this._autoPilotMode) {
+      const functionCallStr =
+        `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
       this._logger.notice("> Running in AutoPilot mode \n");
       this._logger.info(
-        `About to execute the following function:\n\n${functionCallStr}`
+        `Automatically executing the following function:\n\n${functionCallStr}`
       );
-      return Promise.resolve(true);
+      return true; // <== Always return true if in autopilot mode
+    } else {
+      const functionCallStr =
+        `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
+      const query =
+        "Do you wish to execute the following function?\n\n" +
+        `${functionCallStr}\n(Y/N)\n`;
+      const response = await this._logger.question(query);
+    
+      return ["y", "Y", "yes", "Yes", "yy"].includes(response);
     }
-
-    const query =
-      "Do you wish to execute the following function?\n\n" +
-      `${functionCallStr}\n(Y/N)\n`;
-
-    const response = await this._logger.question(query);
-
-    return ["y", "Y", "yes", "Yes", "yy"].includes(response);
   }
+  
 
   private async _executeFunctionCall(
     functionCall: OpenAIFunctionCall
@@ -353,4 +347,32 @@ export class Agent {
     this._chat.add(type, message);
     this._logger.message(message);
   }
+
+  private async _executeFunctionIfExists(
+    functionCall: OpenAIFunctionCall
+  ): Promise<void> {
+    const name = functionCall.name!;
+    const functionToCall = (functions(
+      this._library, 
+      this._client
+    ) as any)[name];
+  
+    if (typeof functionToCall !== 'function') {
+      this._logMessage("system", `The model tried to execute a function (${name}) which is not defined in PolyGPT, only "LearnWrap" and "InvokeWrap" can be called.`);
+      // Set the flag to ask the model again
+      this._executedLastIteration = true;
+      return;
+    }
+  
+    // Prompt for approval, execute the function, and handle the response.
+    const confirmation = await this._askUserForConfirmation(functionCall);
+    if (confirmation) {
+      await this._executeFunctionCall(functionCall);
+    } else {
+      this._executeNoop(functionCall);
+      this._executedLastIteration = false;
+    }
+  }
+  
 }
+
