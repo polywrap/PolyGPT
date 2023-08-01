@@ -281,11 +281,6 @@ export class Agent {
       this._library, 
       this._client
     ) as any)[name];
-
-    if (typeof functionToCall !== 'function') {
-      this._logMessage("system", `Function ${name} is not defined in PolyGPT, only "LearnWrap" and "InvokeWrap" can be called.`);
-      return;
-    }
     
     const response = await functionToCall(args);
 

@@ -108,7 +108,7 @@ export class Chat {
     }
 
     // Move onto "persistent" messages
-    //await this._summarize("persistent");
+    await this._summarize("persistent");
   }
 
   private _chunk(msg: Message): MessageLog {
@@ -198,6 +198,7 @@ export class Chat {
       // Summarize
       const response = await this._openai.createChatCompletion({
         messages: toSummarize,
+        model: "gpt-3.5-turbo-16k-0613",
         temperature: 0,
         max_tokens: this._summaryTokens
       });

@@ -69,11 +69,12 @@ Logs are printed to the console, and to a new file for each run within the `./ch
 
 PolyGPT keeps an up-to-date version of all messages being sent to the OpenAI API in the `./workspace/.msgs` file. All of these messages will be sent to OpenAI on each chat completion. This is useful because as the message log grows, summarizations are performed upon the message history to fit them within a maximum context window token limit.
 
-## GPT-4
+## Model
 
-While using the `gpt-3.5-turbo-0613` model will work, we highly recommend using the `gpt-4-0613` model or the `gpt-3.5-turbo-16k-0613` model. They will increase the context window size to 8k tokens. 
+The model runs on the OpenAI functions API. Also, due to hallucinations coming from the GPT 3.5 model, we have only enabled `gpt-4-0613` model by default. This model also has a context window length of 8k tokens. GPT 3.5 is still used for chunking and summarization
 
-While the GPT 4 model will be available to more accounts [soon](https://openai.com/blog/gpt-4-api-general-availability), the `gpt-3.5-turbo-16k-0613` model should be generally available.
+The GPT 4 model is available for previous users of the OpenAI API who have paid at least one billing cycle. [More info](https://openai.com/blog/gpt-4-api-general-availability)
+
 
 ## Ethereum Integrations
 
