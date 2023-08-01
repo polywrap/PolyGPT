@@ -274,14 +274,14 @@ export class Agent {
   ): Promise<void> {
     const name = functionCall.name!;
     const args = functionCall.arguments
-    ? JSON.parse(functionCall.arguments)
-    : undefined;
+      ? JSON.parse(functionCall.arguments)
+      : undefined;
 
     const functionToCall = (functions(
-      this._library, 
+      this._library,
       this._client
     ) as any)[name];
-    
+
     const response = await functionToCall(args);
 
     this._executedLastIteration = true;
