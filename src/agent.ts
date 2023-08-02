@@ -110,15 +110,11 @@ export class Agent {
 
           if (confirmation) {
             // Execute function calls
-            const output = await this._executeFunctionCall(functionCall);
+            yield* this._executeFunctionCall(functionCall);
             executedFunctionCall = true;
-
-            yield StepOutput.message(output);
           } else {
             // Execute a NOOP
-            let message = this._executeNoop(functionCall);
-
-            yield StepOutput.message(message);
+            yield* this._executeNoop(functionCall);
           }
         } else {
           yield StepOutput.message(response.content ?? "");
@@ -279,9 +275,9 @@ export class Agent {
     return undefined;
   }
 
-  private async _executeFunctionCall(
+  private async* _executeFunctionCall(
     functionCall: OpenAIFunctionCall
-  ): Promise<string> {
+  ): AsyncGenerator<StepOutput, void, string | undefined> {
     const name = functionCall.name!;
     const args = functionCall.arguments
       ? JSON.parse(functionCall.arguments)
@@ -296,12 +292,13 @@ export class Agent {
 
     // If the function call was unsuccessful
     if (!response.ok) {
+      const message = `The function failed, this is the error: ${response.error}`;
       // Record the specifics of the failure
       this._logMessage(
         "system",
         `The function failed, this is the error: ${response.error}`
       );
-      return `The function failed, this is the error: ${response.error}`;
+      yield StepOutput.message(message);
     }
 
     // The function call succeeded, record the results
@@ -329,25 +326,25 @@ export class Agent {
       const output = `\n> 🧠 Learnt a wrap: ${args?.name}\n> Description: ${wrap.description} \n> Repo: ${wrap.repo}\n`;
       this._logger.success(output);
 
-      return output;
+      yield StepOutput.message(output);
     } else {
       this._chat.add("temporary", message);
       this._logger.action(message);
 
-      return message.content ?? "";
+      yield StepOutput.message(message.content ?? "");
     }
   }
 
-  private _executeNoop(
+  private async* _executeNoop(
     functionCall: OpenAIFunctionCall
-  ): string {
+  ): AsyncGenerator<StepOutput, void, string | undefined> {
     const message = `The user asked to not execute the function "${functionCall.name}".`;
     this._logMessage(
       "assistant",
       message
     );
 
-    return message;
+    yield StepOutput.message(message);
   }
 
   private _logMessage(
