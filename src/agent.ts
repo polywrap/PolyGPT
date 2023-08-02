@@ -248,7 +248,6 @@ export class Agent {
     return undefined;
   }
 
-
   private async* _askUserForConfirmation(
     functionCall: OpenAIFunctionCall,
   ): AsyncGenerator<StepOutput, boolean, string | undefined> {
