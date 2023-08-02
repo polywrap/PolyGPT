@@ -134,13 +134,8 @@ export class Agent {
     try {
       while (true) {
         if (askForPrompt) {
-          let response = yield StepOutput.prompt("Prompt: ");
-
-          if (!response) {
-            return RunResult.error("Response is undefined.");
-          }
-          
-          await this._processUserPrompt(response);
+          // Ask the user for input
+          yield* this._askUserForPrompt();
         }
 
         // Get a response from the AI
@@ -150,40 +145,27 @@ export class Agent {
         const functionCall = this._processAiResponse(response);
 
         let executedFunctionCall = false;
-        if (functionCall) {
-          const functionCallStr =
-          `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
-      
-          if (this._autoPilotMode) {
-            this._logger.notice("> Running in AutoPilot mode \n");
-            this._logger.info(
-              `About to execute the following function:\n\n${functionCallStr}`
-            );
-           
-            const output = await this._executeFunctionCall(functionCall);
 
+        if (functionCall) {
+          // Get confirmation from the user
+          let confirmation = yield* this._askUserForConfirmation(functionCall);
+
+          if (confirmation) {
+            // Execute function calls
+            const output = await this._executeFunctionCall(functionCall);
             executedFunctionCall = true;
 
             yield StepOutput.message(output);
           } else {
-            let response = yield StepOutput.question(
-              "Do you wish to execute the following function?\n\n" +
-              `${functionCallStr}\n(Y/N)\n`
-            );
-  
-            if (!response) {
-              return RunResult.error("Response is undefined.");
-            }
-  
-            const result = await this._processResponseAndExecuteFunctionCall(response, functionCall);
-            executedFunctionCall = result.executedFunctionCall;
-  
-            yield StepOutput.message(result.output);
+            // Execute a NOOP
+            let message = this._executeNoop(functionCall);
+
+            yield StepOutput.message(message);
           }
         } else {
           yield StepOutput.message(response.content ?? "");
         }
-      
+
         askForPrompt = !executedFunctionCall && !this._isInAutoPilotMode();
       }
     } catch (err) {
@@ -194,20 +176,46 @@ export class Agent {
     }
   }
 
-  private async _processResponseAndExecuteFunctionCall(
-    response: string, 
-    functionCall: OpenAIFunctionCall
-  ): Promise<{ output: string, executedFunctionCall: boolean }> {
-    const confirmation = ["y", "Y", "yes", "Yes", "yy"].includes(response);
+  private async* _askUserForPrompt(): AsyncGenerator<StepOutput, void, string | undefined> {
+    let response = yield StepOutput.prompt("Prompt: ");
 
-    if (confirmation) {
-      const output = await this._executeFunctionCall(functionCall);
+    if (!response) {
+      throw new Error("User response is undefined.");
+    }
+    
+    // Append to temporary chat history
+    this._chat.add("temporary", {
+      role: "user",
+      content: response
+    });
 
-      return { output, executedFunctionCall: true };
+    this._enterAutoPilotModeIfRequested(response);
+  }
+
+  private async* _askUserForConfirmation(
+    functionCall: OpenAIFunctionCall,
+  ): AsyncGenerator<StepOutput, boolean, string | undefined> {
+    const functionCallStr =
+    `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
+
+    if (this._autoPilotMode) {
+      this._logger.notice("> Running in AutoPilot mode \n");
+      this._logger.info(
+        `About to execute the following function:\n\n${functionCallStr}`
+      );
+      
+      return true;
     } else {
-      this._executeNoop(functionCall);
+      let response = yield StepOutput.question(
+        "Do you wish to execute the following function?\n\n" +
+        `${functionCallStr}\n(Y/N)\n`
+      );
 
-      return { output: "", executedFunctionCall: false };
+      if (!response) {
+        throw new Error("User response is undefined.");
+      }
+
+      return ["y", "Y", "yes", "Yes", "yy"].includes(response);
     }
   }
 
@@ -234,16 +242,6 @@ export class Agent {
         Object.values(this._library.wraps)
       )
     );
-  }
-
-  private async _processUserPrompt(prompt: string): Promise<void> {
-    // Append to temporary chat history
-    this._chat.add("temporary", {
-      role: "user",
-      content: prompt
-    });
-
-    this._enterAutoPilotModeIfRequested(prompt);
   }
 
   private _enterAutoPilotModeIfRequested(prompt: string): void {
@@ -384,11 +382,14 @@ export class Agent {
 
   private _executeNoop(
     functionCall: OpenAIFunctionCall
-  ): void {
+  ): string {
+    const message = `The user asked to not execute the function "${functionCall.name}".`;
     this._logMessage(
       "assistant",
-      `The user asked to not execute the function "${functionCall.name}".`
+      message
     );
+
+    return message;
   }
 
   private _logMessage(
