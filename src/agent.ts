@@ -23,51 +23,9 @@ import * as Prompts from "./prompts";
 
 import { PolywrapClient } from "@polywrap/client-js";
 
-export class RunResult {
-  message?: string;
-  isError?: boolean;
-
-  constructor(message?: string, isError?: boolean) {
-    this.message = message;
-    this.isError = isError;
-  }
-
-  static ok(msg?: string): RunResult {
-    return new RunResult(msg);
-  }
-
-  static error(msg?: string): RunResult {
-    return new RunResult(msg, true);
-  }
-}
-
-export enum PromptType {
-  None,
-  Prompt,
-  Question,
-}
-
-export class StepOutput {
-  message: string;
-  promptType: PromptType;
-
-  constructor(message: string, promptType?: PromptType) {
-    this.message = message;
-    this.promptType = promptType ?? PromptType.None;
-  }
-
-  static message(msg: string): StepOutput {
-    return new StepOutput(msg);
-  }
-
-  static prompt(msg: string): StepOutput {
-    return new StepOutput(msg, PromptType.Prompt);
-  }
-
-  static question(msg: string): StepOutput {
-    return new StepOutput(msg, PromptType.Question);
-  }
-}
+export interface AgentConfig {
+  logger: Logger;
+} 
 
 export class Agent {
   private _logger: Logger;
@@ -82,8 +40,8 @@ export class Agent {
   private _autoPilotCounter = 0;
   private _autoPilotMode = false;
 
-  private constructor({ logger } = { logger: new Logger() }) {
-    this._logger = logger;
+  private constructor(config: AgentConfig) {
+    this._logger = config.logger;
     this._workspace = new Workspace();
 
     this._openai = new OpenAI(
@@ -108,8 +66,8 @@ export class Agent {
     );
   }
 
-  static async create({ logger } = { logger: new Logger() }): Promise<Agent> {
-    const agent = new Agent({ logger });
+  static async create(config: AgentConfig = { logger: new Logger() }): Promise<Agent> {
+    const agent = new Agent(config);
 
     // Log agent header
     agent._logger.logHeader();
@@ -400,5 +358,51 @@ export class Agent {
     const message: Message = { role, content };
     this._chat.add(type, message);
     this._logger.message(message);
+  }
+}
+
+export class RunResult {
+  message?: string;
+  isError?: boolean;
+
+  constructor(message?: string, isError?: boolean) {
+    this.message = message;
+    this.isError = isError;
+  }
+
+  static ok(msg?: string): RunResult {
+    return new RunResult(msg);
+  }
+
+  static error(msg?: string): RunResult {
+    return new RunResult(msg, true);
+  }
+}
+
+export enum PromptType {
+  None,
+  Prompt,
+  Question,
+}
+
+export class StepOutput {
+  message: string;
+  promptType: PromptType;
+
+  constructor(message: string, promptType?: PromptType) {
+    this.message = message;
+    this.promptType = promptType ?? PromptType.None;
+  }
+
+  static message(msg: string): StepOutput {
+    return new StepOutput(msg);
+  }
+
+  static prompt(msg: string): StepOutput {
+    return new StepOutput(msg, PromptType.Prompt);
+  }
+
+  static question(msg: string): StepOutput {
+    return new StepOutput(msg, PromptType.Question);
   }
 }
