@@ -22,6 +22,7 @@ import {
 import * as Prompts from "./prompts";
 
 import { PolywrapClient } from "@polywrap/client-js";
+import { EXIT_COMMAND } from "./constants";
 
 export interface AgentConfig {
   logger: Logger;
@@ -93,7 +94,13 @@ export class Agent {
       while (true) {
         if (askForPrompt) {
           // Ask the user for input
-          yield* this._askUserForPrompt();
+          let shouldExit = yield* this._askUserForPrompt();
+
+          if (shouldExit) {
+            const message = "Exiting...";
+            this._logger.notice(message);
+            return RunResult.ok(message);
+          }
         }
 
         // Get a response from the AI
@@ -155,11 +162,15 @@ export class Agent {
     );
   }
 
-  private async* _askUserForPrompt(): AsyncGenerator<StepOutput, void, string | undefined> {
+  private async* _askUserForPrompt(): AsyncGenerator<StepOutput, boolean, string | undefined> {
     let response = yield StepOutput.prompt("Prompt: ");
 
     if (!response) {
       throw new Error("User response is undefined.");
+    }
+
+    if (response === EXIT_COMMAND) {
+      return true;
     }
     
     // Append to temporary chat history
@@ -169,6 +180,8 @@ export class Agent {
     });
 
     this._enterAutoPilotModeIfRequested(response);
+
+    return false;
   }
 
   private _enterAutoPilotModeIfRequested(prompt: string): void {
