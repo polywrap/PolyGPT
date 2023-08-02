@@ -41,13 +41,19 @@ export class RunResult {
   }
 }
 
+export enum PromptType {
+  None,
+  Prompt,
+  Question,
+}
+
 export class StepOutput {
   message: string;
-  shouldPrompt?: boolean;
+  promptType: PromptType;
 
-  constructor(message: string, shouldPrompt?: boolean) {
+  constructor(message: string, promptType?: PromptType) {
     this.message = message;
-    this.shouldPrompt = shouldPrompt;
+    this.promptType = promptType ?? PromptType.None;
   }
 
   static message(msg: string): StepOutput {
@@ -55,7 +61,11 @@ export class StepOutput {
   }
 
   static prompt(msg: string): StepOutput {
-    return new StepOutput(msg, true);
+    return new StepOutput(msg, PromptType.Prompt);
+  }
+
+  static question(msg: string): StepOutput {
+    return new StepOutput(msg, PromptType.Question);
   }
 }
 
@@ -124,19 +134,57 @@ export class Agent {
     try {
       while (true) {
         if (askForPrompt) {
-          let prompt = yield StepOutput.prompt("Prompt: ");
+          let response = yield StepOutput.prompt("Prompt: ");
 
-          if (!prompt) {
-            return RunResult.error("Prompt is undefined.");
+          if (!response) {
+            return RunResult.error("Response is undefined.");
           }
           
-          await this._processUserPrompt(prompt);
+          await this._processUserPrompt(response);
         }
 
-        let { output, executedFunctionCall } = await this.askAi();
-        askForPrompt = !executedFunctionCall && !this._isInAutoPilotMode();
+        // Get a response from the AI
+        const response = await this._askAiForResponse();
 
-        yield StepOutput.message(output);
+        // Process response, and extract function call
+        const functionCall = this._processAiResponse(response);
+
+        let executedFunctionCall = false;
+        if (functionCall) {
+          const functionCallStr =
+          `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
+      
+          if (this._autoPilotMode) {
+            this._logger.notice("> Running in AutoPilot mode \n");
+            this._logger.info(
+              `About to execute the following function:\n\n${functionCallStr}`
+            );
+           
+            const output = await this._executeFunctionCall(functionCall);
+
+            executedFunctionCall = true;
+
+            yield StepOutput.message(output);
+          } else {
+            let response = yield StepOutput.question(
+              "Do you wish to execute the following function?\n\n" +
+              `${functionCallStr}\n(Y/N)\n`
+            );
+  
+            if (!response) {
+              return RunResult.error("Response is undefined.");
+            }
+  
+            const result = await this._processResponseAndExecuteFunctionCall(response, functionCall);
+            executedFunctionCall = result.executedFunctionCall;
+  
+            yield StepOutput.message(result.output);
+          }
+        } else {
+          yield StepOutput.message(response.content ?? "");
+        }
+      
+        askForPrompt = !executedFunctionCall && !this._isInAutoPilotMode();
       }
     } catch (err) {
       const message = "Unrecoverable error encountered.";
@@ -146,30 +194,20 @@ export class Agent {
     }
   }
 
-  private async askAi(): Promise<{ output: string, executedFunctionCall: boolean }> {
-    // Get a response from the AI
-    const response = await this._askAiForResponse();
+  private async _processResponseAndExecuteFunctionCall(
+    response: string, 
+    functionCall: OpenAIFunctionCall
+  ): Promise<{ output: string, executedFunctionCall: boolean }> {
+    const confirmation = ["y", "Y", "yes", "Yes", "yy"].includes(response);
 
-    // Process response, and extract function call
-    const functionCall = this._processAiResponse(response);
+    if (confirmation) {
+      const output = await this._executeFunctionCall(functionCall);
 
-    if (functionCall) {
-      // Get confirmation from the user
-      const confirmation = await this._askUserForConfirmation(
-        functionCall
-      );
-
-      if (confirmation) {
-        // Execute function calls
-        const output = await this._executeFunctionCall(functionCall);
-        return { output, executedFunctionCall: true };
-      } else {
-        // Execute a NOOP
-        this._executeNoop(functionCall);
-        return { output: "", executedFunctionCall: false };
-      }
+      return { output, executedFunctionCall: true };
     } else {
-      return { output: response.content ?? "", executedFunctionCall: false };
+      this._executeNoop(functionCall);
+
+      return { output: "", executedFunctionCall: false };
     }
   }
 
@@ -283,30 +321,6 @@ export class Agent {
     this._logMessage("assistant", response.content!);
 
     return undefined;
-  }
-
-  private async _askUserForConfirmation(
-    functionCall: OpenAIFunctionCall
-  ): Promise<boolean> {
-
-    const functionCallStr =
-      `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
-
-    if (this._autoPilotMode) {
-      this._logger.notice("> Running in AutoPilot mode \n");
-      this._logger.info(
-        `About to execute the following function:\n\n${functionCallStr}`
-      );
-      return Promise.resolve(true);
-    }
-
-    const query =
-      "Do you wish to execute the following function?\n\n" +
-      `${functionCallStr}\n(Y/N)\n`;
-
-    const response = await this._logger.question(query);
-
-    return ["y", "Y", "yes", "Yes", "yy"].includes(response);
   }
 
   private async _executeFunctionCall(

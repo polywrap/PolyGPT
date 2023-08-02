@@ -1,4 +1,4 @@
-import { Agent } from "./";
+import { Agent, PromptType } from "./";
 import { Logger } from "./sys";
 
 export async function cli(): Promise<void> {
@@ -21,8 +21,14 @@ export async function cli(): Promise<void> {
 
     let output = result.value;
 
-    if (output.shouldPrompt) {
-      prompt = await logger.prompt(output.message);
+    switch (output.promptType) {
+      case PromptType.Prompt:
+        prompt = await logger.prompt(output.message);
+        break;
+      case PromptType.Question:
+        prompt = await logger.question(output.message);
+        break;
+      default:
     }
   }
 }
