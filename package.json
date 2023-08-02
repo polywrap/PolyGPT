@@ -13,6 +13,7 @@
   },
   "scripts": {
     "start": "ts-node src/cli.ts",
+    "api": "ts-node src/api.ts",
     "build": "rimraf build && tsc"
   },
   "dependencies": {

@@ -1,5 +1,4 @@
 import { Agent } from "./";
-import { integrateAgentProtocol } from "./agent-protocol";
 import { Logger } from "./sys";
 
 export async function cli(): Promise<void> {
@@ -10,14 +9,25 @@ export async function cli(): Promise<void> {
     "Please enter your main goal: "
   );
 
-  for await (const _ of agent.run(goal)) {
+  let iterator = agent.run(goal);
+  let prompt: string | undefined;
+
+  while(true) {
+    let result = await iterator.next(prompt);
+  
+    if (result.done) {
+      break;
+    }
+
+    let output = result.value;
+
+    if (output.shouldPrompt) {
+      prompt = await logger.prompt(output.message);
+    }
   }
 }
 
 if (require.main === module) {
-
-  integrateAgentProtocol();
-
   cli()
     .then(() => {
       process.exit();
