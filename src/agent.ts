@@ -130,49 +130,6 @@ export class Agent {
     }
   }
 
-  private async* _askUserForPrompt(): AsyncGenerator<StepOutput, void, string | undefined> {
-    let response = yield StepOutput.prompt("Prompt: ");
-
-    if (!response) {
-      throw new Error("User response is undefined.");
-    }
-    
-    // Append to temporary chat history
-    this._chat.add("temporary", {
-      role: "user",
-      content: response
-    });
-
-    this._enterAutoPilotModeIfRequested(response);
-  }
-
-  private async* _askUserForConfirmation(
-    functionCall: OpenAIFunctionCall,
-  ): AsyncGenerator<StepOutput, boolean, string | undefined> {
-    const functionCallStr =
-    `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
-
-    if (this._autoPilotMode) {
-      this._logger.notice("> Running in AutoPilot mode \n");
-      this._logger.info(
-        `About to execute the following function:\n\n${functionCallStr}`
-      );
-      
-      return true;
-    } else {
-      let response = yield StepOutput.question(
-        "Do you wish to execute the following function?\n\n" +
-        `${functionCallStr}\n(Y/N)\n`
-      );
-
-      if (!response) {
-        throw new Error("User response is undefined.");
-      }
-
-      return ["y", "Y", "yes", "Yes", "yy"].includes(response);
-    }
-  }
-
   private async _learnWraps(): Promise<void> {
     this._logger.notice(
       `> Fetching wrap library index @ ${env().WRAP_LIBRARY_URL}\n`
@@ -196,6 +153,22 @@ export class Agent {
         Object.values(this._library.wraps)
       )
     );
+  }
+
+  private async* _askUserForPrompt(): AsyncGenerator<StepOutput, void, string | undefined> {
+    let response = yield StepOutput.prompt("Prompt: ");
+
+    if (!response) {
+      throw new Error("User response is undefined.");
+    }
+    
+    // Append to temporary chat history
+    this._chat.add("temporary", {
+      role: "user",
+      content: response
+    });
+
+    this._enterAutoPilotModeIfRequested(response);
   }
 
   private _enterAutoPilotModeIfRequested(prompt: string): void {
@@ -273,6 +246,34 @@ export class Agent {
     this._logMessage("assistant", response.content!);
 
     return undefined;
+  }
+
+
+  private async* _askUserForConfirmation(
+    functionCall: OpenAIFunctionCall,
+  ): AsyncGenerator<StepOutput, boolean, string | undefined> {
+    const functionCallStr =
+    `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
+
+    if (this._autoPilotMode) {
+      this._logger.notice("> Running in AutoPilot mode \n");
+      this._logger.info(
+        `About to execute the following function:\n\n${functionCallStr}`
+      );
+      
+      return true;
+    } else {
+      let response = yield StepOutput.question(
+        "Do you wish to execute the following function?\n\n" +
+        `${functionCallStr}\n(Y/N)\n`
+      );
+
+      if (!response) {
+        throw new Error("User response is undefined.");
+      }
+
+      return ["y", "Y", "yes", "Yes", "yy"].includes(response);
+    }
   }
 
   private async* _executeFunctionCall(
