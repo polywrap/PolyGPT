@@ -24,8 +24,6 @@ import * as Prompts from "./prompts";
 import { PolywrapClient } from "@polywrap/client-js";
 
 export class Agent {
-  private _goal: string | undefined;
-
   private _logger: Logger;
   private _workspace: Workspace;
 
@@ -35,14 +33,11 @@ export class Agent {
   private _library: WrapLibrary.Reader;
   private _client: PolywrapClient;
 
-  // If the agent executed a function last iteration
-  private _executedLastIteration = false;
-
   private _autoPilotCounter = 0;
   private _autoPilotMode = false;
 
-  private constructor() {
-    this._logger = new Logger();
+  private constructor({ logger } = { logger: new Logger() }) {
+    this._logger = logger;
     this._workspace = new Workspace();
 
     this._openai = new OpenAI(
@@ -67,8 +62,8 @@ export class Agent {
     );
   }
 
-  static async create(): Promise<Agent> {
-    const agent = new Agent();
+  static async create({ logger } = { logger: new Logger() }): Promise<Agent> {
+    const agent = new Agent({ logger });
 
     // Log agent header
     agent._logger.logHeader();
@@ -82,40 +77,54 @@ export class Agent {
     return agent;
   }
 
-  public async run(): Promise<void> {
+  public async* run(goal: string): AsyncGenerator<void> {
+    this._chat.add("persistent", {
+      role: "user",
+      content: `The user has the following goal: ${goal}`
+    });
+
+    let askForPrompt = false;
+
     try {
       while (true) {
-        if (!this._executedLastIteration) {
-          // Ask the user for input
+        if (askForPrompt) {
           await this._askUserForPrompt();
         }
 
-        // Get a response from the AI
-        const response = await this._askAiForResponse();
-
-        // Process response, and extract function call
-        const functionCall = this._processAiResponse(response);
-
-        if (functionCall) {
-          // Get confirmation from the user
-          const confirmation = await this._askUserForConfirmation(
-            functionCall
-          );
-
-          if (confirmation) {
-            // Execute function calls
-            await this._executeFunctionCall(functionCall);
-          } else {
-            // Execute a NOOP
-            this._executeNoop(functionCall);
-            this._executedLastIteration = false;
-          }
-        } else {
-          this._executedLastIteration = false;
-        }
+        let { executedFunctionCall } = await this.askAi();
+        askForPrompt = !executedFunctionCall;
+        yield;
       }
     } catch (err) {
       this._logger.error("Unrecoverable error encountered.", err);
+      return;
+    }
+  }
+
+  private async askAi(): Promise<{ executedFunctionCall: boolean }> {
+    // Get a response from the AI
+    const response = await this._askAiForResponse();
+
+    // Process response, and extract function call
+    const functionCall = this._processAiResponse(response);
+
+    if (functionCall) {
+      // Get confirmation from the user
+      const confirmation = await this._askUserForConfirmation(
+        functionCall
+      );
+
+      if (confirmation) {
+        // Execute function calls
+        await this._executeFunctionCall(functionCall);
+        return { executedFunctionCall: true };
+      } else {
+        // Execute a NOOP
+        this._executeNoop(functionCall);
+        return { executedFunctionCall: false };
+      }
+    } else {
+      return { executedFunctionCall: false };
     }
   }
 
@@ -144,24 +153,7 @@ export class Agent {
     );
   }
 
-  private async _askUserForGoal(): Promise<void> {
-    const goal = await this._logger.question(
-      "Please enter your main goal: "
-    );
-    this._chat.add("persistent", {
-      role: "user",
-      content: `The user has the following goal: ${goal}`
-    });
-    this._goal = goal;
-  }
-
   private async _askUserForPrompt(): Promise<void> {
-    // If the user has not defined a goal, ask for it
-    if (!this._goal) {
-      await this._askUserForGoal();
-      return;
-    }
-
     // If we're in auto-pilot, don't ask the user
     if (this._autoPilotMode && this._autoPilotCounter > 0) {
       this._autoPilotCounter--;
@@ -282,8 +274,6 @@ export class Agent {
     ) as any)[name];
 
     const response = await functionToCall(args);
-
-    this._executedLastIteration = true;
 
     // If the function call was unsuccessful
     if (!response.ok) {
