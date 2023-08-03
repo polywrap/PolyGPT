@@ -1113,13 +1113,14 @@ aes-js@3.0.0:
   resolved "https://registry.yarnpkg.com/aes-js/-/aes-js-3.0.0.tgz#e21df10ad6c2053295bcbb8dab40b09dbea87e4d"
   integrity sha512-H7wUZRn8WpTq9jocdxQ2c8x2sKo9ZVmzfRE13GiNJXfp7NcKYEdvl3vspKjXox6RIG2VtaRe4JFvxG4rqp2Zuw==
 
-agent-protocol@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/agent-protocol/-/agent-protocol-0.1.1.tgz#a032737c5f4c418342cc41839bad9c056c0de47c"
-  integrity sha512-xv/NdINY8f6d1FBp0YKezbvJ1nSbqaKCJg/SeNkqbvwkVA2Lnox8KVZkVai9S4vI5zXv+TzHCCYvM51pP2nspg==
+agent-protocol@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/agent-protocol/-/agent-protocol-0.1.2.tgz#d0742352336af16678cba2a0ca63a13985a489f7"
+  integrity sha512-oeQi3C2SIQORTUjsRhOn6KmLo/VKr7THdPlCZ0f5ra7kOWJ9pwiEwTQzEuCm5jmvLV9q/Op+/O5lEeFQpgNsfA==
   dependencies:
     express "^4.18.2"
     express-openapi-validator "^5.0.4"
+    js-yaml "^4.1.0"
     uuid "^9.0.0"
 
 ajv-draft-04@^1.0.0:
