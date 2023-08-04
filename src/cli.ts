@@ -3,7 +3,7 @@ import { Logger } from "./sys";
 
 export async function cli(): Promise<void> {
   const logger = new Logger();
-  const agent = await Agent.create({ logger });
+  const agent = await Agent.create({ logger, autoPilot: false });
 
   const goal = await logger.question(
     "Please enter your main goal: "

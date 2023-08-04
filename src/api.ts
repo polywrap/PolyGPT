@@ -11,7 +11,7 @@ Agent.handleTask(async (taskInput: TaskInput | null): Promise<StepHandler> => {
     throw new Error('No task prompt');
   }
 
-  const agent = await PolyGPTAgent.create();
+  const agent = await PolyGPTAgent.create({ autoPilot: true });
   let iterator = agent.run(taskInput);
 
   async function stepHandler(stepInput: StepInput | null): Promise<StepResult> {

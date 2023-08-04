@@ -26,6 +26,7 @@ import { EXIT_COMMAND } from "./constants";
 
 export interface AgentConfig {
   logger: Logger;
+  autoPilot: boolean;
 } 
 
 export class Agent {
@@ -65,10 +66,17 @@ export class Agent {
       this._workspace,
       env().ETHEREUM_PRIVATE_KEY
     );
+
+    if (config.autoPilot) {
+      this._enterAutoPilotMode(Number.MAX_VALUE);
+    }
   }
 
-  static async create(config: AgentConfig = { logger: new Logger() }): Promise<Agent> {
-    const agent = new Agent(config);
+  static async create(config?: Partial<AgentConfig>): Promise<Agent> {
+    const agent = new Agent({
+      logger: config?.logger ?? new Logger(),
+      autoPilot: config?.autoPilot ?? false
+    });
 
     // Log agent header
     agent._logger.logHeader();
@@ -188,13 +196,17 @@ export class Agent {
     // Check if the user has entered the !auto special prompt
     const autoPilotMatch = prompt.match(/^!auto (\d+)$/);
     if (autoPilotMatch) {
-      this._autoPilotCounter = parseInt(autoPilotMatch[1], 10);
-      this._autoPilotMode = true;
-      this._chat.add("temporary", {
-        role: "system",
-        content: "Entering autopilot mode. Please continue with the next step in the plan."
-      });
+      this._enterAutoPilotMode(parseInt(autoPilotMatch[1], 10));
     }
+  }
+
+  private _enterAutoPilotMode(autoPilotCounter: number): void {
+    this._autoPilotCounter = autoPilotCounter;
+    this._autoPilotMode = true;
+    this._chat.add("temporary", {
+      role: "system",
+      content: "Entering autopilot mode. Please continue with the next step in the plan."
+    });
   }
 
   private _isInAutoPilotMode(): boolean {
