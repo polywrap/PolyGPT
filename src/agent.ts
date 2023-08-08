@@ -93,7 +93,7 @@ export class Agent {
   public async* run(goal: string): AsyncGenerator<StepOutput, RunResult, string | undefined> {
     this._chat.add("persistent", {
       role: "user",
-      content: `The user has the following goal: ${goal}. Once achieved, call the onGoalAchieved function on the user wrap.`
+      content: `The user has the following goal: ${goal}. Once you achieve the user's full goal, and only then, call the onGoalAchieved function on the user wrap.`
     });
 
     let askForPrompt = false;

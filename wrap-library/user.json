@@ -3,5 +3,12 @@
   "description": "Enables exiting the agent to communicate with the user.",
   "uri": "plugin/user",
   "abi": "https://raw.githubusercontent.com/polywrap/PolyGPT/nerfzael-agent-protocol/wrap-library/user.graphql",
-  "repo": "https://github.com/polywrap/PolyGPT"
+  "repo": "https://github.com/polywrap/PolyGPT",
+  "examples": [
+    {
+      "method": "onGoalAchieved",
+      "args": {
+      }
+    }
+  ]
 }
