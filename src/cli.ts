@@ -5,7 +5,7 @@ export async function cli(): Promise<void> {
   let goal: string | undefined = process.argv[2];
 
   const logger = new Logger();
-  const agent = await Agent.create({ logger });
+  const agent = await Agent.create({ logger, autoPilot: !!goal });
 
   goal = goal ?? await logger.question(
     "Please enter your main goal: "
