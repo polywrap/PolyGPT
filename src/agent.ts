@@ -75,7 +75,7 @@ export class Agent {
   static async create(config?: Partial<AgentConfig>): Promise<Agent> {
     const agent = new Agent({
       logger: config?.logger ?? new Logger(),
-      autoPilot: config?.autoPilot ?? false
+      autoPilot: config?.autoPilot ?? false,
     });
 
     // Log agent header
@@ -93,7 +93,7 @@ export class Agent {
   public async* run(goal: string): AsyncGenerator<StepOutput, RunResult, string | undefined> {
     this._chat.add("persistent", {
       role: "user",
-      content: `The user has the following goal: ${goal}`
+      content: `The user has the following goal: ${goal}. Once achieved, call the onGoalAchieved function on the goal-achieved wrap.`
     });
 
     let askForPrompt = false;

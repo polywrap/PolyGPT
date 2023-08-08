@@ -1,0 +1,7 @@
+{
+  "aliases": ["goal achieved", "goal finished", "exit"],
+  "description": "Enables exiting the agent once the goal has been achieved.",
+  "uri": "plugin/goal-achieved",
+  "abi": "https://raw.githubusercontent.com/polywrap/PolyGPT/nerfzael-agent-protocol/wrap-library/goal-achieved.graphql",
+  "repo": "https://github.com/polywrap/PolyGPT"
+}

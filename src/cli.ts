@@ -2,10 +2,12 @@ import { Agent, PromptType } from "./";
 import { Logger } from "./sys";
 
 export async function cli(): Promise<void> {
-  const logger = new Logger();
-  const agent = await Agent.create({ logger, autoPilot: false });
+  let goal: string | undefined = process.argv[2];
 
-  const goal = await logger.question(
+  const logger = new Logger();
+  const agent = await Agent.create({ logger });
+
+  goal = goal ?? await logger.question(
     "Please enter your main goal: "
   );
 

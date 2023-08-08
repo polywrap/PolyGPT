@@ -1,0 +1,3 @@
+type Module {
+  onGoalAchieved: Boolean!
+}
