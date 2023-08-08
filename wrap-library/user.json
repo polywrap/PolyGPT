@@ -1,0 +1,7 @@
+{
+  "aliases": ["user", "user communication interface", "user interface"],
+  "description": "Enables exiting the agent to communicate with the user.",
+  "uri": "plugin/user",
+  "abi": "https://raw.githubusercontent.com/polywrap/PolyGPT/nerfzael-agent-protocol/wrap-library/user.graphql",
+  "repo": "https://github.com/polywrap/PolyGPT"
+}
