@@ -1,3 +1,5 @@
 {
-    "workspace": "workspace" 
+    "workspace": "workspace",
+    "entry_path": "agbenchmark.benchmarks"
+ 
 }
