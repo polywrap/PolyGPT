@@ -313,17 +313,22 @@ export class Agent {
       this._client
     ) as any)[name];
 
+    if (!functionToCall) {
+      const message = `The function ${name} does not exist. Are you trying to learn a wrap?`;
+      this._logMessage("system", message);
+      yield StepOutput.message(message);
+      return;
+    }
+
     const response = await functionToCall(args);
 
     // If the function call was unsuccessful
     if (!response.ok) {
       const message = `The function failed, this is the error: ${response.error}`;
       // Record the specifics of the failure
-      this._logMessage(
-        "system",
-        `The function failed, this is the error: ${response.error}`
-      );
+      this._logMessage("system", message);
       yield StepOutput.message(message);
+      return;
     }
 
     // The function call succeeded, record the results
