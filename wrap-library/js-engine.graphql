@@ -1,0 +1,20 @@
+type Module {
+  eval(
+    src: String!
+  ): EvalResult!
+
+  evalWithGlobals(
+    src: String!
+    globals: [GlobalVar!]!
+  ): EvalResult!
+}
+
+type EvalResult {
+  value: JSON
+  error: String
+}
+
+type GlobalVar {
+  name: String!
+  value: JSON!
+}
