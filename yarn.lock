@@ -810,6 +810,11 @@
   resolved "https://registry.yarnpkg.com/@polywrap/result/-/result-0.11.0.tgz#a64af3f419318d2cd0ed797249e1f87af40f0798"
   integrity sha512-FIhVioaNYFWMYuEb8dSHCdtpoXkmJuPsLCI4+GqATBWoEy2v4shlu/ILjVzeo8dk5OPr/MeIrqbt+KlFPUYk1g==
 
+"@polywrap/result@^0.12.0":
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/@polywrap/result/-/result-0.12.0.tgz#8cd72fa989098848b56316dfd7ed428831c5b540"
+  integrity sha512-CdZa21Pa+D9HdxoPwaUoLSlxbBppGiaoldnH4GfbeE/iWOCHQ2qnsVecV+jcQdM9Ih/o+Hpl7cqT5VzV9LEzsA==
+
 "@polywrap/sys-config-bundle-js@0.11.0", "@polywrap/sys-config-bundle-js@~0.11.0":
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@polywrap/sys-config-bundle-js/-/sys-config-bundle-js-0.11.0.tgz#4a1c379c323e281703c5a5174739dc9c93a275c8"
