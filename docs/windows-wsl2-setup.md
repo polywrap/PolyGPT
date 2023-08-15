@@ -30,26 +30,6 @@ https://www.kali.org/docs/general-use/metapackages/
 Launch Kali in terminal:  
 `kali`
 
-Install git & yarn:  
-* [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-* [nodejs & npm](https://nodejs.org/en/download/package-manager#alpine-linux)
-* [yarn](https://classic.yarnpkg.com/lang/en/docs/install/#debian-stable)
-* [nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Follow: "Getting Started"
 
-Clone PolyGPT:  
-`git clone https://github.com/polywrap/PolyGPT.git`
-
-Copy the .env.template file and rename it to .env:  
-`cp .env.template .env`
-
-Find the line that says OPENAI_API_KEY=, and add your unique OpenAI API Key:  
-`OPENAI_API_KEY=sk-...`
-
-Use the correct version of Node.JS:
-`nvm install && nvm use`
-
-Install npm packages:  
-`yarn`
-
-Start the agent:  
-`yarn start`
+Follow the "Getting Started" steps detailed in the root [README](../README.md).
