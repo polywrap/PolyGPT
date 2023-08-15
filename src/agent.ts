@@ -21,7 +21,8 @@ import {
 } from "./openai";
 import * as Prompts from "./prompts";
 
-import { PolywrapClient } from "@polywrap/client-js";
+import { PolywrapClient, Result } from "@polywrap/client-js";
+import { ResultErr, ResultOk } from "@polywrap/result";
 
 export interface AgentConfig {
   logger: Logger;
@@ -124,8 +125,15 @@ export class Agent {
 
           if (confirmation) {
             // Execute function calls
-            yield* this._executeFunctionCall(functionCall);
-            executedFunctionCall = true;
+            const result = yield* this._executeFunctionCall(functionCall);
+            
+            if (result.ok) {
+              executedFunctionCall = true;
+            } else {
+              this._logMessage("system", result.error as string);
+              yield StepOutput.message(result.error as string);
+            }
+
           } else {
             // Execute a NOOP
             yield* this._executeNoop(functionCall);
@@ -302,11 +310,16 @@ export class Agent {
 
   private async* _executeFunctionCall(
     functionCall: OpenAIFunctionCall
-  ): AsyncGenerator<StepOutput, void, string | undefined> {
+  ): AsyncGenerator<StepOutput, Result<undefined, string>, string | undefined> {
     const name = functionCall.name!;
-    const args = functionCall.arguments
-      ? JSON.parse(functionCall.arguments)
-      : undefined;
+    let args;
+    try {
+      args = functionCall.arguments
+        ? JSON.parse(functionCall.arguments)
+        : undefined;
+    } catch(err: any) {
+      return ResultErr(`Could not parse JSON arguments for function: ${name}. Error: ${err.toString()}`);
+    }
 
     const functionToCall = (functions(
       this._library,
@@ -314,21 +327,14 @@ export class Agent {
     ) as any)[name];
 
     if (!functionToCall) {
-      const message = `The function ${name} does not exist. Are you trying to learn a wrap?`;
-      this._logMessage("system", message);
-      yield StepOutput.message(message);
-      return;
+      return ResultErr(`The function ${name} does not exist. Are you trying to learn a wrap?`);
     }
 
     const response = await functionToCall(args);
 
     // If the function call was unsuccessful
     if (!response.ok) {
-      const message = `The function failed, this is the error: ${response.error}`;
-      // Record the specifics of the failure
-      this._logMessage("system", message);
-      yield StepOutput.message(message);
-      return;
+      return ResultErr(`The function failed, this is the error: ${response.error}`);
     }
 
     // The function call succeeded, record the results
@@ -363,6 +369,8 @@ export class Agent {
 
       yield StepOutput.message(message.content ?? "");
     }
+
+    return ResultOk(undefined);
   }
 
   private async* _executeNoop(

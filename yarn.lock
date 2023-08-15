@@ -805,7 +805,7 @@
   resolved "https://registry.yarnpkg.com/@polywrap/result/-/result-0.10.1.tgz#e60122396521fc07edda6951915ada4aaa5f6694"
   integrity sha512-9EoS/JUgKFwRk396lQ+3tDAGbZExsOf26SUG4l41HJv4FZLLLOL5ksppJK8StvjtbpQOIgFls23c83CXzS1hBQ==
 
-"@polywrap/result@0.11.0":
+"@polywrap/result@0.11.0", "@polywrap/result@~0.11.0":
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@polywrap/result/-/result-0.11.0.tgz#a64af3f419318d2cd0ed797249e1f87af40f0798"
   integrity sha512-FIhVioaNYFWMYuEb8dSHCdtpoXkmJuPsLCI4+GqATBWoEy2v4shlu/ILjVzeo8dk5OPr/MeIrqbt+KlFPUYk1g==
