@@ -1,4 +1,7 @@
 import axios from "axios";
+import fs from "fs";
+import path from "path";
+import { isFileSystemUri } from "../utils/isFileSystemUri";
 
 export namespace WrapLibrary {
   interface Index {
@@ -43,10 +46,12 @@ export namespace WrapLibrary {
         return this._index;
       }
 
-      const response = await axios.get<Index>(
-        `${this.url}/index.json`
-      );
-      this._index = response.data;
+      this._index = isFileSystemUri(this.url)
+        ? JSON.parse(fs.readFileSync(`${path.resolve(this.url.slice("file://".length))}/index.json`, "utf8")) as Index
+        : (await axios.get<Index>(
+          `${this.url}/index.json`
+        )).data;
+
       return this._index;
     }
 
@@ -55,8 +60,11 @@ export namespace WrapLibrary {
         return this._wraps[name];
       }
 
-      const response = await axios.get<WrapData>(`${this.url}/${name}.json`);
-      const wrapInfo = response.data;
+      const wrapInfo = isFileSystemUri(this.url)
+        ? JSON.parse(fs.readFileSync(`${path.resolve(this.url.slice("file://".length))}/${name}.json`, "utf8")) as WrapData
+        : (await axios.get<WrapData>(
+          `${this.url}/${name}.json`
+        )).data;
 
       this._wraps[name] = {
         ...wrapInfo,

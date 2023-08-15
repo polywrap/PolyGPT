@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { WrapLibrary } from "./wrap";
 
 import {
@@ -12,6 +14,7 @@ import {
   PolywrapClient
 } from "@polywrap/client-js";
 import axios from "axios";
+import { isFileSystemUri } from "./utils/isFileSystemUri";
 
 export {
   ChatCompletionResponseMessage as OpenAIResponse,
@@ -124,7 +127,9 @@ export const functions = (
   LearnWrap: async ({ name }: { name: string }) => {
     try {
       const wrapInfo = await library.getWrap(name);
-      const { data: wrapSchemaString } = await axios.get<string>(wrapInfo.abi);
+      const wrapSchemaString = isFileSystemUri(wrapInfo.abi)
+        ? fs.readFileSync(`${path.resolve(wrapInfo.abi.slice("file://".length))}`, "utf8")
+        : (await axios.get<string>(wrapInfo.abi)).data;
 
       return {
         ok: true,
