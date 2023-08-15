@@ -22,7 +22,6 @@ import {
 import * as Prompts from "./prompts";
 
 import { PolywrapClient, Result } from "@polywrap/client-js";
-import { EXIT_COMMAND } from "./constants";
 import { ResultErr, ResultOk } from "@polywrap/result";
 
 export interface AgentConfig {
@@ -185,10 +184,10 @@ export class Agent {
       throw new Error("User response is undefined.");
     }
 
-    if (response === EXIT_COMMAND) {
+    if (response === Prompts.EXIT_COMMAND) {
       return true;
     }
-    
+
     // Append to temporary chat history
     this._chat.add("temporary", {
       role: "user",
@@ -202,7 +201,8 @@ export class Agent {
 
   private _enterAutoPilotModeIfRequested(prompt: string): void {
     // Check if the user has entered the !auto special prompt
-    const autoPilotMatch = prompt.match(/^!auto (\d+)$/);
+    const autoPilotRegex = new RegExp(`^${Prompts.AUTO_PILOT_COMMAND} (\d+)$`);
+    const autoPilotMatch = prompt.match(autoPilotRegex);
     if (autoPilotMatch) {
       this._enterAutoPilotMode(parseInt(autoPilotMatch[1], 10));
     }
