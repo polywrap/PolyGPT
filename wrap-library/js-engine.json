@@ -1,0 +1,21 @@
+{
+  "aliases": ["js engine", "javascript engine", "eval js"],
+  "description": "Enables running arbitrary JavaScript code.",
+  "uri": "ipfs/QmQGWzyd6bsbErRgSdNXsDskvy6VTSaLBUYjZK5zDZVZwC",
+  "abi": "file://./wrap-library/js-engine.graphql",
+  "repo": "https://github.com/polywrap/PolyGPT",
+  "examples": [
+    {
+      "method": "eval",
+      "args": {
+        "src": "2 + 2"
+      }
+    },
+    {
+      "method": "eval",
+      "args": {
+        "src": "let x = 2;\nx + 2"
+      }
+    }
+  ]
+}
