@@ -22,6 +22,13 @@ Join the [discord](https://discord.polywrap.io) for help using PolyGPT, or integ
 
 # Getting Started
 
+## Pre-Requisites  
+Please install the following:  
+* [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+* [nodejs & npm](https://nodejs.org/en/download/package-manager#alpine-linux)
+* [yarn](https://classic.yarnpkg.com/lang/en/docs/install/#debian-stable)
+* [nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
 ## Setup  
 
 1. Clone the repository  
