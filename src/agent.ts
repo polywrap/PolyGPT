@@ -23,9 +23,12 @@ import * as Prompts from "./prompts";
 
 import { PolywrapClient } from "@polywrap/client-js";
 
-export class Agent {
-  private _goal: string | undefined;
+export interface AgentConfig {
+  logger: Logger;
+  autoPilot: boolean;
+} 
 
+export class Agent {
   private _logger: Logger;
   private _workspace: Workspace;
 
@@ -35,14 +38,11 @@ export class Agent {
   private _library: WrapLibrary.Reader;
   private _client: PolywrapClient;
 
-  // If the agent executed a function last iteration
-  private _executedLastIteration = false;
-
   private _autoPilotCounter = 0;
   private _autoPilotMode = false;
 
-  private constructor() {
-    this._logger = new Logger();
+  private constructor(config: AgentConfig) {
+    this._logger = config.logger;
     this._workspace = new Workspace();
 
     this._openai = new OpenAI(
@@ -65,10 +65,17 @@ export class Agent {
       this._workspace,
       env().ETHEREUM_PRIVATE_KEY
     );
+
+    if (config.autoPilot) {
+      this._enterAutoPilotMode(Number.MAX_VALUE);
+    }
   }
 
-  static async create(): Promise<Agent> {
-    const agent = new Agent();
+  static async create(config?: Partial<AgentConfig>): Promise<Agent> {
+    const agent = new Agent({
+      logger: config?.logger ?? new Logger(),
+      autoPilot: config?.autoPilot ?? false,
+    });
 
     // Log agent header
     agent._logger.logHeader();
@@ -82,12 +89,25 @@ export class Agent {
     return agent;
   }
 
-  public async run(): Promise<void> {
+  public async* run(goal: string): AsyncGenerator<StepOutput, RunResult, string | undefined> {
+    this._chat.add("persistent", {
+      role: "user",
+      content: `The user has the following goal: ${goal}. Once you achieve the user's full goal, and only then, call the onGoalAchieved function on the user wrap.`
+    });
+
+    let askForPrompt = false;
+
     try {
       while (true) {
-        if (!this._executedLastIteration) {
+        if (askForPrompt) {
           // Ask the user for input
-          await this._askUserForPrompt();
+          let shouldExit = yield* this._askUserForPrompt();
+
+          if (shouldExit) {
+            const message = "Exiting...";
+            this._logger.notice(message);
+            return RunResult.ok(message);
+          }
         }
 
         // Get a response from the AI
@@ -96,26 +116,31 @@ export class Agent {
         // Process response, and extract function call
         const functionCall = this._processAiResponse(response);
 
+        let executedFunctionCall = false;
+
         if (functionCall) {
           // Get confirmation from the user
-          const confirmation = await this._askUserForConfirmation(
-            functionCall
-          );
+          let confirmation = yield* this._askUserForConfirmation(functionCall);
 
           if (confirmation) {
             // Execute function calls
-            await this._executeFunctionCall(functionCall);
+            yield* this._executeFunctionCall(functionCall);
+            executedFunctionCall = true;
           } else {
             // Execute a NOOP
-            this._executeNoop(functionCall);
-            this._executedLastIteration = false;
+            yield* this._executeNoop(functionCall);
           }
         } else {
-          this._executedLastIteration = false;
+          yield StepOutput.message(response.content ?? "");
         }
+
+        askForPrompt = !executedFunctionCall && !this._isInAutoPilotMode();
       }
     } catch (err) {
-      this._logger.error("Unrecoverable error encountered.", err);
+      const message = "Unrecoverable error encountered.";
+      this._logger.error(message, err);
+      
+      return RunResult.error(message);
     }
   }
 
@@ -144,24 +169,47 @@ export class Agent {
     );
   }
 
-  private async _askUserForGoal(): Promise<void> {
-    const goal = await this._logger.question(
-      "Please enter your main goal: "
-    );
-    this._chat.add("persistent", {
-      role: "user",
-      content: `The user has the following goal: ${goal}`
-    });
-    this._goal = goal;
-  }
+  private async* _askUserForPrompt(): AsyncGenerator<StepOutput, boolean, string | undefined> {
+    let response = yield StepOutput.prompt("Prompt: ");
 
-  private async _askUserForPrompt(): Promise<void> {
-    // If the user has not defined a goal, ask for it
-    if (!this._goal) {
-      await this._askUserForGoal();
-      return;
+    if (!response) {
+      throw new Error("User response is undefined.");
     }
 
+    if (response === Prompts.EXIT_COMMAND) {
+      return true;
+    }
+
+    // Append to temporary chat history
+    this._chat.add("temporary", {
+      role: "user",
+      content: response
+    });
+
+    this._enterAutoPilotModeIfRequested(response);
+
+    return false;
+  }
+
+  private _enterAutoPilotModeIfRequested(prompt: string): void {
+    // Check if the user has entered the !auto special prompt
+    const autoPilotRegex = new RegExp(`^${Prompts.AUTO_PILOT_COMMAND} (\d+)$`);
+    const autoPilotMatch = prompt.match(autoPilotRegex);
+    if (autoPilotMatch) {
+      this._enterAutoPilotMode(parseInt(autoPilotMatch[1], 10));
+    }
+  }
+
+  private _enterAutoPilotMode(autoPilotCounter: number): void {
+    this._autoPilotCounter = autoPilotCounter;
+    this._autoPilotMode = true;
+    this._chat.add("temporary", {
+      role: "system",
+      content: "Entering autopilot mode. Please continue with the next step in the plan."
+    });
+  }
+
+  private _isInAutoPilotMode(): boolean {
     // If we're in auto-pilot, don't ask the user
     if (this._autoPilotMode && this._autoPilotCounter > 0) {
       this._autoPilotCounter--;
@@ -170,30 +218,11 @@ export class Agent {
         this._autoPilotMode = false;
         this._autoPilotCounter = 0;
       }
-      return;
+
+      return true;
     }
 
-    // Receive user input
-    const prompt = await this._logger.prompt(
-      "Prompt: "
-    );
-
-    // Append to temporary chat history
-    this._chat.add("temporary", {
-      role: "user",
-      content: prompt
-    });
-
-    // Check if the user has entered the !auto special prompt
-    const autoPilotMatch = prompt.match(/^!auto (\d+)$/);
-    if (autoPilotMatch) {
-      this._autoPilotCounter = parseInt(autoPilotMatch[1], 10);
-      this._autoPilotMode = true;
-      this._chat.add("temporary", {
-        role: "system",
-        content: "Entering autopilot mode. Please continue with the next step in the plan."
-      });
-    }
+    return false;
   }
 
   private async _askAiForResponse(): Promise<OpenAIResponse> {
@@ -244,33 +273,36 @@ export class Agent {
     return undefined;
   }
 
-  private async _askUserForConfirmation(
-    functionCall: OpenAIFunctionCall
-  ): Promise<boolean> {
-
+  private async* _askUserForConfirmation(
+    functionCall: OpenAIFunctionCall,
+  ): AsyncGenerator<StepOutput, boolean, string | undefined> {
     const functionCallStr =
-      `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
+    `\`\`\`\n${functionCall.name} (${functionCall.arguments})\n\`\`\`\n`;
 
     if (this._autoPilotMode) {
       this._logger.notice("> Running in AutoPilot mode \n");
       this._logger.info(
         `About to execute the following function:\n\n${functionCallStr}`
       );
-      return Promise.resolve(true);
+      
+      return true;
+    } else {
+      let response = yield StepOutput.question(
+        "Do you wish to execute the following function?\n\n" +
+        `${functionCallStr}\n(Y/N)\n`
+      );
+
+      if (!response) {
+        throw new Error("User response is undefined.");
+      }
+
+      return ["y", "Y", "yes", "Yes", "yy"].includes(response);
     }
-
-    const query =
-      "Do you wish to execute the following function?\n\n" +
-      `${functionCallStr}\n(Y/N)\n`;
-
-    const response = await this._logger.question(query);
-
-    return ["y", "Y", "yes", "Yes", "yy"].includes(response);
   }
 
-  private async _executeFunctionCall(
+  private async* _executeFunctionCall(
     functionCall: OpenAIFunctionCall
-  ): Promise<void> {
+  ): AsyncGenerator<StepOutput, void, string | undefined> {
     const name = functionCall.name!;
     const args = functionCall.arguments
       ? JSON.parse(functionCall.arguments)
@@ -283,16 +315,15 @@ export class Agent {
 
     const response = await functionToCall(args);
 
-    this._executedLastIteration = true;
-
     // If the function call was unsuccessful
     if (!response.ok) {
+      const message = `The function failed, this is the error: ${response.error}`;
       // Record the specifics of the failure
       this._logMessage(
         "system",
         `The function failed, this is the error: ${response.error}`
       );
-      return;
+      yield StepOutput.message(message);
     }
 
     // The function call succeeded, record the results
@@ -316,20 +347,29 @@ export class Agent {
         content: `Loaded Wrap: ${args.name}\nDescription: ${wrap.description}`
       });
       this._chat.add("temporary", message);
-      this._logger.success(`\n> 🧠 Learnt a wrap: ${args?.name}\n> Description: ${wrap.description} \n> Repo: ${wrap.repo}\n`);
+
+      const output = `\n> 🧠 Learnt a wrap: ${args?.name}\n> Description: ${wrap.description} \n> Repo: ${wrap.repo}\n`;
+      this._logger.success(output);
+
+      yield StepOutput.message(output);
     } else {
       this._chat.add("temporary", message);
       this._logger.action(message);
+
+      yield StepOutput.message(message.content ?? "");
     }
   }
 
-  private _executeNoop(
+  private async* _executeNoop(
     functionCall: OpenAIFunctionCall
-  ): void {
+  ): AsyncGenerator<StepOutput, void, string | undefined> {
+    const message = `The user asked to not execute the function "${functionCall.name}".`;
     this._logMessage(
       "assistant",
-      `The user asked to not execute the function "${functionCall.name}".`
+      message
     );
+
+    yield StepOutput.message(message);
   }
 
   private _logMessage(
@@ -340,5 +380,51 @@ export class Agent {
     const message: Message = { role, content };
     this._chat.add(type, message);
     this._logger.message(message);
+  }
+}
+
+export class RunResult {
+  message?: string;
+  isError?: boolean;
+
+  constructor(message?: string, isError?: boolean) {
+    this.message = message;
+    this.isError = isError;
+  }
+
+  static ok(msg?: string): RunResult {
+    return new RunResult(msg);
+  }
+
+  static error(msg?: string): RunResult {
+    return new RunResult(msg, true);
+  }
+}
+
+export enum PromptType {
+  None,
+  Prompt,
+  Question,
+}
+
+export class StepOutput {
+  message: string;
+  promptType: PromptType;
+
+  constructor(message: string, promptType?: PromptType) {
+    this.message = message;
+    this.promptType = promptType ?? PromptType.None;
+  }
+
+  static message(msg: string): StepOutput {
+    return new StepOutput(msg);
+  }
+
+  static prompt(msg: string): StepOutput {
+    return new StepOutput(msg, PromptType.Prompt);
+  }
+
+  static question(msg: string): StepOutput {
+    return new StepOutput(msg, PromptType.Question);
   }
 }

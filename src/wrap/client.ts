@@ -10,6 +10,7 @@ import * as Sys from "@polywrap/sys-config-bundle-js";
 import { dateTimePlugin } from "@polywrap/datetime-plugin-js";
 import * as EthProvider from "@polywrap/ethereum-provider-js";
 import { Wallet } from "ethers"
+import { PluginPackage } from "@polywrap/plugin-js";
 
 export function getWrapClient(
   workspace: Workspace,
@@ -27,7 +28,13 @@ export function getWrapClient(
       connection: { 
         networkNameOrChainId: "goerli", 
       },
-    });
+    })
+    .setPackage("plugin/user", PluginPackage.from(module => ({
+      onGoalAchieved: async () => {
+        console.log("Goal achieved!");
+        process.exit(0);
+      }
+    })));
 
   if (ethereumPrivateKey) {
     builder.setPackages({

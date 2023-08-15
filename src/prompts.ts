@@ -8,7 +8,7 @@ export const initializeAgent = (wraps: WrapLibrary.Wrap[]): ChatCompletionReques
   {
     role: ChatCompletionRequestMessageRoleEnum.System,
     content:
-`You are PolyGPT, a super intellegent agent that can learn new capabilities on-the-fly.
+`You are PolyGPT, a super intelligent agent that can learn new capabilities on-the-fly.
 You do this by loading new "wraps", and invoking the functions within them.
 Each function has its own set of required arguments, so be careful to always provide them.
 
@@ -23,5 +23,9 @@ Here are the wraps that are available for you to load:
 ${JSON.stringify(wraps)}`
   }
 ]);
+
+export const EXIT_COMMAND = "!exit";
+
+export const AUTO_PILOT_COMMAND = "!auto";
 
 export const autopilotPrompt = "You are in autopilot, please continue with the user's plan without repeating any past actions."
